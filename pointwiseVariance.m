@@ -23,12 +23,8 @@ for row=1:rows
     pvar(row) = var(data(row,:));
 end
 
-[~,locs] = findpeaks(v,'MinPeakHeight',mean(v));
+[~,locs] = findpeaks(pvar,'MinPeakHeight',mean(pvar));
 assert(not(isempty(locs)),'No maxima found in the pointwise variance!');
-
-% Plot the pointwise variance data and highlight the maxima above the mean
-% value:
-% findpeaks(v,'MinPeakHeight',mean(v));
 
 end
 
