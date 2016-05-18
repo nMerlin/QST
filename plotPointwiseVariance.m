@@ -1,13 +1,18 @@
-function [  ] = plotPointwiseVariance( pvar, filename )
-% PLOTPOINTWISEVARIANCE plots the given pointwise variance data and
-% highlights the maxima that are above the mean value.
+function [  ] = plotPointwiseVariance( data, filename )
+% PLOTPOINTWISEVARIANCE calculates the pointwise variance of DATA, plots
+% the pointwise variance data and highlights the maxima that are above the
+% mean value.
 %
-%   PLOTPOINTWISEVARIANCE(PVAR) Plots the data given by PVAR.
+%   PLOTPOINTWISEVARIANCE(DATA) Plots the data given by PVAR.
 %
-%   PLOTPOINTWISEVARIANCE(PVAR, FILENAME) Plots the data in PVAR and
+%   PLOTPOINTWISEVARIANCE(DATA, FILENAME) Plots the data in PVAR and
 %   outputs the resulting graph to FILENAME. Does the filename include an
 %   extenstion, this will be used as the filetype. If not, 'png' is the
 %   standard filetype.
+%   
+%   See also: POINTWISEVARIANCE
+
+[~,pvar] = pointwiseVariance(data);
 
 assert(isvector(pvar),'PVAR is not a vector!');
 findpeaks(pvar,'MinPeakHeight',mean(pvar));
