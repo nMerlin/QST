@@ -1,18 +1,34 @@
-function [ locs, v ] = pointwiseVariance( data )
-%POINTWISEVARIANCE 
-s = size(data);
-v = zeros(s(1),1);
+function [ locs, pvar ] = pointwiseVariance( data )
+% POINTWISEVARIANCE  Calculates the pointwise variance of the given data
+% arrays. The input DATA is a matrix and each column is treated as a
+% separate data array. The algorithm removes the dc-offset before the
+% calculation.
+%
+%   LOCS = POINTWISEVARIANCE(DATA) Returns the locations of the pointwise
+%   variance maxima (as indices) that sit above the mean value.
+%
+%   [LOCS,PVAR] = POINTWISEVARIANCE(DATA) Additionally outputs the array
+%   PVAR which consists of the pointwise variance data points.
 
-for i=1:s(2)
-    data(:,i) = data(:,i) - mean(data(:,i));
+assert(ismatrix(data),'DATA is not a matrix!');
+
+[rows,columns] = size(data);
+pvar = zeros(rows,1);
+
+for column=1:columns
+    data(:,column) = data(:,column) - mean(data(:,column));
 end
 
-for i=1:s(1)
-    v(i) = var(data(i,:));
+for row=1:rows
+    pvar(row) = var(data(row,:));
 end
 
-[pks, locs] = findpeaks(v,'MinPeakHeight',mean(v));
-findpeaks(v,'MinPeakHeight',mean(v));
+[~,locs] = findpeaks(v,'MinPeakHeight',mean(v));
+assert(not(isempty(locs)),'No maxima found in the pointwise variance!');
+
+% Plot the pointwise variance data and highlight the maxima above the mean
+% value:
+% findpeaks(v,'MinPeakHeight',mean(v));
 
 end
 
