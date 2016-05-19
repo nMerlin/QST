@@ -16,4 +16,3 @@ assert(stop<(rows+1),'Stop of window is out of range!');
 x_i = sum(points(start:stop))/(stop-start+1);
 
 end
-

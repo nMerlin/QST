@@ -1,34 +1,45 @@
 function [ correlationvalue, X ] = correlation( j, data, locs, window )
-% CORRELATION calculates <X_i X_i+j>
+% CORRELATION calculates <X_i X_i+j>_i for the data arrays given in the
+% columns of DATA.
+%
+% Outpus: CORRELATIONVALUE is the resulting correlation <X_i X_i+j>_i,
+% averaged over all arrays and all locations i in LOCS. X is a matrix
+% containing the extracted normalized sums for all suitable windows in
+% DATA.
+%
+% See also: POINTWISEVARIANCE
 
-% eliminate locations where the window would go outside the boundaries
+% Eliminate locations whose corresponding window would be outside the range
+% of DATA.
 if (locs(1)<ceil(window/2))
     locs = locs(2:end);
 elseif ((length(data)-locs(end))<ceil(window/2))
-    locs = Locs(1:length(locs)-1);
+    locs = locs(1:length(locs)-1);
 end
 
-datasize = size(data);
+[~,columns] = size(data);
 numberOfWindows = length(locs);
-X = zeros(numberOfWindows,datasize(2));
+X = zeros(numberOfWindows,columns);
 correlationvalue = 0;
 
-for n=1:datasize(2)
-    % quadrature vector
-    points = data(:,n);
+for column=1:columns
+    % Compute quadrature vector
+    points = data(:,column);
     points = points - mean(points);
     for i=1:numberOfWindows
-        X(i,n) = x(i, points, locs, window);
+        X(i,column) = computeX(i, points, locs, window);
     end
 
-    % correlations
+    % Compute CORRELATIONVALUE
     i = 1;
     while (i+j)<=numberOfWindows
-        correlationvalue = correlationvalue + X(i,n)*X(i+j,n);
+        correlationvalue = correlationvalue + X(i,column)*X(i+j,column);
         i = i + 1;
     end
 end
-correlationvalue = correlationvalue/((numberOfWindows - j)*n);
+
+% Normalization
+correlationvalue = correlationvalue/((numberOfWindows - j)*columns);
 
 end
 
