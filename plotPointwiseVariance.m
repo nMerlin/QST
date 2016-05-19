@@ -1,14 +1,14 @@
 function [  ] = plotPointwiseVariance( data, filename )
 % PLOTPOINTWISEVARIANCE calculates the pointwise variance of DATA, plots
 % the pointwise variance data and highlights the maxima that are above the
-% mean value.
+% mean value. The columns of DATA are the datasets.
 %
-%   PLOTPOINTWISEVARIANCE(DATA) Plots the data given by PVAR.
+%   PLOTPOINTWISEVARIANCE(DATA) Plots the pointwise variance of DATA.
 %
-%   PLOTPOINTWISEVARIANCE(DATA, FILENAME) Plots the data in PVAR and
-%   outputs the resulting graph to FILENAME. Does the filename include an
-%   extenstion, this will be used as the filetype. If not, 'png' is the
-%   standard filetype.
+%   PLOTPOINTWISEVARIANCE(DATA, FILENAME) Plots the pointwise variance of
+%   DATA and outputs the resulting graph to FILENAME. Does the filename
+%   include an extenstion, this will be used as the filetype. If not, 'png'
+%   is the standard filetype.
 %   
 %   See also: POINTWISEVARIANCE
 
