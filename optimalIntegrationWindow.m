@@ -10,16 +10,14 @@ function [ optimalWindowSize ] = optimalIntegrationWindow(plotFlag, data, locs, 
 %
 %   See also: PARFOR
 
-switch nargin
-    case 4
-        stepSize = 5;
-        minWindowSize = 200;
-        parallel = 0;
-    case 5
-        stepSize = 5;
-        parallel = 0;
-    case 6
-        parallel = 0;
+if (~exist('stepSize', 'var'))
+    stepSize = 5;
+end
+if (~exist('minWindowSize', 'var'))
+    minWindowSize = 200;
+end
+if (~exist('parallel', 'var'))
+    parallel = 0;
 end
 
 windowSizes = minWindowSize:stepSize:maxWindowSize;
