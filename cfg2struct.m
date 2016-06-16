@@ -48,8 +48,10 @@ while ~feof(f)                              % and read until it ends
         Val = strtok(Val, '#');             % remove inline comment
         Val = strtrim(Val);                 % remove spaces before comment
         
-        [val, status] = str2num(Val);       %#ok<ST2NM>
-        if status, Val = val; end           % convert string to number(s)
+        [val, status] = str2num(lower(Val));       %#ok<ST2NM>
+        if status
+            Val = val; % convert string to number(s)
+        end
     end
     
     if ~exist('Section', 'var')             % No section found before
