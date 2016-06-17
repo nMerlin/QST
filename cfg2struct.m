@@ -1,5 +1,5 @@
-function Struct = ini2struct(FileName)
-% Parses .ini file
+function Struct = cfg2struct(FileName)
+% Parses .cfg file
 % Returns a structure with section names, subsection names and keys as fields.
 % 
 % Based on:
@@ -23,7 +23,7 @@ while ~feof(f)                              % and read until it ends
             C = strsplit(s,'.');
             s1 = C{1};
             s2 = C{2};
-            Section = genvarname(strtok(s1(2:end),']'))
+            Section = genvarname(strtok(s1(2:end),']'));
             Subsection = genvarname(strtok(s2(1:end),']'));
             Struct.(Section).(Subsection) = [];
         else
@@ -61,6 +61,5 @@ while ~feof(f)                              % and read until it ends
     else                                   % Section found before, fill it
         Struct.(Section).(genvarname(Key)) = Val;
     end
-
 end
 fclose(f);
