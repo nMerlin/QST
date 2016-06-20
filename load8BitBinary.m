@@ -71,6 +71,7 @@ if exist_timestamps
     fclose(timestampsfileID);
 end
 
+cd('..');
 save('data8bit.mat','-v7.3','data8bit');
 
 end
