@@ -49,18 +49,20 @@ else
 end
 
 % READ TIMESTAMPS
-% 1. When using VI dwTimestampsRead_64.vi (64bit) in LabView:
+% 1. When using VI dwTimestampsRead_64.vi (64bit) in LabView and big-endian ordering:
 % fseek(timestampsfileID,4,'bof');
 % timestamps = fread(timestampsfileID,[2*memsize/segmentsize 1],'uint64=>uint64',0,'s');
 % 2. For Debugging:
-% timestamps = fread(timestampsfileID,[16 2*memsize/segmentsize],'uint8=>uint8');
-% 3. When using VI dwTimestampsRead.vi (32bit) in LabView:
-timestamps_raw = fread(timestampsfileID,[2*memsize/segmentsize 1],'uint64=>uint64',0,'s');
-timestamps_raw(1) = mod(timestamps_raw(1),2^24); %Removing weird bytes in the first timestamp when using 32bit timestamp reading operation in LabView
+% timestamps_raw = fread(timestampsfileID,[16 2*memsize/segmentsize],'uint8=>uint8');
+% 3. When using VI dwTimestampsRead.vi (32bit) in LabView and big-endian ordering:
+% timestamps_raw = fread(timestampsfileID,[2*memsize/segmentsize 1],'uint64=>uint64',0,'s');
+% timestamps_raw(1) = mod(timestamps_raw(1),2^24); %Removing filesize bytes in the first timestamp when using 32bit timestamp reading operation in LabView
+timestamps_raw = fread(timestampsfileID,[2*memsize/segmentsize 1],'uint64=>uint64');
+
 % Removing emtpy values
 timestamps = zeros(memsize/segmentsize, 1, 'uint64');
 for k=1:length(timestamps)
-    timestamps(k)=timestamps_raw((k-1)*2+1);
+   timestamps(k)=timestamps_raw((k-1)*2+1);
 end
 
 % CLOSE ALL OPEN FILES

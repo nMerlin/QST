@@ -2,7 +2,7 @@ function [ correlationvalue, X ] = correlation( j, data, locs, window )
 % CORRELATION calculates <X_i X_i+j>_i for the data arrays given in the
 % columns of DATA.
 %
-% Outpus: CORRELATIONVALUE is the resulting correlation <X_i X_i+j>_i,
+% Outputs: CORRELATIONVALUE is the resulting correlation <X_i X_i+j>_i,
 % averaged over all arrays and all locations i in LOCS. X is a matrix
 % containing the extracted normalized sums for all suitable windows in
 % DATA.

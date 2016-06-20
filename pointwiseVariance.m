@@ -20,7 +20,7 @@ for column=1:columns
 end
 
 for row=1:rows
-    pvar(row) = var(data(row,:));
+    pvar(row) = var(double(data(row,:)));
 end
 
 [~,locs] = findpeaks(pvar,'MinPeakHeight',mean(pvar));
