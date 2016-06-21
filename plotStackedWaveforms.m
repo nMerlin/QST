@@ -13,13 +13,12 @@ function [  ] = plotStackedWaveforms( data, filename )
 assert(ismatrix(data),'DATA is not a matrix!');
 [rows, columns] = size(data);
 
+yvec = zeros(rows,columns);
 for column=1:columns
     y = data(:,column);
-    y = y - mean(y);
-    plot(y,'b');
-    hold on;
+    yvec(:,column) = y - mean(y);
 end
-
+plot(yvec);
 xlabel('time');
 ylabel('voltage');
 
