@@ -59,11 +59,12 @@ end
 
 %CREATE PLOT
 x = 0:maxRandomJitter;
-bar(x, triggereffect(1),'r');
+bar(x(1), triggereffect(1),'r');
 hold on;
 bar(x(2:end),triggereffect(2:end));
 xlabel('First bar: measured value; Further bars: Simulated for uniformly distributed jitter');
 ylabel('Jitter Effect [a.u.]');
+hold off;
 
 %Save plot
 switch nargin
