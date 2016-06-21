@@ -23,7 +23,7 @@ assert(rows < 67000 & columns < 180 ,'Too big data matrix for reasonable calcula
 rdata8bit = zeros(rows-randomJitter,columns);
 for column=1:columns
     shift = randi(randomJitter+1);
-    rdata8bit(:,column)=data8bit(1+(shift-1):end-(randomJitter-shift+1),column);
+    rdata8bit(:,column)=data8bit(1+(shift-1):end-(randomJitter-shift+1),1);
 end
 data8bit = rdata8bit;
 
