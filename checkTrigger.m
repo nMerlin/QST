@@ -59,10 +59,10 @@ end
 
 %CREATE PLOT
 x = 0:maxRandomJitter;
-bar(x(1), triggereffect(1),'r');
+bar(x, triggereffect(1),'r');
 hold on;
 bar(x(2:end),triggereffect(2:end));
-xlabel('0: Real; >0: Simulated uniformly distributed jitter [Samples]');
+xlabel('First bar: measured value; Further bars: Simulated for uniformly distributed jitter');
 ylabel('Jitter Effect [a.u.]');
 
 %Save plot
