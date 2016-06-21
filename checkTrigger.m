@@ -23,7 +23,11 @@ assert(rows < 67000 & columns < 180 ,'Too big data matrix for reasonable calcula
 rdata8bit = zeros(rows-randomJitter,columns);
 for column=1:columns
     shift = randi(randomJitter+1);
-    rdata8bit(:,column)=data8bit(1+(shift-1):end-(randomJitter-shift+1),1);
+    if randomJitter > 0
+        rdata8bit(:,column)=data8bit(1+(shift-1):end-(randomJitter-shift+1),1);
+    else
+        rdata8bit(:,column)=data8bit(1+(shift-1):end-(randomJitter-shift+1),column);
+    end
 end
 data8bit = rdata8bit;
 
@@ -35,7 +39,11 @@ numLags = 2000;
 assert(rows>numLags,'Too few data rows!');
 acf=zeros(numLags,columns);
 for column=1:columns
-    acf(:,column) = autocorr(single(data8bit(:,column)),numLags-1);
+    if randomJitter==0
+        acf(:,column) = autocorr(single(data8bit(:,column)),numLags-1);
+    else
+        acf(:,column) = autocorr(single(data8bit(:,1)),numLags-1);
+    end
 end
 sharpacf = mean(transpose(acf(:,:)));
 [~,~,sharpwidths,~] = findpeaks(sharpacf,'MinPeakHeight',0);
