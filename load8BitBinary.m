@@ -14,6 +14,7 @@ function [ data8bit, config, timestamps ] = load8BitBinary( filename )
 %   consists of the configuration data and TIMESTAMPS is a 1D-array
 %   containing the timestamps of the trigger events.
 
+cd('raw-data');
 % Open the raw-data file, the configuration file and the timestamps file
 assert(exist(filename,'file')==2,['The given file "' filename '" does not exist!']);
 datafileID = fopen(filename);
