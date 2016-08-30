@@ -19,19 +19,24 @@ end
 
 dispstat('','init');
 dispstat('Beginning calculation...','keepthis','timestamp');
-for nVal=0:nMax
-    if parallel==1
-        parfor mVal=0:mMax
-            calcWignerTable(nVal,mVal,directory,minq,maxq,qintstep,'parallel');
-            dispstat('','init');
-            dispstat(strcat('FT(<q+1/2*q''|',int2str(nVal),'>*<',int2str(mVal),'|q-1/2*q''>)',' computed!'),'timestamp','keepthis');
-        end
-    else
-        for mVal=0:mMax
-            dispstat(strcat('Computing',' FT(<q+1/2*q''|',int2str(nVal),'>*<',int2str(mVal),'|q-1/2*q''>)','...'),'timestamp','keepthis');
-            calcWignerTable(nVal,mVal,directory,minq,maxq,qintstep);
-        end
+
+if parallel==1
+    parfor i=0:(nMax+1)*(nMax+1)-1
+        nVal = floor(i/(nMax+1));
+        mVal = mod(i,nMax+1);
+        calcWignerTable(nVal,mVal,directory,minq,maxq,qintstep,'parallel');
+        dispstat('','init');
+        dispstat(strcat('FT(<q+1/2*q''|',int2str(nVal),'>*<',int2str(mVal),'|q-1/2*q''>)',' computed!'),'timestamp','keepthis');
+    end
+else
+    for i=0:(nMax+1)*(nMax+1)-1
+        nVal = floor(i/(nMax+1));
+        mVal = mod(i,nMax+1);
+        dispstat(strcat('Computing',' FT(<q+1/2*q''|',int2str(nVal),'>*<',int2str(mVal),'|q-1/2*q''>)','...'),'timestamp','keepthis');
+        calcWignerTable(nVal,mVal,directory,minq,maxq,qintstep);
     end
 end
+
 dispstat('Calculation finished!','timestamp');
+
 end
