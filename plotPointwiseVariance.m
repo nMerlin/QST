@@ -15,7 +15,7 @@ function [  ] = plotPointwiseVariance( data, filename )
 [~,pvar] = pointwiseVariance(data);
 
 assert(isvector(pvar),'PVAR is not a vector!');
-findpeaks(pvar,'MinPeakHeight',mean(pvar));
+findpeaks(pvar,'MinPeakHeight',mean(pvar),'MinPeakDistance',10);
 
 switch nargin
     case 2
