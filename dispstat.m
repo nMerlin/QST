@@ -36,6 +36,8 @@ keepthis = 0; % option for not overwriting
 keepprev = 0;
 timestamp = 0; % time stamp option
 init = 0; % is it initialization step?
+quiet = 0; % to suppress text output
+notquiet = 0;
 if ~isstr(TXT)
     return
 end
@@ -49,6 +51,9 @@ elseif nargin > 1
     for i = 2:nargin
         eval([varargin{i-1} '=1;']);
     end
+end
+if quiet == 1
+    return
 end
 if init == 1
     prevCharCnt = 0;
