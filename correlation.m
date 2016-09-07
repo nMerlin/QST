@@ -25,7 +25,7 @@ correlationvalue = 0;
 for column=1:columns
     % Compute quadrature vector
     points = data(:,column);
-    points = points - mean(points);
+    %points = points - mean(points);
     for i=1:numberOfWindows
         X(i,column) = computeX(i, points, locs, window);
     end

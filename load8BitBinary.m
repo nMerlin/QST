@@ -1,4 +1,4 @@
-function [ data8bit, config, timestamps ] = load8BitBinary( filename )
+function [ data8bit, config, timestamps ] = load8BitBinary( filename, varargin )
 %LOAD8BITBINARY Loads 8bit binary datafiles, the configuration file and the
 %timestamp file for a single multiple recording measurement with a Spectrum
 %data acquisition card.
@@ -13,6 +13,16 @@ function [ data8bit, config, timestamps ] = load8BitBinary( filename )
 %   to the previously discussed array DATA8BIT, the structure CONFIG
 %   consists of the configuration data and TIMESTAMPS is a 1D-array
 %   containing the timestamps of the trigger events.
+
+% Optional input arguments
+dontsave = 0;
+if nargin == 0
+    return
+elseif nargin > 1
+    for i = 2:nargin
+        eval([varargin{i-1} '=1;']);
+    end
+end
 
 cd('raw-data');
 % Open the raw-data file, the configuration file and the timestamps file
@@ -73,7 +83,9 @@ if exist_timestamps
 end
 
 cd('..');
-save('data8bit.mat','-v7.3','data8bit');
+if dontsave == 0
+    save('data8bit.mat','-v7.3','data8bit');
+end
 
 end
 
