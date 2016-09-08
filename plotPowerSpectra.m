@@ -1,4 +1,4 @@
-function [ response ] = plotPowerSpectra( varargin )
+function [  ] = plotPowerSpectra( varargin )
 %PLOTPOWERSPECTRA Summary of this function goes here
 %   Detailed explanation goes here
 %   Assumes the datafiles in the directory 'raw-data'. The filenames should
@@ -95,8 +95,17 @@ responseAverage = mean(response(startIndex:stopIndex,2));
 electronicNoiseAverage = mean(electronicNoise(startIndex:stopIndex,2));
 clearance = responseAverage - electronicNoiseAverage;
 
+% Calculate the CMRR
+cmrrStart = find(frequencyAxis > 75*1000000,1);
+cmrrStop = find(frequencyAxis > 76*1000000,1);
+cmrrTwoDiodes = response;
+cmrrOneDiode = filteredResponse;
+[peakTwoDiodes,locTwoDiodes]=findpeaks(cmrrTwoDiodes(cmrrStart:cmrrStop,2));
+[peakOneDiode,locOneDiode]=findpeaks(cmrrOneDiode(cmrrStart:cmrrStop,2));
+
 dispstat('Plotting ...','timestamp','keepthis',quiet);
 %%% Plotting
+close all;
 % Plot data curves
 plot(response(:,1)/1000000,response(:,2));
 axis([xMin xMax yMin yMax]);
@@ -124,12 +133,16 @@ set(h,'parent',gca, ...
 
 % Plot inset for CMRR
 insetAx = axes('Parent',gcf,'Position',[0.22 0.6 0.15 0.25]);
-plot(response(:,1)/1000000,response(:,2));
+plot(response(:,1)/1000000,response(:,2),'-k'); %%% ****Not correct datasets ****
+hold on;
+plot(filteredResponse(:,1)/1000000,filteredResponse(:,2),'Color',[0.5 0.5 0.5]);
+hold off;
 set(insetAx,'XLim',[65 85], ...
     'YLim',[-75 -10], ...
     'FontSize',8);
 xlabel('Frequency [MHz]');
 ylabel('HD output power [dBm]');
+title(strcat('CMRR = ',num2str(peakTwoDiodes-peakOneDiode,3),' dBm'));
 
 % Saving figure
 print(outputFilename,outputFiletype);
