@@ -1,8 +1,10 @@
-function [ powerLO, deltaQ ] = plotNoiseDependence( varargin )
+function [ powerLO, deltaQ ] = plotShotNoise( varargin )
 %DETSTANDARDTEST analyses the quadrature data of a detector standard test.
 %   DETSTANDARDTEST('verbose'): Shows log output.
 %   POWERLO: Processed LO powers.
 %   DELTAQ: Calculated distribution widths.
+%   The script assumes that the datafiles are in the 'raw-data' directory.
+%   The filename-convention is '03-0.1mW-*.raw'.
 %
 %   See also LOAD8BITBINARY.
 
@@ -21,10 +23,16 @@ end
 % Parameters & Variables
 windowSize = 40; %Integrationwindow
 fitThreshold = 5; %fitting a*sqrt(x) only for powers >= fitThreshold
-outputFilename = 'shot-noise-plot.jpg'; %name of resulting saved plot
-filetype = '-djpeg';
+wavelength = 800e-9;
+repetitionRate = 75.4e6;
+planck = 6.626070040e-34;
+lightSpeed = 299792458;
+powerConversion = wavelength/(planck*lightSpeed*repetitionRate)...
+    /1000; %from mW to #LO photons per pulse
+outputFilename = 'shot-noise-plot.jpg';
+outputFiletype = '-djpeg';
 
-dataStruct = struct('filename',{},'powerLO',{},'deltaQ',{});
+dataStruct = struct('filename',{},'powerLO',{},'NLO',{},'deltaQ',{});
 
 %%% Create data overview
 dispstat('','init',quiet);
@@ -45,6 +53,7 @@ for name = {rawDataContents.name}
     % Get LO power
     powerToken = regexpi(filename,'-([0123456789.]*)mW','tokens');
     dataStruct(number).powerLO = str2double(cell2mat(powerToken{1}));
+    dataStruct(number).NLO = dataStruct(number).powerLO*powerConversion;
 end
 
 % Get positions for integration from highest LO-power
@@ -62,6 +71,7 @@ parfor number=1:size(dataStruct,2)
 end
 
 %%% Create shot noise plot
+% Process data
 plotX = 0.1:0.1:maxPowerLO;
 deltaQ = cell2mat({dataStruct.deltaQ});
 [~,index] = min(powerLO);
@@ -76,19 +86,40 @@ sqrtFit = fit(fitPowerLO,fitDeltaQ,ft,'StartPoint',5);
 fitY = sqrtFit(plotX);
 
 % Plotting
+figure;
 loglog(powerLO,deltaQ,'o');
 hold on;
 loglog(plotX,fitY);
 loglog(plotX,electronicNoise);
+hold off;
 set(0,'DefaultLegendInterpreter','latex');
 set(0,'DefaultTextInterpreter','latex');
 xlabel('P_{LO} [mW]');
 ylabel('\Delta Q [a. u.]')
-legend('Experimental $\Delta Q$ Data: $\sqrt{Var(Q)}$',strcat('Fit result ($P_{LO} \geq ',num2str(fitThreshold),'$ mW): $',num2str(sqrtFit.a),'*\sqrt{P_{LO}}$'),'Electronic Noise: $\Delta Q(0$ mW$)$','Location','northwest');
-hold off;
+legend('Experimental $\Delta Q$ Data: $\sqrt{Var(Q)}$',...
+    strcat('Fit result ($P_{LO} \geq ',num2str(fitThreshold),...
+    '$ mW): $',num2str(sqrtFit.a),'*\sqrt{P_{LO}}$'),...
+    'Electronic Noise: $\Delta Q(0$ mW$)$','Location','northwest');
+ax1 = gca; % current axes
+ax1Pos = ax1.Position;
+scale = 0.9;
+ax1Pos(2) = ax1Pos(2)+(1-scale)/2*ax1Pos(4);
+ax1Pos(4) = scale*ax1Pos(4);
+set(ax1, 'Position', ax1Pos);
+ax1.Box = 'off';
+ax2 = axes('Position',ax1Pos,...
+    'Box','off',...
+    'XAxisLocation','top',...
+    'XScale','log',...
+    'XLim',[ax1.XLim(1)*powerConversion ax1.XLim(2)*powerConversion],...
+    'YAxisLocation','right',...
+    'YScale','log',...
+    'YLim',ax1.YLim,...
+    'Color','none');
+ax2.XLabel.String = 'N_{LO}';
 
 % Saving figure
-print(outputFilename,filetype);
+print(outputFilename,outputFiletype);
 
 dispstat('Finished!','timestamp',quiet);
 
