@@ -14,7 +14,7 @@ parfor j=1:length(jRange)
 end
 
 %%% Plotting
-clear all;
+close all;
 bar(jRange, correlations);
 for i1=1:numel(correlations)
     text(jRange(i1),correlations(i1),num2str(correlations(i1),'%0.2f'), ...
