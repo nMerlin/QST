@@ -1,4 +1,4 @@
-function [ powerLO, deltaQ ] = plotShotNoise( varargin )
+function [ deltaQ, powerLO ] = plotShotNoise( varargin )
 %DETSTANDARDTEST analyses the quadrature data of a detector standard test.
 %   DETSTANDARDTEST('verbose'): Shows log output.
 %   POWERLO: Processed LO powers.
@@ -85,19 +85,22 @@ ft = fittype('a*sqrt(x)');
 sqrtFit = fit(fitPowerLO,fitDeltaQ,ft,'StartPoint',5);
 fitY = sqrtFit(plotX);
 
+dispstat('Plotting ...','timestamp','keepthis',quiet);
 % Plotting
+close all;
 figure;
 loglog(powerLO,deltaQ,'o');
 hold on;
 loglog(plotX,fitY);
 loglog(plotX,electronicNoise);
 hold off;
+axis tight;
 set(0,'DefaultLegendInterpreter','latex');
 set(0,'DefaultTextInterpreter','latex');
 xlabel('P_{LO} [mW]');
 ylabel('\Delta Q [a. u.]')
 legend('Experimental $\Delta Q$ Data: $\sqrt{Var(Q)}$',...
-    strcat('Fit result ($P_{LO} \geq ',num2str(fitThreshold),...
+    strcat('Fit Result ($P_{LO} \geq ',num2str(fitThreshold),...
     '$ mW): $',num2str(sqrtFit.a),'*\sqrt{P_{LO}}$'),...
     'Electronic Noise: $\Delta Q(0$ mW$)$','Location','northwest');
 ax1 = gca; % current axes
