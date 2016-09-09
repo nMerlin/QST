@@ -20,7 +20,7 @@ end
 [~,columns] = size(data);
 numberOfWindows = length(locs);
 X = zeros(numberOfWindows,columns);
-correlationvalue = 0;
+correlationvalues = zeros(2,2);
 
 for column=1:columns
     % Compute quadrature vector
@@ -32,14 +32,19 @@ for column=1:columns
 
     % Compute CORRELATIONVALUE
     i = 1;
+    A = zeros(1,numberOfWindows-j);
+    B = A;
     while (i+j)<=numberOfWindows
-        correlationvalue = correlationvalue + X(i,column)*X(i+j,column);
+        A(i)=X(i,column);
+        B(i)=X(i+j,column);
         i = i + 1;
     end
+    correlationvalues = correlationvalues + corrcoef(A,B);
 end
 
 % Normalization
-correlationvalue = correlationvalue/((numberOfWindows - j)*columns);
+correlationvalues = correlationvalues./columns;
+correlationvalue = correlationvalues(1,2);
 
 end
 
