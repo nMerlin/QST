@@ -18,7 +18,7 @@ if verbose == 0
 end
 
 % Parameters & Variables
-dataStruct = struct('filename',{},'powerLO',{},'filtered',{});
+dataStruct = struct('filename',{},'powerLO',{},'filtered',{},'singlediode',{});
 fcount = 0;
 outputFilename = 'power-spectra.jpg';
 outputFiletype = '-djpeg';
@@ -48,6 +48,9 @@ for name = {rawDataContents.name}
     
     % Pure or filtered?
     dataStruct(fcount).filtered = not(isempty(regexpi(filename,'filtered','tokens')));
+    
+    % Single diode measurement?
+    dataStruct(fcount).singlediode = not(isempty(regexpi(filename,'single','tokens')));
 end
 
 dispstat('Loading data for plots ...','timestamp','keepthis',quiet);
@@ -82,8 +85,15 @@ for k=1:size(dataStruct,2)
         filteredResponse(:,1) = frequencyAxis;
     elseif dataStruct(k).powerLO == minPower && dataStruct(k).filtered == 0
         electronicNoise = dlmread(dataStruct(k).filename,' ',12,0);
-        length(electronicNoise);
         electronicNoise(:,1) = frequencyAxis;
+    elseif dataStruct(k).powerLO == 0.1 && dataStruct(k).filtered == 0 ...
+            && dataStruct(k).singlediode == 0
+        cmrrTwoDiodes = dlmread(dataStruct(k).filename,' ',12,0);
+        cmrrTwoDiodes(:,1) = frequencyAxis;
+    elseif dataStruct(k).powerLO == 0.1 && dataStruct(k).filtered == 0 ...
+            && dataStruct(k).singlediode == 1
+        cmrrOneDiode = dlmread(dataStruct(k).filename,' ',12,0);
+        cmrrOneDiode(:,1) = frequencyAxis;
     end
 end
 cd('..');
@@ -98,10 +108,8 @@ clearance = responseAverage - electronicNoiseAverage;
 % Calculate the CMRR
 cmrrStart = find(frequencyAxis > 75*1000000,1);
 cmrrStop = find(frequencyAxis > 76*1000000,1);
-cmrrTwoDiodes = response;
-cmrrOneDiode = filteredResponse;
-[peakTwoDiodes,locTwoDiodes]=findpeaks(cmrrTwoDiodes(cmrrStart:cmrrStop,2));
-[peakOneDiode,locOneDiode]=findpeaks(cmrrOneDiode(cmrrStart:cmrrStop,2));
+[peakTwoDiodes,~]=findpeaks(cmrrTwoDiodes(cmrrStart:cmrrStop,2));
+[peakOneDiode,~]=findpeaks(cmrrOneDiode(cmrrStart:cmrrStop,2));
 
 dispstat('Plotting ...','timestamp','keepthis',quiet);
 %%% Plotting
@@ -115,9 +123,10 @@ hold on;
 plot(filteredResponse(:,1)/1000000,filteredResponse(:,2));
 plot(electronicNoise(:,1)/1000000,electronicNoise(:,2));
 hold off;
-legend(strcat('response (',num2str(maxPower,2),' mW)'), ...
-    strcat('filtered response (',num2str(maxPower,2),' mW)'), ...
-    'electronic noise','Location','northeast');
+legend(strcat('Response (',num2str(maxPower,4),' mW)'), ...
+    strcat('Filtered Response (',num2str(maxPower,4),' mW)'), ...
+    strcat('Response (',num2str(minPower),' mW)'), ...
+    'Location','northeast');
 
 % Plot shot noise clearance
 middleIndex = (startIndex + stopIndex)/2;
@@ -133,16 +142,16 @@ set(h,'parent',gca, ...
 
 % Plot inset for CMRR
 insetAx = axes('Parent',gcf,'Position',[0.22 0.6 0.15 0.25]);
-plot(response(:,1)/1000000,response(:,2),'-k'); %%% ****Not correct datasets ****
+plot(cmrrTwoDiodes(:,1)/1000000,cmrrTwoDiodes(:,2),'-k');
 hold on;
-plot(filteredResponse(:,1)/1000000,filteredResponse(:,2),'Color',[0.5 0.5 0.5]);
+plot(cmrrOneDiode(:,1)/1000000,cmrrOneDiode(:,2),'Color',[0.5 0.5 0.5]);
 hold off;
 set(insetAx,'XLim',[65 85], ...
-    'YLim',[-75 -10], ...
+    'YLim',[-90 -10], ...
     'FontSize',8);
 xlabel('Frequency [MHz]');
 ylabel('HD output power [dBm]');
-title(strcat('CMRR = ',num2str(peakTwoDiodes-peakOneDiode,3),' dBm'));
+title(['CMRR = ' num2str(peakOneDiode-peakTwoDiodes,3) ' dBm']);
 
 % Saving figure
 print(outputFilename,outputFiletype);
