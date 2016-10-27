@@ -14,6 +14,7 @@ function [ triggerEffect ] = checkTrigger( data8bit, filename )
 %   FILENAME.
 
 NMAX_RANDOM_JITTER_SAMPLES = 3;
+NROWS_IN_AUTOCORRELATION = 2000;
 
 triggerEffect = zeros(NMAX_RANDOM_JITTER_SAMPLES,1);
 
@@ -37,23 +38,21 @@ data8bit = jitteredData8bit;
 [nRows,nColumns] = size(data8bit);
 
 % Check width of autocorrelation peaks in single data segments
-nLags = 2000;
-assert(nRows>nLags,'Too few data rows!');
-autoCorrelationMatrix=zeros(nLags,nColumns);
+assert(nRows>NROWS_IN_AUTOCORRELATION,'Too few data rows!');
+autoCorrelationMatrix=zeros(NROWS_IN_AUTOCORRELATION,nColumns);
 for iColumns=1:nColumns
     if iRandomJitter==0
-        autoCorrelationMatrix(:,iColumns) = autocorr(single(data8bit(:,iColumns)),nLags-1);
+        autoCorrelationMatrix(:,iColumns) = autocorr(single(data8bit(:,iColumns)),NROWS_IN_AUTOCORRELATION-1);
     else
-        autoCorrelationMatrix(:,iColumns) = autocorr(single(data8bit(:,1)),nLags-1);
+        autoCorrelationMatrix(:,iColumns) = autocorr(single(data8bit(:,1)),NROWS_IN_AUTOCORRELATION-1);
     end
 end
-% Check width of autocorrelation peaks for every single data segment
 sharpAutoCorrelationMatrix = mean(transpose(autoCorrelationMatrix(:,:)));
 [~,~,sharpwidths,~] = findpeaks(sharpAutoCorrelationMatrix,'MinPeakHeight',0);
 
 % Check width of autocorrelation peaks after averaging all data segments
 meandata = mean(transpose(data8bit(:,:)));
-broadacf = autocorr(meandata,nLags-1);
+broadacf = autocorr(meandata,NROWS_IN_AUTOCORRELATION-1);
 [~,~,broadwidths,~] = findpeaks(broadacf,'MinPeakHeight',0);
 
 % Compare widths
