@@ -1,4 +1,4 @@
-function [ triggereffect ] = checkTrigger( data8bit, filename )
+function [ triggerEffect ] = checkTrigger( data8bit, filename )
 %CHECKTRIGGER Check jitter in trigger timing of DATA8BIT.
 %
 %   TRIGGEREFFECT=CHECKTRIGGER(DATA8BIT) First, the autocorrelation for
@@ -13,55 +13,58 @@ function [ triggereffect ] = checkTrigger( data8bit, filename )
 %   functionality, the resulting bar chart of TRIGGEREFFECT is saved to
 %   FILENAME.
 
-maxRandomJitter = 3;
-triggereffect = zeros(maxRandomJitter,1);
+NMAX_RANDOM_JITTER_SAMPLES = 3;
 
-for randomJitter=0:maxRandomJitter
-% RANDOM JITTER
-[rows,columns] = size(data8bit);
-assert(rows < 67000 & columns < 180 ,'Too big data matrix for reasonable calculation time!');
-rdata8bit = zeros(rows-randomJitter,columns);
-for column=1:columns
-    shift = randi(randomJitter+1);
-    if randomJitter > 0
-        rdata8bit(:,column)=data8bit(1+(shift-1):end-(randomJitter-shift+1),1);
+triggerEffect = zeros(NMAX_RANDOM_JITTER_SAMPLES,1);
+
+% Calculate jitter values for artificial jitter
+for iRandomJitter=0:NMAX_RANDOM_JITTER_SAMPLES
+[nRows,nColumns] = size(data8bit);
+
+assert(nRows < 67000 & nColumns < 180 ,'Too big data matrix for reasonable calculation time!');
+jitteredData8bit = zeros(nRows-iRandomJitter,nColumns);
+for iColumns=1:nColumns
+    shift = randi(iRandomJitter+1);
+    if iRandomJitter > 0
+        jitteredData8bit(:,iColumns)=data8bit(1+(shift-1):end-(iRandomJitter-shift+1),1);
     else
-        rdata8bit(:,column)=data8bit(1+(shift-1):end-(randomJitter-shift+1),column);
+        jitteredData8bit(:,iColumns)=data8bit(1+(shift-1):end-(iRandomJitter-shift+1),iColumns);
     end
 end
-data8bit = rdata8bit;
+data8bit = jitteredData8bit;
 
 % CALCULATE TRIGGEREFFECT
-[rows,columns] = size(data8bit);
+[nRows,nColumns] = size(data8bit);
 
 % Check width of autocorrelation peaks in single data segments
-numLags = 2000;
-assert(rows>numLags,'Too few data rows!');
-acf=zeros(numLags,columns);
-for column=1:columns
-    if randomJitter==0
-        acf(:,column) = autocorr(single(data8bit(:,column)),numLags-1);
+nLags = 2000;
+assert(nRows>nLags,'Too few data rows!');
+autoCorrelationMatrix=zeros(nLags,nColumns);
+for iColumns=1:nColumns
+    if iRandomJitter==0
+        autoCorrelationMatrix(:,iColumns) = autocorr(single(data8bit(:,iColumns)),nLags-1);
     else
-        acf(:,column) = autocorr(single(data8bit(:,1)),numLags-1);
+        autoCorrelationMatrix(:,iColumns) = autocorr(single(data8bit(:,1)),nLags-1);
     end
 end
-sharpacf = mean(transpose(acf(:,:)));
-[~,~,sharpwidths,~] = findpeaks(sharpacf,'MinPeakHeight',0);
+% Check width of autocorrelation peaks for every single data segment
+sharpAutoCorrelationMatrix = mean(transpose(autoCorrelationMatrix(:,:)));
+[~,~,sharpwidths,~] = findpeaks(sharpAutoCorrelationMatrix,'MinPeakHeight',0);
 
 % Check width of autocorrelation peaks after averaging all data segments
 meandata = mean(transpose(data8bit(:,:)));
-broadacf = autocorr(meandata,numLags-1);
+broadacf = autocorr(meandata,nLags-1);
 [~,~,broadwidths,~] = findpeaks(broadacf,'MinPeakHeight',0);
 
 % Compare widths
-triggereffect(randomJitter+1) = mean(broadwidths)-mean(sharpwidths);
+triggerEffect(iRandomJitter+1) = mean(broadwidths)-mean(sharpwidths);
 end
 
 %CREATE PLOT
-x = 0:maxRandomJitter;
-bar(x(1), triggereffect(1),'r');
+xValues = 0:NMAX_RANDOM_JITTER_SAMPLES;
+bar(xValues(1), triggerEffect(1),'r');
 hold on;
-bar(x(2:end),triggereffect(2:end));
+bar(xValues(2:end),triggerEffect(2:end));
 xlabel('First bar: measured value; Further bars: Simulated for uniformly distributed jitter');
 ylabel('Jitter Effect [a.u.]');
 hold off;
