@@ -3,7 +3,7 @@ function [ fitParams, fitFunction, exitFlag] = fitSinusodial( x, y )
 %   (x,y) should already be sinusodial for the fit to work properly.
 %   FITPARAMS outputs the fit paramters b of b1*sin(2*pi/b2*x+2*pi/b3)+b4
 %   FITFUNCTION is the function handle of the above fit function
-%   EXITFLAG is the exit status of FMINSEARCH used to find an optimal
+%   EXITFLAG is the exit status of FMINSEARCH used to find optimal
 %   parameters
 %
 % Adapted from Star Strider:
