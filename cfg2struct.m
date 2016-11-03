@@ -48,6 +48,7 @@ while ~feof(f)                              % and read until it ends
         Val = strtok(Val, '#');             % remove inline comment
         Val = strtrim(Val);                 % remove spaces before comment
         
+        Val = strrep(Val, ',', '.'); % replace commas with dots (optional)
         [val, status] = str2num(lower(Val));       %#ok<ST2NM>
         if status
             Val = val; % convert string to number(s)
