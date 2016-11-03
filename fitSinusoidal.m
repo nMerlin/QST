@@ -1,4 +1,4 @@
-function [ fitParams, fitFunction, exitFlag] = fitSinusodial( x, y )
+function [ fitParams, fitFunction, exitFlag] = fitSinusoidal( x, y )
 %fitSinusodial Fits a sine function to a (x,y) dataset
 %   (x,y) should already be sinusodial for the fit to work properly.
 %   FITPARAMS outputs the fit paramters b of b1*sin(2*pi/b2*x+2*pi/b3)+b4
