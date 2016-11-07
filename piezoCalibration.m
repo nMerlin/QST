@@ -44,8 +44,9 @@ for iSegment=1:nSegments
     y = segments(:,iSegment);
     [fitParams, fitFunction] = fitSinusoidal(x, y);
     
-    % Phase values
-    thetaColumn = mod(2*pi/fitParams(2)*x + 2*pi/fitParams(3) + pi/2,2*pi);
+    % Phase values (discretized in 64 steps, may rework this)
+    thetaColumn = round( ...
+        mod(2*pi/fitParams(2)*x + 2*pi/fitParams(3) + pi/2,2*pi),1);
     theta(:,iSegment) = [thetaColumn ...
         NaN(1, lSegments-length(thetaColumn))];
     
