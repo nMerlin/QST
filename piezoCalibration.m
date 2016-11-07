@@ -1,4 +1,4 @@
-function [ radPerUmUp, radPerUmDown ] = piezoCalibration( data8bit, timestamps, config )
+function [ theta, radPerUmUp, radPerUmDown ] = piezoCalibration( data8bit, timestamps, config )
 %PIEZO-CALIBRATION computes the phaseshift per micrometer of a piezo motor
 %
 %   The dataset should be recorded with strong interference of the two
@@ -34,13 +34,20 @@ tSegments = piezoSegments(timestamps, t);
 
 % Fit and Plot the data segments
 nSegments = size(segments,2);
+lSegments = size(segments,1);
 radPerUm = NaN(1,nSegments);
+theta = NaN(size(segments));
 hold on;
 for iSegment=1:nSegments
     % Fit sine function to the data
     x = tSegments(:,iSegment);
     y = segments(:,iSegment);
     [fitParams, fitFunction] = fitSinusoidal(x, y);
+    
+    % Phase values
+    thetaColumn = mod(2*pi/fitParams(2)*x + 2*pi/fitParams(3) + pi/2,2*pi);
+    theta(:,iSegment) = [thetaColumn ...
+        NaN(1, lSegments-length(thetaColumn))];
     
     % Phase calibration values
     phasePeriod = fitParams(2);
@@ -55,6 +62,8 @@ isFirstSegmentUp = (tSegments(1,2)-tSegments(1,1) > ...
     tSegments(1,3)-tSegments(1,2));
 radPerUmUp = mean(radPerUm((2-isFirstSegmentUp):2:nSegments));
 radPerUmDown = mean(radPerUm(1+isFirstSegmentUp:2:nSegments));
+
+% Create theta array
 
 % Saving important Variables (to delete the raw data manually)
 dateString = datestr(datetime('now'),'yyyymmddTHHMMSS');
