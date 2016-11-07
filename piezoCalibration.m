@@ -63,8 +63,6 @@ isFirstSegmentUp = (tSegments(1,2)-tSegments(1,1) > ...
 radPerUmUp = mean(radPerUm((2-isFirstSegmentUp):2:nSegments));
 radPerUmDown = mean(radPerUm(1+isFirstSegmentUp:2:nSegments));
 
-% Create theta array
-
 % Saving important Variables (to delete the raw data manually)
 dateString = datestr(datetime('now'),'yyyymmddTHHMMSS');
 save(['piezoCalibration-' dateString '.mat'], ...
