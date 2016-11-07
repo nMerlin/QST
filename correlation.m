@@ -13,7 +13,8 @@ function [ correlationvalue, X ] = correlation( j, data, locs, window )
 % of DATA.
 if (locs(1)<ceil(window/2))
     locs = locs(2:end);
-elseif ((length(data)-locs(end))<ceil(window/2))
+end
+if ((length(data)-locs(end))<ceil(window/2))
     locs = locs(1:length(locs)-1);
 end
 
