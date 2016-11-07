@@ -29,17 +29,8 @@ end
 
 % Dividing the dataset in segments corresponding to single flanks of the
 % triangular modulation
-gapStarts = find(diff(t)>mean(diff(t)));
-nSegments = length(gapStarts)-1;
-lSegments = int32(max(diff(gapStarts)));
-segments = NaN(lSegments,nSegments);
-tSegments = NaN(lSegments,nSegments);
-for iGap=1:nSegments
-    seg = modulation(gapStarts(iGap)+1:gapStarts(iGap+1));
-    segments(:,iGap) = [seg NaN(1, lSegments-length(seg))];
-    tSeg = t(gapStarts(iGap)+1:gapStarts(iGap+1));
-    tSegments(:,iGap) = [tSeg NaN(1,lSegments-length(seg))];
-end
+segments = piezoSegments(timestamps, modulation);
+tSegments = piezoSegments(timestamps, t);
 
 % Fit and Plot the data segments
 nSegments = size(segments,2);
