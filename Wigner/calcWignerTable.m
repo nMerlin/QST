@@ -19,7 +19,8 @@ end
 %disp(size(WigTab);
 for q=minq:qintstep:maxq
     for p=minq:qintstep:maxq
-        WigTab(int16((q-minq)/qintstep)+1,int16((p-minq)/qintstep)+1)=wignernm(nVal,mVal,q,p,qintstep,2*minq,2*maxq);
+        WigTab(int16((q-minq)/qintstep)+1,int16((p-minq)/qintstep)+1) = ...
+            wignernm(nVal,mVal,q,p,qintstep,2*minq,2*maxq);
     end;
     if parallel==0
         dispstat(strcat(num2str(100*((q-minq)/qintstep+1)/nWigTab),'%'));
