@@ -26,13 +26,17 @@ if parallel==1
         mVal = mod(i,mMax+1);
         calcWignerTable(nVal,mVal,directory,minq,maxq,qintstep,'parallel');
         dispstat('','init');
-        dispstat(strcat('FT(<q+1/2*q''|',int2str(nVal),'>*<',int2str(mVal),'|q-1/2*q''>)',' computed!'),'timestamp','keepthis');
+        dispstat(strcat('FT(<q+1/2*q''|',int2str(nVal),'>*<', ...
+            int2str(mVal),'|q-1/2*q''>)',' computed!'), ...
+            'timestamp','keepthis');
     end
 else
     for i=0:(nMax+1)*(mMax+1)-1
         nVal = floor(i/(mMax+1));
         mVal = mod(i,mMax+1);
-        dispstat(strcat('Computing',' FT(<q+1/2*q''|',int2str(nVal),'>*<',int2str(mVal),'|q-1/2*q''>)','...'),'timestamp','keepthis');
+        dispstat(strcat('Computing',' FT(<q+1/2*q''|', ...
+            int2str(nVal),'>*<',int2str(mVal),'|q-1/2*q''>)','...'), ...
+            'timestamp','keepthis');
         calcWignerTable(nVal,mVal,directory,minq,maxq,qintstep);
     end
 end
