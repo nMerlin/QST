@@ -1,11 +1,11 @@
-function calcWignerTable(nVal,mVal,directory,minq,maxq,qintstep,overwrite)
+function calcWignerTable(nVal,mVal,directory,minq,maxq,qintstep,parallel,overwrite)
 %CALCWIGNERTABLE calculates FT(<q+1/2*q'|nVal>*<mVal|q-1/2*q'>). The
 %resulting matrix will be saved in the given DIRECTORY. The function will
 %be discretized in phase space from p,q = MINQ to MAXQ in steps of
 %QINTSTEP. FT is the fourier transform.
 
 assert((exist(directory,'dir')>0),'The given path is not a directory');
-filename = strcat(directory,'\n',int2str(nVal),'m',int2str(mVal));
+filename = strcat(directory,'\n',int2str(nVal),'m',int2str(mVal),'.mat');
 isFile = (exist(filename,'file')==2);
 
 if (~isFile || overwrite)
