@@ -9,7 +9,7 @@ function mainWigner( nMax, mMax, varargin )
 
 %directory = 'Z:\freefilesync-lab\matlab\QST\Wigner';
 %directory = 'D:\@archive\2016-08-30-wigner-test';
-directory = 'C:\Users\lab\Documents\@data\Wigner';
+directory = 'C:\Users\lab\Documents\@archived-data\Wigner';
 minq=-20;
 maxq=20;
 qintstep=0.125; %choose 1/2^n to avoid artifacts
