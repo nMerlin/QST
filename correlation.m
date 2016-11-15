@@ -1,4 +1,4 @@
-function [ correlationvalue, X ] = correlation( j, data, locs, window )
+function [ correlationvalue, X ] = correlation( j, data, locs )
 % CORRELATION calculates <X_i X_i+j>_i for the data arrays given in the
 % columns of DATA.
 %
@@ -9,8 +9,13 @@ function [ correlationvalue, X ] = correlation( j, data, locs, window )
 %
 % See also: POINTWISEVARIANCE
 
+WINDOWSIZE = 2/3; % Integrate over WINDOWSIZE * mean(diff(locs))
+
+% Calculating the size of the integration window
+
 % Eliminate locations whose corresponding window would be outside the range
 % of DATA.
+window = round(WINDOWSIZE * mean(diff(locs)));
 if (locs(1)<ceil(window/2))
     locs = locs(2:end);
 end
