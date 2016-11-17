@@ -14,14 +14,8 @@ X = piezoSegments(timestamps, X);
 X = X * CALIBRATION_CH1;
 X = X / sqrt(2 * NLO);
 
-% Compute relative phases
+% Compute relative phases and removes offset
 [X, theta] = computeTheta(X);
-
-% Remove unphysical offset
-for iSeg = 1 : size(X,2)
-    Seg = X(:,iSeg);
-    X(:,iSeg) = Seg - (max(Seg) - 0.5 * (max(Seg) - min(Seg)));
-end
 
 % Saving important Variables (to delete the raw data manually)
 dateString = datestr(datetime('now'),'yyyymmddTHHMMSS');
