@@ -8,6 +8,9 @@ XOld = X;
 X = zeros(nPulses * nRecords, nSegments);
 theta = X;
 for iSeg = 1:nSegments
+    % Data to operate on
+    X(:,iSeg) = reshape(XOld(:,:,iSeg), nPulses * nRecords,1);
+    
     % Average over recordings and create fit input x/y data
     yFit = mean(XOld(:,:,iSeg));
     xFit = (1:nRecords) * nPulses - round(nPulses/2);
@@ -18,9 +21,13 @@ for iSeg = 1:nSegments
     xFit = xFit / 10^(xFitMagnitude); % scale x-axis for fitting routine
     
     % Fitting
-    [fitParams, ~] = fitSinusoidal(xFit, yFit);
+    [fitParams, ~] = fitSinusoidal(xFit, yFit, 'rmLin');
     
-    X(:,iSeg) = reshape(XOld(:,:,iSeg), nPulses * nRecords,1);
+    % Correcting X for offset and linear trend
+    X(:,iSeg) = X(:,iSeg) - (fitParams(4) + ...
+        fitParams(5) / 10^(xFitMagnitude) * (1 : length(X(:,iSeg)))');
+    
+    % Calculate phase values from fit results
     xTheta = 1 : nPulses * nRecords;
     theta(:,iSeg) = ...
         mod(2 * pi / fitParams(2) * xTheta / 10^(xFitMagnitude) + ...
