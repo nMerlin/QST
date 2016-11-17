@@ -8,12 +8,18 @@ XOld = X;
 X = zeros(nPulses * nRecords, nSegments);
 theta = X;
 for iSeg = 1:nSegments
+    % Average over recordings and create fit input x/y data
     yFit = mean(XOld(:,:,iSeg));
     xFit = (1:nRecords) * nPulses - round(nPulses/2);
     xFit(isnan(yFit)) = NaN;
+    
+    % Somehow the fit only works for the correct x magnitude
     xFitMagnitude = ceil(log10(max(xFit)));
     xFit = xFit / 10^(xFitMagnitude); % scale x-axis for fitting routine
+    
+    % Fitting
     [fitParams, ~] = fitSinusoidal(xFit, yFit);
+    
     X(:,iSeg) = reshape(XOld(:,:,iSeg), nPulses * nRecords,1);
     xTheta = 1 : nPulses * nRecords;
     theta(:,iSeg) = ...
