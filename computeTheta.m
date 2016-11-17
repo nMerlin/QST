@@ -14,7 +14,7 @@ for iSeg = 1:nSegments
     xFitMagnitude = ceil(log10(max(xFit)));
     xFit = xFit / 10^(xFitMagnitude); % scale x-axis for fitting routine
     [fitParams, ~] = fitSinusoidal(xFit, yFit);
-    X(:,iSeg) = reshape(XOld(:,:,1), nPulses * nRecords,1);
+    X(:,iSeg) = reshape(XOld(:,:,iSeg), nPulses * nRecords,1);
     xTheta = 1 : nPulses * nRecords;
     theta(:,iSeg) = ...
         mod(2 * pi / fitParams(2) * xTheta / 10^(xFitMagnitude) + ...
