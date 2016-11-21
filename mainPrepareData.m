@@ -1,17 +1,20 @@
-function [ X, theta ] = mainPrepareData( filename )
+function [ X, theta ] = mainPrepareData( filenameLO, filenameSIG )
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
 
-CALIBRATION_CH1 = 3.462042300029793e+03;
-NLO = 4.379815002805815e+08;
+CALIBRATION_CH1 = 4.596047840078126e-05; % Ampere per Volt
 
-[data8bit,config,timestamps]=load8BitBinary(filename,'dontsave');
-[locs,~] = pointwiseVariance(data8bit);
-[~, X] = correlation(0, data8bit, locs);
+% Compute number of LO photons
+[data8bit,config,~]=load8BitBinary(filenameLO,'dontsave');
+XLO = computeQuadratures(data8bit, config, CALIBRATION_CH1);
+NLO = mean(var(XLO));
+
+% Compute quadratures for target quantum state
+[data8bit,config,timestamps]=load8BitBinary(filenameSIG,'dontsave');
+X = computeQuadratures(data8bit, config, CALIBRATION_CH1);
 X = piezoSegments(timestamps, X);
 
 % Calibration of quadratures
-X = X * CALIBRATION_CH1;
 X = X / sqrt(2 * NLO);
 
 % Compute relative phases and removes offset
