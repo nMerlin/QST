@@ -54,7 +54,7 @@ function [ fitParams, fitFunction, exitFlag] = fitSinusoidal( x, y, varargin)
     % Correct for linear trend, if applicable
     if rmLin == 1
         fitFunction = @(b,x)  b(1).*(sin(2*pi*x./b(2) + 2*pi/b(3))) ...
-            + b(4) + b(5) * x;
+            + b(4) + b(5) .* x;
         squaresFunction = @(b) sum((fitFunction(b,x) - y).^2);
         [fitParams, ~, exitFlag] = fminsearch(squaresFunction, ...
         [fitParams; 0]);
