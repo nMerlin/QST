@@ -2,7 +2,7 @@
 A set of MatLab scripts for optical homodyne quantum state tomography.
 
 ## Software Requirements
-Currently, the tools are developed an tested with:
+Currently, the tools are developed and tested with:
 * Python 2.7.11 (64-bit)
 * SCons 2.5.0
 * MatLab2015a (64-bit)
