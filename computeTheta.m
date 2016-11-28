@@ -24,8 +24,8 @@ for iSeg = 1:nSegments
     [fitParams, ~] = fitSinusoidal(xFit, yFit, 'rmLin');
     
     % Correcting X for offset and linear trend
-    X(:,iSeg) = X(:,iSeg) - (fitParams(4) + ...
-        fitParams(5) / 10^(xFitMagnitude) * (1 : length(X(:,iSeg)))');
+    X(:,iSeg) = X(:,iSeg) - fitParams(4) - ...
+        fitParams(5) * (1 : length(X(:,iSeg)))' / 10^(xFitMagnitude);
     
     % Calculate phase values from fit results
     xTheta = 1 : nPulses * nRecords;
