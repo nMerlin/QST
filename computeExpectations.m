@@ -1,4 +1,4 @@
-function [ expQ, expP, expQ2, expP2 ] = computeExpectations( X, theta, phaseQ )
+function [ expQ, expP, expQ2, expP2, nPhotons ] = computeExpectations( X, theta, phaseQ )
 %COMPUTEEXPECTATIONS Computes <Q>, <P>, <Q^2>, <P^2>
 %
 %   X and THETA should be discretized for theta with DISCRETIZETHETA
@@ -36,11 +36,14 @@ for iSegment = 1 : nSegments
     expP2(iSegment) = meanX2(indexP, iSegment);
 end % iSegment
 
+% Coherent state photon number
+nPhotons = expQ.^2 + expP.^2;
+
 % Plot
 x = 1 : nSegments;
-plot(x, expP, x, expP2, x, expQ, x, expQ2, 'linewidth', 2);
+plot(x, expP, x, expP2, x, expQ, x, expQ2, x, nPhotons, 'linewidth', 2);
 xlabel('Piezo Segments');
-legend('<P>', '<P^2>', '<Q>', '<Q^2>', 'location', 'best');
+legend('<P>', '<P^2>', '<Q>', '<Q^2>', 'photons', 'location', 'best');
 
 % Save plot
 dateString = datestr(datetime('now'),'yyyymmddTHHMMSS');
