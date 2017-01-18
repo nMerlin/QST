@@ -58,10 +58,13 @@ dispstat('Loading data for plots ...','timestamp','keepthis',quiet);
 powerLO = cell2mat({dataStruct.powerLO});
 [maxPower,~] = max(powerLO);
 [minPower,~] = min(powerLO);
+dispstat(['MaxPower: ' num2str(maxPower) '; MinPower: ' num2str(minPower)], ...
+    'timestamp','keepthis',quiet);
 
 cd('raw-data');
 
 % Read header information and calculate frequency values
+dispstat('Reading header information ...','timestamp','keepthis',quiet);
 fileID = fopen(dataStruct(1).filename,'r');
 header = textscan(fileID,'%s',11,'delimiter','\n');
 fclose(fileID);
@@ -76,6 +79,8 @@ frequencyAxis = frequencyAxis.*...
     ((1/(headerSampleRate/10000000.0/headerPost/1000))/2)/headerPost;
 
 % Load the three datasets of interest
+dispstat('Load the three datasets of interest ...', ...
+    'timestamp','keepthis',quiet);
 for k=1:size(dataStruct,2)
     if dataStruct(k).powerLO == maxPower && dataStruct(k).filtered == 0
         response = dlmread(dataStruct(k).filename,' ',12,0);
@@ -99,6 +104,7 @@ end
 cd('..');
 
 % Calculate the shot noise clearance
+dispstat('Calculate shot noise clearance ...','timestamp','keepthis',quiet);
 startIndex = find(frequencyAxis > clearanceAveragingLimits(1)*1000000,1);
 stopIndex = find(frequencyAxis > clearanceAveragingLimits(2)*1000000,1);
 responseAverage = mean(response(startIndex:stopIndex,2));

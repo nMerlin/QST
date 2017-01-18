@@ -1,6 +1,6 @@
 function [ deltaQ, powerLO ] = plotShotNoise( varargin )
-%DETSTANDARDTEST analyses the quadrature data of a detector standard test.
-%   DETSTANDARDTEST('verbose'): Shows log output.
+%PLOTSHOTNOISE analyses the quadrature data of a detector standard test.
+%   PLOTSHOTNOISE('verbose'): Shows log output.
 %   POWERLO: Processed LO powers.
 %   DELTAQ: Calculated distribution widths.
 %   The script assumes that the datafiles are in the 'raw-data' directory.
@@ -66,7 +66,7 @@ powerLO = cell2mat({dataStruct.powerLO});
 dispstat('Calculating deltaQ ...','timestamp','keepthis',quiet);
 parfor number=1:size(dataStruct,2)
     [data8bit,~,~] = load8BitBinary(dataStruct(number).filename,'dontsave');
-    [~,X]=correlation(0,data8bit,locs,windowSize);
+    [~,X]=correlation(0,data8bit,locs);
     dataStruct(number).deltaQ = sqrt(var(X(:)));
 end
 
