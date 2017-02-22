@@ -43,16 +43,19 @@ else
 end
 
 % READ FILENAME TO DATA8BIT
-channelnumber = config.SpectrumCard.Channel00.Enable_BOOL + config.SpectrumCard.Channel01.Enable_BOOL + config.SpectrumCard.Channel02.Enable_BOOL + config.SpectrumCard.Channel03.Enable_BOOL;
+channelnumber = config.SpectrumCard.Channel00.Enable_BOOL + ...
+    config.SpectrumCard.Channel01.Enable_BOOL + ...
+    config.SpectrumCard.Channel02.Enable_BOOL + ...
+    config.SpectrumCard.Channel03.Enable_BOOL;
 segmentsize = config.SpectrumCard.ModeSetup.Segmentsize_I32;
 memsize = config.SpectrumCard.ModeSetup.Memory_I32;
-number_of_recordings = memsize/segmentsize*channelnumber;
-data = fread(datafileID,[segmentsize number_of_recordings], 'int8=>int8');
+number_of_recordings = memsize/segmentsize;
+data = fread(datafileID,[segmentsize*channelnumber number_of_recordings], 'int8=>int8');
 if channelnumber>1
     data8bit = zeros(segmentsize,memsize/segmentsize,channelnumber);
-    for block=1:memsize/segmentsize
-        for channel=1:channelnumber
-            data8bit(:,block,channel) = data(:,(block-1)*channelnumber+channel);
+    for block=1:number_of_recordings
+        for iChannel=1:channelnumber
+            data8bit(:,block,iChannel) = data(iChannel:channelnumber:segmentsize*channelnumber,block);
         end
     end
 else
