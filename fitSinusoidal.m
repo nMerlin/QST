@@ -56,8 +56,8 @@ function [ fitParams, fitFunction, exitFlag] = fitSinusoidal( x, y, varargin)
         fitFunction = @(b,x)  b(1).*(sin(2*pi*x./b(2) + 2*pi/b(3))) ...
             + b(4) + b(5) .* x;
         squaresFunction = @(b) sum((fitFunction(b,x) - y).^2);
-        [fitParams, ~, exitFlag] = fminsearch(squaresFunction, ...
-        [fitParams; 0]);
+        [fitParams, ~, exitFlag] = fminsearchbnd(squaresFunction, ...
+        [fitParams; 0], [0; -inf; -inf; -inf; -inf]);
     end
     
     %%% Plot
