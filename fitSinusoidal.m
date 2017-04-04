@@ -1,4 +1,4 @@
-function [ fitParams, fitFunction, exitFlag] = fitSinusoidal( x, y, varargin)
+function [ fitParams, fval, exitFlag] = fitSinusoidal( x, y, varargin)
 %fitSinusodial Fits a sine function to a (x,y) dataset
 %
 %   (x,y) should already be sinusodial for the fit to work properly.
@@ -48,7 +48,7 @@ function [ fitParams, fitFunction, exitFlag] = fitSinusoidal( x, y, varargin)
     % Least-Squares cost function
     squaresFunction = @(b) sum((fitFunction(b,x) - y).^2);
     % Minimise Least-Squares
-    [fitParams, ~, exitFlag] = fminsearchbnd(squaresFunction, ...
+    [fitParams, fval, exitFlag] = fminsearchbnd(squaresFunction, ...
         [yRange/2; period;  yPhase;  yOffset], [0; 0; -inf; -inf]);
 
     % Correct for linear trend, if applicable
@@ -58,7 +58,6 @@ function [ fitParams, fitFunction, exitFlag] = fitSinusoidal( x, y, varargin)
         squaresFunction = @(b) sum((fitFunction(b,x) - y).^2);
         [fitParams, fval, exitFlag] = fminsearchbnd(squaresFunction, ...
         [fitParams; 0], [yRange/6; 0; -inf; -inf; -inf]);
-        fval
     end
     
     %%% Plot
