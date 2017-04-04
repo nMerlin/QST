@@ -49,9 +49,7 @@ function [ fitParams, fitFunction, exitFlag] = fitSinusoidal( x, y, varargin)
     squaresFunction = @(b) sum((fitFunction(b,x) - y).^2);
     % Minimise Least-Squares
     [fitParams, ~, exitFlag] = fminsearchbnd(squaresFunction, ...
-        [yRange/2; period;  yPhase;  yOffset], [0; 0; -inf; -inf]);
-    
-    [yRange/2; period;  yPhase;  yOffset]
+        [yRange/2; period;  yPhase;  yOffset], [yRange/6; 0; -inf; -inf]);
 
     % Correct for linear trend, if applicable
     if rmLin == 1
@@ -59,7 +57,7 @@ function [ fitParams, fitFunction, exitFlag] = fitSinusoidal( x, y, varargin)
             + b(4) + b(5) .* x;
         squaresFunction = @(b) sum((fitFunction(b,x) - y).^2);
         [fitParams, ~, exitFlag] = fminsearchbnd(squaresFunction, ...
-        [fitParams; 0], [0; 0; -inf; -inf; -inf]);
+        [fitParams; 0], [yRange/6; 0; -inf; -inf; -inf]);
     end
     
     %%% Plot
