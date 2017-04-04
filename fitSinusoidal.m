@@ -50,6 +50,8 @@ function [ fitParams, fitFunction, exitFlag] = fitSinusoidal( x, y, varargin)
     % Minimise Least-Squares
     [fitParams, ~, exitFlag] = fminsearchbnd(squaresFunction, ...
         [yRange/2; period;  yPhase;  yOffset], [0; 0; -inf; -inf]);
+    
+    exitFlag
 
     % Correct for linear trend, if applicable
     if rmLin == 1
