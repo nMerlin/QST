@@ -3,6 +3,7 @@ function [ fitParams, fval, exitFlag] = fitSinusoidal( x, y, varargin)
 %
 %   (x,y) should already be sinusodial for the fit to work properly.
 %   varargin = 'rmLin': additionally account for a linear trend
+%              'show': show plot of raw data and fitted sinusoidal function
 %
 %   FITPARAMS outputs the fit paramters b of b1*sin(2*pi/b2*x+2*pi/b3)+b4
 %   FITFUNCTION is the function handle of the above fit function
@@ -15,6 +16,7 @@ function [ fitParams, fval, exitFlag] = fitSinusoidal( x, y, varargin)
 
     % Optional Parameters
     rmLin = 0;
+    show = 0;
     if nargin > 2
         for i = 3:nargin
             eval([varargin{i-2} '=1;']);
@@ -47,22 +49,24 @@ function [ fitParams, fval, exitFlag] = fitSinusoidal( x, y, varargin)
     fitFunction = @(b,x)  b(1).*(sin(2*pi*x./b(2) + 2*pi/b(3))) + b(4);
     % Least-Squares cost function
     squaresFunction = @(b) sum((fitFunction(b,x) - y).^2);
-    % Minimise Least-Squares
+    % Minimise Least-Squares (with lower boundaries)
     [fitParams, fval, exitFlag] = fminsearchbnd(squaresFunction, ...
         [yRange/2; period;  yPhase;  yOffset], [0; 0; -inf; -inf]);
 
-    % Correct for linear trend, if applicable
+    % Correct for linear trend
     if rmLin == 1
         fitFunction = @(b,x)  b(1).*(sin(2*pi*x./b(2) + 2*pi/b(3))) ...
             + b(4) + b(5) .* x;
         squaresFunction = @(b) sum((fitFunction(b,x) - y).^2);
         [fitParams, fval, exitFlag] = fminsearchbnd(squaresFunction, ...
-        [fitParams; 0], [yRange/6; 0; -inf; -inf; -inf]);
+        [fitParams; 0], [0; 0; -inf; -inf; -inf]);
     end
     
-    %%% Plot
-    figure(1)
-    plot(x,y,'b',x,fitFunction(fitParams,x),'r')
-    grid
+    %%% Plot raw data and fitted function
+    if show == 1
+        figure(1)
+        plot(x,y,'b',x,fitFunction(fitParams,x),'r')
+        grid
+    end
 end
 
