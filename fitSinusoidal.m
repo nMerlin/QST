@@ -51,7 +51,7 @@ function [ fitParams, fitFunction, exitFlag] = fitSinusoidal( x, y, varargin)
     [fitParams, ~, exitFlag] = fminsearchbnd(squaresFunction, ...
         [yRange/2; period;  yPhase;  yOffset], [0; 0; -inf; -inf]);
     
-    exitFlag
+    [yRange/2; period;  yPhase;  yOffset]
 
     % Correct for linear trend, if applicable
     if rmLin == 1
