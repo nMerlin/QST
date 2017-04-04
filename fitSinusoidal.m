@@ -48,8 +48,8 @@ function [ fitParams, fitFunction, exitFlag] = fitSinusoidal( x, y, varargin)
     % Least-Squares cost function
     squaresFunction = @(b) sum((fitFunction(b,x) - y).^2);
     % Minimise Least-Squares
-    [fitParams, ~, exitFlag] = fminsearch(squaresFunction, ...
-        [yRange/2; period;  yPhase;  yOffset]);
+    [fitParams, ~, exitFlag] = fminsearchbnd(squaresFunction, ...
+        [yRange/2; period;  yPhase;  yOffset], [0; 0; -inf; -inf]);
 
     % Correct for linear trend, if applicable
     if rmLin == 1
