@@ -56,16 +56,15 @@ for name = {rawDataContents.name}
     dataStruct(number).NLO = dataStruct(number).powerLO*powerConversion;
 end
 
-% Get positions for integration from highest LO-power
-powerLO = cell2mat({dataStruct.powerLO});
-[maxPowerLO,index] = max(powerLO);
-[data8bit,~,~] = load8BitBinary(dataStruct(index).filename,'dontsave');
-[locs,~] = pointwiseVariance(data8bit);
 
-% Calculate deltaQ=sqrt(var(Q)) of the quadrature values
+powerLO = cell2mat({dataStruct.powerLO});
+[maxPowerLO,~] = max(powerLO);
+
+% Calculate deltaQ=sqrt(var(Q)) of the quadrature values;  Get positions for integration from each LO-power
 dispstat('Calculating deltaQ ...','timestamp','keepthis',quiet);
 parfor number=1:size(dataStruct,2)
     [data8bit,~,~] = load8BitBinary(dataStruct(number).filename,'dontsave');
+    [locs,~] = pointwiseVariance(data8bit);
     [~,X]=correlation(0,data8bit,locs);
     dataStruct(number).deltaQ = sqrt(var(X(:)));
 end
@@ -74,9 +73,11 @@ end
 % Process data
 plotX = 0.1:0.1:maxPowerLO;
 deltaQ = cell2mat({dataStruct.deltaQ});
+disp(deltaQ);
+disp(powerLO);
 [~,index] = min(powerLO);
 electronicNoise = ones(size(plotX))*dataStruct(index).deltaQ;
-
+disp(electronicNoise);
 % Fitting
 fitIndices = find(powerLO>=fitThreshold);
 fitPowerLO = transpose(powerLO(fitIndices));
