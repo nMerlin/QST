@@ -73,11 +73,8 @@ end
 % Process data
 plotX = 0.1:0.1:maxPowerLO;
 deltaQ = cell2mat({dataStruct.deltaQ});
-disp(deltaQ);
-disp(powerLO);
 [~,index] = min(powerLO);
 electronicNoise = ones(size(plotX))*dataStruct(index).deltaQ;
-disp(electronicNoise);
 % Fitting
 fitIndices = find(powerLO>=fitThreshold);
 fitPowerLO = transpose(powerLO(fitIndices));
