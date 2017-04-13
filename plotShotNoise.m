@@ -62,8 +62,15 @@ powerLO = cell2mat({dataStruct.powerLO});
 
 % Calculate deltaQ=sqrt(var(Q)) of the quadrature values;  Get positions for integration from each LO-power
 dispstat('Calculating deltaQ ...','timestamp','keepthis',quiet);
-parfor number=1:size(dataStruct,2)
-    [data8bit,~,~] = load8BitBinary(dataStruct(number).filename,'dontsave');
+%For 0mW, the locations of 1 mW are used.
+[data8bit0,~,~] = load8BitBinary(dataStruct(1).filename,'dontsave');  
+[data8bit1,~,~] = load8BitBinary(dataStruct(2).filename,'dontsave');
+[locs,~] = pointwiseVariance(data8bit1);
+[~,X]=correlation(0,data8bit0,locs);
+dataStruct(1).deltaQ = sqrt(var(X(:)));
+
+parfor number=2:size(dataStruct,2)
+    [data8bit,~,~] = load8BitBinary(dataStruct(number).filename,'dontsave');  
     [locs,~] = pointwiseVariance(data8bit);
     [~,X]=correlation(0,data8bit,locs);
     dataStruct(number).deltaQ = sqrt(var(X(:)));
