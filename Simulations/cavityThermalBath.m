@@ -1,4 +1,4 @@
-function [ I ] = cavityThermalBath()
+function [ I ] = cavityThermalBath_JT()
 %Simulates a single mode in a cavity with a surrounding bath
 
 % Parameters
