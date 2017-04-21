@@ -1,4 +1,4 @@
-function [ I ] = cavityThermalBath_JT()
+function [ I ] = cavityThermalBath()
 %Simulates a single mode in a cavity with a surrounding bath
 
 % Parameters
@@ -7,11 +7,9 @@ outputFiletype = '-djpeg';
 outputFilename2 = 'Intensity.jpg';
 outputFilename3 = 'g2.jpg';
 
-beta = 1;
-Omega = 1;
 nB = 1; % 1/(exp(beta*Omega)-1) Bose-Einstein bath occupation
 Gamma = 0.1; % Coupling constant
-nMax = 10; % Maximum matrix dimension
+nMax = 20; % Maximum matrix dimension
 nVector = (-1:nMax+1)';
 rho = zeros(nMax+3,1);
 rho(nMax+2) = 1;
@@ -28,7 +26,8 @@ k4 = k1;
 % Solve with Runge-Kutta
 for j = 1:length(t)
     I(j) = nVector' * rho;
-    g2(j) = (nVector.*nVector)'*rho/I(j)^2;
+    disp(rho);
+    g2(j) = (nVector.*(nVector-1))'*rho/I(j)^2;
     rhoSaved(:,j)=rho;
     k1(2:end-1) = h * rhoPoint(nVector, rho, Gamma, nB);
     k2(2:end-1) = h * rhoPoint(nVector, rho + 0.5 * k1, Gamma, nB);
