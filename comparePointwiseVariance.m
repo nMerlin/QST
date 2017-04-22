@@ -20,6 +20,7 @@ end
 
 % Parameters & Variables
 outputFilename1 = 'pointwise-variance-plot-all.jpg';
+%outputFilename1 = 'pointwise-variance-plot-first3.jpg';
 outputFilename2 = 'Nlocs.jpg';
 outputFiletype = '-djpeg';
 range = 275; %index range for pointwise variance plot
@@ -52,10 +53,16 @@ dispstat('Calculating and plotting ...','timestamp','keepthis',quiet);
 close all;
 figure;
 
+maxvar0 = 0;
+
 for number=1:size(dataStruct,2)
 %for number = 1:3
     [data8bit,config,~] = load8BitBinary(dataStruct(number).filename,'dontsave');
     [locs,pvar] = pointwiseVariance(data8bit);
+    maxvar = max(pvar);
+    if maxvar > maxvar0
+        maxvar0 = maxvar;
+    end
     dataStruct(number).Nlocs = size(locs,1);
     time = 1/config.SpectrumCard.Clock.SamplingRate0x28MHz0x29_DBL;
     t = (1:range) *time;
@@ -73,7 +80,7 @@ for number=1:size(dataStruct,2)
 end
 %hold off;
 legend( 'Location','northeast');
-axis ([0 range*time 0 20]);  %Adapt! ylim is 20 for all powers, 2 for the first 3.
+axis ([0 range*time 0 maxvar0 + 1]);
 set(0,'DefaultLegendInterpreter','latex');
 set(0,'DefaultTextInterpreter','latex');
 xlabel('Time [s]');
