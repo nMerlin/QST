@@ -64,7 +64,7 @@ for number=1:size(dataStruct,2)
         maxvar0 = maxvar;
     end
     dataStruct(number).Nlocs = size(locs,1);
-    time = 1/config.SpectrumCard.Clock.SamplingRate0x28MHz0x29_DBL;
+    time = 1/config.SpectrumCard.Clock.SamplingRate0x28MHz0x29_DBL * 10^-6 *10^9;  %time in nanoseconds
     t = (1:range) *time;
     fullvar = var(double(data8bit(:)));
     plot(t, pvar(1:range),'DisplayName', strcat(num2str(dataStruct(number).powerLO), ' mW '));
@@ -83,7 +83,7 @@ legend( 'Location','northeast');
 axis ([0 range*time 0 maxvar0 + 1]);
 set(0,'DefaultLegendInterpreter','latex');
 set(0,'DefaultTextInterpreter','latex');
-xlabel('Time [s]');
+xlabel('Time [ns]');
 ylabel('Pointwise Variance [a. u.]')
 
 % Saving figure
