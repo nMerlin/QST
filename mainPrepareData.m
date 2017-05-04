@@ -13,7 +13,6 @@ NLO = mean(var(XLO));
 [data8bit,config,timestamps]=load8BitBinary(filenameSIG,'dontsave');
 X = computeQuadratures(data8bit, config, CALIBRATION_CH1);
 X = piezoSegments(timestamps, X);
-
 % Calibration of quadratures
 X = X / sqrt(2 * NLO);
 
