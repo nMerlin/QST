@@ -73,7 +73,7 @@ for number=1:size(dataStruct,2)
 end
 %hold off;
 legend( 'Location','northeast');
-axis ([0 range*time 0 20]);  %Adapt! ylim is 20 for all powers, 2 for the first 3.
+axis ([0 range*time 0 2]);  %Adapt! ylim is 20 for all powers, 2 for the first 3.
 set(0,'DefaultLegendInterpreter','latex');
 set(0,'DefaultTextInterpreter','latex');
 xlabel('Time [s]');
