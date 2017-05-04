@@ -6,14 +6,15 @@ yscal = yold; %Might be chosen differently
 eps = 10^-6;  
 delta0 = eps * yscal; %desired error
 
-y1 = RK(0.5 * h, yold, deriv);  %half step
+ytemp = RK(0.5 * h, yold, deriv);  %half step 1
+y1 = RK(0.5 * h, ytemp, deriv);  %half step 2
 y2 = RK(h, yold, deriv); %full step
 
 delta = abs(y1 - y2); %actual error
 
 if mean(delta) > mean(delta0)    %actual error too large
     h = h * (mean(delta0)/mean(delta))^0.2;   %compute better stepsize
-    %disp(h);
+    disp(h);
 end
 
 ynew = RK(h, yold, deriv);
