@@ -21,7 +21,7 @@ for iSeg = 1:nSegments
     xFit = xFit / 10^(xFitMagnitude); % scale x-axis for fitting routine
     
     % Fitting
-    [fitParams, ~] = fitSinusoidal(xFit, yFit, 'rmLin');
+    [fitParams, ~] = fitSinusoidal(xFit, yFit, 'rmLin', 'show');
     
     % Correcting X for offset and linear trend
     X(:,iSeg) = X(:,iSeg) - fitParams(4) - ...
