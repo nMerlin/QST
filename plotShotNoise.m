@@ -102,8 +102,8 @@ hold off;
 axis tight;
 set(0,'DefaultLegendInterpreter','latex');
 set(0,'DefaultTextInterpreter','latex');
-xlabel('$P_{LO}$ [mW]');
-ylabel('$\Delta Q$ [a. u.]')
+xlabel('P_{LO} [mW]');
+ylabel('\Delta Q [a. u.]')
 legend('Experimental $\Delta Q$ Data: $\sqrt{Var(Q)}$',...
     strcat('Fit Result ($P_{LO} \geq ',num2str(fitThreshold),...
     '$ mW): $',num2str(sqrtFit.a),'*\sqrt{P_{LO}}$'),...
@@ -124,7 +124,7 @@ ax2 = axes('Position',ax1Pos,...
     'YScale','log',...
     'YLim',ax1.YLim,...
     'Color','none');
-ax2.XLabel.String = '$N_{LO}$';
+ax2.XLabel.String = 'N_{LO}';
 
 % Saving figure
 print(outputFilename,outputFiletype);
