@@ -51,12 +51,17 @@ for iSeg = 1:nSegments
         theta(isnan(X)) = NaN;
     else
         % Method: Inverse sine function on normalized y-values
-        peakHeight = 0.1 * (max(yFit) - min(yFit));
+        peakHeight = 0.7 * (max(yFit));
         peakDistance = 0.1 * length(yFit);
+        peakWidth = 0.01 * length(yFit);
+        findpeaks(yFit,'MinPeakHeight',peakHeight,...
+            'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
         [maxpks,maxlocs] = findpeaks(yFit,'MinPeakHeight',peakHeight,...
-            'MinPeakDistance',peakDistance);
+            'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
+        findpeaks(-yFit,'MinPeakHeight',peakHeight,...
+            'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
         [minpks,minlocs] = findpeaks(-yFit,'MinPeakHeight',peakHeight,...
-            'MinPeakDistance',peakDistance);
+            'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
         assert(abs(length(maxpks)-length(minpks))<2,...
             'Too many maxima or minima detected!');
         
@@ -91,9 +96,16 @@ for iSeg = 1:nSegments
             y = yFit(range);
             ynorm = 2*y/(normDiff);
             ynorm = ynorm + 1 - 2*maxValue/normDiff;
+            
             % Correct for machine precision
-            ynorm(end) = ynorm(end) + (-1)^(ynorm(end)==max(ynorm))*2*eps;
-            ynorm(1) = ynorm(1) + (-1)^(ynorm(1)==max(ynorm))*2*eps;
+            if (ynorm(end)==max(ynorm))
+                ynorm(end) = ynorm(end) - 2*eps;
+                ynorm(1) = ynorm(1) + 2*eps;
+            else
+                ynorm(end) = ynorm(end) + 2*eps;
+                ynorm(1) = ynorm(1) - 2*eps;
+            end
+            
             % Calculate phases
             if s==1
                 smallTheta(range) = asin(ynorm);
@@ -109,7 +121,7 @@ for iSeg = 1:nSegments
             s = s * (-1);
         end
         
-        assert(isreal(smallTheta),'Not real.');
+        assert(isreal(smallTheta),'Not all phase values are real.');
         
         % Calculate phase values from inperpolated "smallTheta"
         xSample = 1 : nPulses * nRecords;
