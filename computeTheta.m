@@ -51,17 +51,21 @@ for iSeg = 1:nSegments
         theta(isnan(X)) = NaN;
     else
         % Method: Inverse sine function on normalized y-values
-        peakHeight = 0.7 * (max(yFit));
+        peakHeightFactor = 0.7;
         peakDistance = 0.1 * length(yFit);
         peakWidth = 0.01 * length(yFit);
-        findpeaks(yFit,'MinPeakHeight',peakHeight,...
-            'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
-        [maxpks,maxlocs] = findpeaks(yFit,'MinPeakHeight',peakHeight,...
-            'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
-        findpeaks(-yFit,'MinPeakHeight',peakHeight,...
-            'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
-        [minpks,minlocs] = findpeaks(-yFit,'MinPeakHeight',peakHeight,...
-            'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
+        findpeaks(yFit,'MinPeakHeight',...
+            peakHeightFactor*max(yFit),'MinPeakDistance',peakDistance,...
+            'MinPeakWidth',peakWidth);
+        [maxpks,maxlocs] = findpeaks(yFit,'MinPeakHeight',...
+            peakHeightFactor*max(yFit),'MinPeakDistance',peakDistance,...
+            'MinPeakWidth',peakWidth);
+        findpeaks(-yFit,'MinPeakHeight',...
+            peakHeightFactor*max(-yFit),'MinPeakDistance',peakDistance,...
+            'MinPeakWidth',peakWidth);
+        [minpks,minlocs] = findpeaks(-yFit,'MinPeakHeight',...
+            peakHeightFactor*max(-yFit),'MinPeakDistance',peakDistance,...
+            'MinPeakWidth',peakWidth);
         assert(abs(length(maxpks)-length(minpks))<2,...
             'Too many maxima or minima detected!');
         
@@ -80,14 +84,27 @@ for iSeg = 1:nSegments
         s = ss;
         for iPart = 0:nTurningPoints
             % Normalize to interval [-1;1]
-            if iPart == 0
+            if iPart == 0 % left border to first peak
                 range = 1:locs(1);
-                normDiff = abs(pksDiff(1));
-                maxValue = max(pks(1),pks(2));
-            elseif iPart == nTurningPoints
+                if (max(yFit(1:10))<max(pks(1),pks(2)) &&...
+                        min(yFit(1:10))>min(pks(1),pks(2)))
+                    normDiff = abs(pksDiff(1));
+                    maxValue = max(pks(1),pks(2));
+                else
+                    maxValue = max(max(yFit(1:10)),pks(1));
+                    normDiff = abs(maxValue-min(min(yFit(1:10)),pks(1)));
+                end
+            elseif iPart == nTurningPoints % last peak to right border
                 range = (locs(end)+1):length(smallTheta);
-                normDiff = abs(pksDiff(end));
-                maxValue = max(pks(end),pks(end-1));
+                if (max(yFit((end-10):end))<max(pks(end),pks(end-1)) && ...
+                        min(yFit((end-10):end))>min(pks(end),pks(end-1)))
+                    normDiff = abs(pksDiff(end));
+                    maxValue = max(pks(end),pks(end-1));
+                else
+                    maxValue = max(max(yFit((end-10):end)),pks(end));
+                    normDiff = abs(maxValue-min(min(yFit((end-10):end)),...
+                        pks(end)));
+                end
             else
                 range = (locs(iPart)+1):(locs(iPart+1));
                 normDiff = abs(pksDiff(iPart));
