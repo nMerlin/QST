@@ -17,7 +17,7 @@ X = piezoSegments(timestamps, X);
 X = X / sqrt(2 * NLO);
 
 % Compute relative phases and removes offset
-[X, theta] = computeTheta(X);
+[X, theta] = computeTheta(X,'verbose');
 
 % Saving important Variables (to delete the raw data manually)
 dateString = datestr(datetime('now'),'yyyymmddTHHMMSS');
