@@ -91,6 +91,10 @@ for iSeg = 1:nSegments
             y = yFit(range);
             ynorm = 2*y/(normDiff);
             ynorm = ynorm + 1 - 2*maxValue/normDiff;
+            % Correct for machine precision
+            ynorm(end) = ynorm(end) + (-1)^(ynorm(end)==max(ynorm))*2*eps;
+            ynorm(1) = ynorm(1) + (-1)^(ynorm(1)==max(ynorm))*2*eps;
+            % Calculate phases
             if s==1
                 smallTheta(range) = asin(ynorm);
             else
@@ -104,6 +108,8 @@ for iSeg = 1:nSegments
             end
             s = s * (-1);
         end
+        
+        assert(isreal(smallTheta),'Not real.');
         
         % Calculate phase values from inperpolated "smallTheta"
         xSample = 1 : nPulses * nRecords;
