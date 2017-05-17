@@ -21,6 +21,7 @@ XOld = X;
 [X, theta] = deal(zeros(nPulses * nRecords, nSegments));
 dispstat('Calculating phase values...','timestamp',...
         'keepthis',quiet);
+disp(nSegments);
 for iSeg = 1:nSegments
     % Data to operate on
     X(:,iSeg) = reshape(XOld(:,:,iSeg), nPulses * nRecords,1);
@@ -52,18 +53,22 @@ for iSeg = 1:nSegments
     else
         % Method: Inverse sine function on normalized y-values
         peakHeight = 0.5 * (max(yFit));
-        peakDistance = 0.1 * length(yFit);
+        peakDistance = 0.3 * length(yFit);
         peakWidth = 0.01 * length(yFit);  
         
-        
-        findpeaks(yFit,'MinPeakHeight',peakHeight,...
-            'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
-        hold on;
+        if iSeg == 15
+             findpeaks(yFit,'MinPeakHeight',peakHeight,...
+             'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
+             hold on;
+             findpeaks(-yFit,'MinPeakHeight',peakHeight,...
+             'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
+             hold on;
+        end
         [maxpks,maxlocs] = findpeaks(yFit,'MinPeakHeight',peakHeight,...
             'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
-        findpeaks(-yFit,'MinPeakHeight',peakHeight,...
-            'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
-        hold on;
+        %findpeaks(-yFit,'MinPeakHeight',peakHeight,...
+         %   'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
+        %hold on;
         [minpks,minlocs] = findpeaks(-yFit,'MinPeakHeight',peakHeight,...
             'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
         assert(abs(length(maxpks)-length(minpks))<2,...
@@ -102,11 +107,11 @@ for iSeg = 1:nSegments
             if iPart == 0
                 range = 1:locs(1);
                 normDiff = max(abs(pksDiff(1)),abs(leftex-pks(1)));
-                maxValue = max(pks(1),pks(2));
+                maxValue = max([pks(1),pks(2),leftex]);
             elseif iPart == nTurningPoints
                 range = (locs(end)+1):length(smallTheta);
                 normDiff = max(abs(pksDiff(end)),abs(rightex-pks(end)));
-                maxValue = max(pks(end),pks(end-1));
+                maxValue = max([pks(end),pks(end-1),rightex]);
             else
                 range = (locs(iPart)+1):(locs(iPart+1));
                 normDiff = abs(pksDiff(iPart));
@@ -124,6 +129,11 @@ for iSeg = 1:nSegments
                 ynorm(end) = ynorm(end) + 2*eps;
                 ynorm(1) = ynorm(1) - 2*eps;
             end
+            
+            if iSeg == 15
+                plot(ynorm);
+            end
+            
             
             % Calculate phases
             if s==1
@@ -147,6 +157,13 @@ for iSeg = 1:nSegments
         theta(:,iSeg) = mod(interp1(xFit(~isnan(xFit)),...
             smallTheta(~isnan(smallTheta)),xSample,'spline','extrap'),2*pi);
         theta(isnan(X(:,iSeg)),iSeg) = NaN;
+        
+        %subtract offset
+        [~,Imax] = max(X(:,iSeg));
+        [~,Imin] = min(X(:,iSeg));
+        span = 100;
+        offset = mean(X(Imin-span:Imin+span,iSeg))+0.5*(mean(X(Imax-span:Imax+span,iSeg))-mean(X(Imin-span:Imin+span,iSeg)));
+        X(:,iSeg)=X(:,iSeg)-offset;
     end
 end
 
