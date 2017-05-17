@@ -56,19 +56,14 @@ for iSeg = 1:nSegments
         peakDistance = 0.3 * length(yFit);
         peakWidth = 0.01 * length(yFit);  
         
-        if iSeg == 15
-             findpeaks(yFit,'MinPeakHeight',peakHeight,...
-             'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
-             hold on;
-             findpeaks(-yFit,'MinPeakHeight',peakHeight,...
-             'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
-             hold on;
-        end
+        findpeaks(yFit,'MinPeakHeight',peakHeight,...
+            'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
+        hold on;     
         [maxpks,maxlocs] = findpeaks(yFit,'MinPeakHeight',peakHeight,...
             'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
-        %findpeaks(-yFit,'MinPeakHeight',peakHeight,...
-         %   'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
-        %hold on;
+        findpeaks(-yFit,'MinPeakHeight',peakHeight,...
+            'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
+        hold on;
         [minpks,minlocs] = findpeaks(-yFit,'MinPeakHeight',peakHeight,...
             'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
         assert(abs(length(maxpks)-length(minpks))<2,...
@@ -129,11 +124,6 @@ for iSeg = 1:nSegments
                 ynorm(end) = ynorm(end) + 2*eps;
                 ynorm(1) = ynorm(1) - 2*eps;
             end
-            
-            if iSeg == 15
-                plot(ynorm);
-            end
-            
             
             % Calculate phases
             if s==1
