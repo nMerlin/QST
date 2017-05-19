@@ -93,7 +93,7 @@ for iSeg = 1:nSegments
         smallTheta = zeros(length(yFit),1);
         % direction of the first visible flank; also account for the
         % different directions of the piezo movement
-        ss = sign(pksDiff(1))*(-1)^iSeg*piezoSign;
+        ss = sign(pksDiff(1))*piezoSign;
         s = ss;
         for iPart = 0:nTurningPoints
             % Normalize to interval [-1;1]
@@ -144,8 +144,8 @@ for iSeg = 1:nSegments
             s = s * (-1);
         end
         
-        hold on
-        plot(smallTheta)
+%         hold on
+%         plot(smallTheta)
         
         assert(isreal(smallTheta),...
             ['Not all phase values are real in Segment ' num2str(iSeg) '.']);
