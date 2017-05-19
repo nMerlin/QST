@@ -21,7 +21,6 @@ XOld = X;
 [X, theta] = deal(zeros(nPulses * nRecords, nSegments));
 dispstat('Calculating phase values...','timestamp',...
         'keepthis',quiet);
-disp(nSegments);
 for iSeg = 1:nSegments
     % Data to operate on
     X(:,iSeg) = reshape(XOld(:,:,iSeg), nPulses * nRecords,1);
@@ -91,8 +90,7 @@ for iSeg = 1:nSegments
         else
             rightex = min(yFit(locs(end):end));
         end
-        
-        
+
         % Loop over all visible flanks
         smallTheta = zeros(length(yFit),1);
         ss = sign(pksDiff(1)); % direction of the first visible flank
@@ -115,7 +113,7 @@ for iSeg = 1:nSegments
             y = yFit(range);
             ynorm = 2*y/(normDiff);
             ynorm = ynorm + 1 - 2*maxValue/normDiff;
-            
+
             % Correct for machine precision
             if (ynorm(end)==max(ynorm))
                 ynorm(end) = ynorm(end) - 2*eps;
@@ -147,7 +145,7 @@ for iSeg = 1:nSegments
         theta(:,iSeg) = mod(interp1(xFit(~isnan(xFit)),...
             smallTheta(~isnan(smallTheta)),xSample,'spline','extrap'),2*pi);
         theta(isnan(X(:,iSeg)),iSeg) = NaN;
-        
+
         %subtract offset
         [~,Imax] = max(X(:,iSeg));
         [~,Imin] = min(X(:,iSeg));
