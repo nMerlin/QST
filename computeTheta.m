@@ -144,7 +144,8 @@ for iSeg = 1:nSegments
             s = s * (-1);
         end
         
-        assert(isreal(smallTheta),strcat('Not all phase values are real in Segment',num2str(iSeg),'.'));
+        assert(isreal(smallTheta),...
+            ['Not all phase values are real in Segment ' num2str(iSeg) '.']);
         
         % Calculate phase values from inperpolated "smallTheta"
         xSample = 1 : nPulses * nRecords;
@@ -156,7 +157,12 @@ for iSeg = 1:nSegments
         [~,Imax] = max(X(:,iSeg));
         [~,Imin] = min(X(:,iSeg));
         span = 100;
-        offset = mean(X(Imin-span:Imin+span,iSeg))+0.5*(mean(X(Imax-span:Imax+span,iSeg))-mean(X(Imin-span:Imin+span,iSeg)));
+        assert((Imin-span)>0 && (Imin+span)<nPulses*nRecords && ...
+            (Imax-span)>0 && (Imax+span)<nPulses*nRecords,...
+            'Indizes for offset correction out of range.');
+        minValue = mean(X(Imin-span:Imin+span,iSeg));
+        maxValue = mean(X(Imax-span:Imax+span,iSeg));
+        offset = minValue+0.5*(maxValue-minValue);
         X(:,iSeg)=X(:,iSeg)-offset;
     end
 end
