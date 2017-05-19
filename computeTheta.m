@@ -110,9 +110,15 @@ for iSeg = 1:nSegments
                 normDiff = abs(pksDiff(iPart));
                 maxValue = max(pks(iPart),pks(iPart+1));
             end
+            
+            % Correct X-Offset
+            offset = (2*maxValue-normDiff)/2;
+            Xrange = ((range(1)-1)*nPulses+1):(range(end)-1*nPulses);
+            X(Xrange) = X(Xrange) - offset;
+            
+            % Scale y-Values to interval [-1;1] for asin
             y = yFit(range);
-            ynorm = 2*y/(normDiff);
-            ynorm = ynorm + 1 - 2*maxValue/normDiff;
+            ynorm = 2*(y-maxValue)/normDiff + 1;
             
             % Correct for machine precision
             if (ynorm(end)==max(ynorm))
