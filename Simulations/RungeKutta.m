@@ -1,4 +1,4 @@
-function [yold] = RungeKutta(h, yold, deriv)
+function [ynew] = RungeKutta(h, yold, deriv)
 
 k1 = h * deriv(yold);
 k2 = h * deriv(yold + 0.5 * k1);

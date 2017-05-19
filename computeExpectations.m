@@ -1,4 +1,4 @@
-function [ expQ, expP, expQ2, expP2, nPhotons ] = computeExpectations( X, theta, phaseQ )
+function [ expQ, expP, expQ2, expP2, expDelQ, expDelP, unc, nPhotons ] = computeExpectations( X, theta, phaseQ )
 %COMPUTEEXPECTATIONS Computes <Q>, <P>, <Q^2>, <P^2>
 %
 %   X and THETA should be discretized for theta with DISCRETIZETHETA
@@ -14,6 +14,8 @@ expQ = zeros(1, nSegments);
 expP = expQ;
 expQ2 = expQ;
 expP2 = expQ;
+expDelQ = expQ;
+expDelP = expQ;
 for iSegment = 1 : nSegments
     % Compute averages and quadratic averages
     for iInterval = 1 : nIntervals
@@ -31,19 +33,27 @@ for iSegment = 1 : nSegments
     [~, indexQ] = min(abs(meanTheta(:,iSegment) - phaseQ));
     expQ(iSegment) = meanX(indexQ, iSegment);
     expQ2(iSegment) = meanX2(indexQ, iSegment);
+    expDelQ(iSegment) = sqrt(expQ2(iSegment)-(expQ(iSegment))^2);
     [~, indexP] = min(abs(meanTheta(:,iSegment) - (phaseQ + pi/2)));
     expP(iSegment) = meanX(indexP, iSegment);
     expP2(iSegment) = meanX2(indexP, iSegment);
+    expDelP(iSegment) = sqrt(expP2(iSegment)-(expP(iSegment))^2);
 end % iSegment
 
 % Coherent state photon number
 nPhotons = expQ.^2 + expP.^2;
 
+%uncertainty value
+unc = expDelQ.*expDelP;
+
 % Plot
 x = 1 : nSegments;
-plot(x, expP, x, expP2, x, expQ, x, expQ2, x, nPhotons, 'linewidth', 2);
+plot(x, expP, x, expP2, x, expQ, x, expQ2, x, expDelQ, x, expDelP, x,  unc, x, nPhotons, 'linewidth', 2);
 xlabel('Piezo Segments');
-legend('<P>', '<P^2>', '<Q>', '<Q^2>', 'photons', 'location', 'best');
+set(0,'DefaultLegendInterpreter','latex');
+set(0,'DefaultTextInterpreter','latex');
+legend('$<P>$', '$<P^{2}>$', '$<Q>$', '$<Q^{2}>$', '$\Delta Q$',...
+    '$\Delta P$', '$\Delta Q \cdot \Delta P$ ', 'photons', 'location', 'best');
 
 % Save plot
 dateString = datestr(datetime('now'),'yyyymmddTHHMMSS');
