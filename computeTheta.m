@@ -1,4 +1,4 @@
-function [ X, theta ] = computeTheta( X, varargin )
+function [ X, theta ] = computeTheta( X, piezoSign, varargin )
 %COMPUTETHETA Computes X and THETA ready for the reconstruction algorithm
 %
 %   X should have the size [nPulses, nRecords, nSegments]
@@ -93,7 +93,9 @@ for iSeg = 1:nSegments
 
         % Loop over all visible flanks
         smallTheta = zeros(length(yFit),1);
-        ss = sign(pksDiff(1)); % direction of the first visible flank
+        % direction of the first visible flank; also account for the
+        % different directions of the piezo movement
+        ss = sign(pksDiff(1))*(-1)^iSeg*piezoSign;
         s = ss;
         for iPart = 0:nTurningPoints
             % Normalize to interval [-1;1]
