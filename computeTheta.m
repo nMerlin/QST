@@ -51,14 +51,22 @@ for iSeg = 1:nSegments
         theta(isnan(X)) = NaN;
     else
         % Method: Inverse sine function on normalized y-values
-        peakHeight = 0.1 * (max(yFit) - min(yFit));
-        peakDistance = 0.1 * length(yFit);
+        peakHeight = 0.5 * (max(yFit));
+        peakDistance = 0.3 * length(yFit);
+        peakWidth = 0.01 * length(yFit);  
+        
+        findpeaks(yFit,'MinPeakHeight',peakHeight,...
+            'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
+        hold on;     
         [maxpks,maxlocs] = findpeaks(yFit,'MinPeakHeight',peakHeight,...
-            'MinPeakDistance',peakDistance);
+            'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
+        findpeaks(-yFit,'MinPeakHeight',peakHeight,...
+            'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
+        hold on;
         [minpks,minlocs] = findpeaks(-yFit,'MinPeakHeight',peakHeight,...
-            'MinPeakDistance',peakDistance);
+            'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
         assert(abs(length(maxpks)-length(minpks))<2,...
-            'Too many maxima or minima detected!');
+            strcat('Too many maxima or minima detected in Segment',num2str(iSeg),'!'));
         
         % Sort peaks (assumption: we only see "global" maxima and minima)
         [locs, I] = sort([maxlocs minlocs]);
@@ -69,6 +77,20 @@ for iSeg = 1:nSegments
         pks = pks(I);
         pksDiff = -diff(pks);
         
+        %look for extrema on boundaries:
+        %left boundary:
+        if pks(1)<0
+            leftex = max(yFit(1:locs(1)));
+        else
+            leftex = min(yFit(1:locs(1)));
+        end
+        %right boundary:
+        if pks(end)<0
+            rightex = max(yFit(locs(end):end));
+        else
+            rightex = min(yFit(locs(end):end));
+        end
+
         % Loop over all visible flanks
         smallTheta = zeros(length(yFit),1);
         ss = sign(pksDiff(1)); % direction of the first visible flank
@@ -77,12 +99,12 @@ for iSeg = 1:nSegments
             % Normalize to interval [-1;1]
             if iPart == 0
                 range = 1:locs(1);
-                normDiff = abs(pksDiff(1));
-                maxValue = max(pks(1),pks(2));
+                normDiff = max(abs(pksDiff(1)),abs(leftex-pks(1)));
+                maxValue = max([pks(1),pks(2),leftex]);
             elseif iPart == nTurningPoints
                 range = (locs(end)+1):length(smallTheta);
-                normDiff = abs(pksDiff(end));
-                maxValue = max(pks(end),pks(end-1));
+                normDiff = max(abs(pksDiff(end)),abs(rightex-pks(end)));
+                maxValue = max([pks(end),pks(end-1),rightex]);
             else
                 range = (locs(iPart)+1):(locs(iPart+1));
                 normDiff = abs(pksDiff(iPart));
@@ -91,9 +113,16 @@ for iSeg = 1:nSegments
             y = yFit(range);
             ynorm = 2*y/(normDiff);
             ynorm = ynorm + 1 - 2*maxValue/normDiff;
+
             % Correct for machine precision
-            ynorm(end) = ynorm(end) + (-1)^(ynorm(end)==max(ynorm))*2*eps;
-            ynorm(1) = ynorm(1) + (-1)^(ynorm(1)==max(ynorm))*2*eps;
+            if (ynorm(end)==max(ynorm))
+                ynorm(end) = ynorm(end) - 2*eps;
+                ynorm(1) = ynorm(1) + 2*eps;
+            else
+                ynorm(end) = ynorm(end) + 2*eps;
+                ynorm(1) = ynorm(1) - 2*eps;
+            end
+            
             % Calculate phases
             if s==1
                 smallTheta(range) = asin(ynorm);
@@ -109,13 +138,20 @@ for iSeg = 1:nSegments
             s = s * (-1);
         end
         
-        assert(isreal(smallTheta),'Not real.');
+        assert(isreal(smallTheta),strcat('Not all phase values are real in Segment',num2str(iSeg),'.'));
         
         % Calculate phase values from inperpolated "smallTheta"
         xSample = 1 : nPulses * nRecords;
         theta(:,iSeg) = mod(interp1(xFit(~isnan(xFit)),...
             smallTheta(~isnan(smallTheta)),xSample,'spline','extrap'),2*pi);
         theta(isnan(X(:,iSeg)),iSeg) = NaN;
+
+        %subtract offset
+        [~,Imax] = max(X(:,iSeg));
+        [~,Imin] = min(X(:,iSeg));
+        span = 100;
+        offset = mean(X(Imin-span:Imin+span,iSeg))+0.5*(mean(X(Imax-span:Imax+span,iSeg))-mean(X(Imin-span:Imin+span,iSeg)));
+        X(:,iSeg)=X(:,iSeg)-offset;
     end
 end
 

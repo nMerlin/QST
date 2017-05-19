@@ -13,11 +13,12 @@ Npeaks = 3;
 findpeaks(fft,f,'MinPeakProminence',max(abs(fft))/4, 'Npeaks',Npeaks);
 for i = 1:min(Npeaks,length(locs))
    text(locs(i)+10,pks(i),num2str(locs(i)));
-end  
+end
 title('Single-Sided Amplitude Spectrum from LeCroy');
 xlabel('f (Hz)');
 ylabel('Spectral Power (dB)');
 axis([0 500 min(fft) 0]);
+
 
 % Saving 
 outputFilename = ['LeCroy' filename '.jpg'];
