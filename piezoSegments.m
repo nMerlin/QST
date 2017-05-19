@@ -1,4 +1,4 @@
-function [ segments ] = piezoSegments( timestamps, sourceArray )
+function [ segments, piezoSign ] = piezoSegments( timestamps, sourceArray )
 %PIEZOSEGMENTS(timestamps,sourceArray) divides the source Arrays into
 %segments corresponding to single flanks of the piezo triangular
 %modulation. It looks for long gaps in the TIMESTAMPS array.
@@ -17,6 +17,14 @@ gapStarts = find((max(t)-min(t))/2<t);
 nSegments = length(gapStarts)-1;
 lSegments = int32(max(diff(gapStarts)));
 
+% For phase reconstruction, the direction of the first segment is important
+gaps = t(gapStarts);
+if gaps(1)<0.5*(max(gaps)+min(gaps))
+    piezoSign = 1;
+else
+    piezoSign = -1;
+end
+    
 if nRows>1 % 2D input arrays
     segments = NaN(nRows,lSegments,nSegments);
     for iGap=1:nSegments

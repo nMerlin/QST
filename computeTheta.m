@@ -7,8 +7,8 @@ function [ X, theta ] = computeTheta( X, piezoSign, varargin )
 verbose = 0;
 sinefit = 0;
 quiet = 'notquiet';
-if nargin > 1
-    for i = 1:(nargin-1)
+if nargin > 2
+    for i = 1:(nargin-2)
         eval([varargin{i} '=1;']);
     end
 end
@@ -55,14 +55,12 @@ for iSeg = 1:nSegments
         peakDistance = 0.3 * length(yFit);
         peakWidth = 0.01 * length(yFit);  
         
-        findpeaks(yFit,'MinPeakHeight',peakHeight,...
-            'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
-        hold on;     
+%         findpeaks(yFit,'MinPeakHeight',peakHeight,...
+%             'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);     
         [maxpks,maxlocs] = findpeaks(yFit,'MinPeakHeight',peakHeight,...
             'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
-        findpeaks(-yFit,'MinPeakHeight',peakHeight,...
-            'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
-        hold on;
+%         findpeaks(-yFit,'MinPeakHeight',peakHeight,...
+%             'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
         [minpks,minlocs] = findpeaks(-yFit,'MinPeakHeight',peakHeight,...
             'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
         assert(abs(length(maxpks)-length(minpks))<2,...
@@ -138,13 +136,16 @@ for iSeg = 1:nSegments
                 smallTheta(range) = pi - asin(ynorm);
             end
             if (ss == 1)
-                smallTheta(range) = smallTheta(range)+2*pi*floor(iPart/2);
+               smallTheta(range) = smallTheta(range)+2*pi*floor(iPart/2);
             else
                 smallTheta(range) = smallTheta(range)+...
-                    2*pi*floor((iPart+1)/2);
+                2*pi*floor((iPart+1)/2);
             end
             s = s * (-1);
         end
+        
+        hold on
+        plot(smallTheta)
         
         assert(isreal(smallTheta),...
             ['Not all phase values are real in Segment ' num2str(iSeg) '.']);
