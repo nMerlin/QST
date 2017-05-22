@@ -1,4 +1,4 @@
-function [ X, theta ] = computeTheta( X, varargin )
+function [ X, theta ] = computeTheta( X, piezoSign, varargin )
 %COMPUTETHETA Computes X and THETA ready for the reconstruction algorithm
 %
 %   X should have the size [nPulses, nRecords, nSegments]
@@ -7,8 +7,8 @@ function [ X, theta ] = computeTheta( X, varargin )
 verbose = 0;
 sinefit = 0;
 quiet = 'notquiet';
-if nargin > 1
-    for i = 1:(nargin-1)
+if nargin > 2
+    for i = 1:(nargin-2)
         eval([varargin{i} '=1;']);
     end
 end
@@ -21,7 +21,6 @@ XOld = X;
 [X, theta] = deal(zeros(nPulses * nRecords, nSegments));
 dispstat('Calculating phase values...','timestamp',...
         'keepthis',quiet);
-disp(nSegments);
 for iSeg = 1:nSegments
     % Data to operate on
     X(:,iSeg) = reshape(XOld(:,:,iSeg), nPulses * nRecords,1);
@@ -56,24 +55,12 @@ for iSeg = 1:nSegments
         peakDistance = 0.3 * length(yFit);
         peakWidth = 0.01 * length(yFit);  
         
-        
-        if iSeg == 3
-             findpeaks(yFit,'MinPeakHeight',peakHeight,...
-             'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
-              hold on;
-              findpeaks(-yFit,'MinPeakHeight',peakHeight,...
-              'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
-              hold on;
-        end
-         
 %         findpeaks(yFit,'MinPeakHeight',peakHeight,...
-%             'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
-%         hold on;     
+%             'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);     
         [maxpks,maxlocs] = findpeaks(yFit,'MinPeakHeight',peakHeight,...
             'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
 %         findpeaks(-yFit,'MinPeakHeight',peakHeight,...
 %             'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
-%         hold on;
         [minpks,minlocs] = findpeaks(-yFit,'MinPeakHeight',peakHeight,...
             'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
         assert(abs(length(maxpks)-length(minpks))<2,...
@@ -101,11 +88,12 @@ for iSeg = 1:nSegments
         else
             rightex = min(yFit(locs(end):end));
         end
-        
-        
+
         % Loop over all visible flanks
         smallTheta = zeros(length(yFit),1);
-        ss = sign(pksDiff(1)); % direction of the first visible flank
+        % direction of the first visible flank; also account for the
+        % different directions of the piezo movement
+        ss = sign(pksDiff(1))*piezoSign;
         s = ss;
         for iPart = 0:nTurningPoints
             % Normalize to interval [-1;1]
@@ -122,9 +110,15 @@ for iSeg = 1:nSegments
                 normDiff = abs(pksDiff(iPart));
                 maxValue = max(pks(iPart),pks(iPart+1));
             end
+            
+            % Correct X-Offset
+            offset = (2*maxValue-normDiff)/2;
+            Xrange = ((range(1)-1)*nPulses+1):(range(end)-1*nPulses);
+            X(Xrange) = X(Xrange) - offset;
+            
+            % Scale y-Values to interval [-1;1] for asin
             y = yFit(range);
-            ynorm = 2*y/(normDiff);
-            ynorm = ynorm + 1 - 2*maxValue/normDiff;
+            ynorm = 2*(y-maxValue)/normDiff + 1;
             
             % Correct for machine precision
             if (ynorm(end)==max(ynorm))
@@ -149,27 +143,36 @@ for iSeg = 1:nSegments
                 smallTheta(range) = pi - asin(ynorm);
             end
             if (ss == 1)
-                smallTheta(range) = smallTheta(range)+2*pi*floor(iPart/2);
+               smallTheta(range) = smallTheta(range)+2*pi*floor(iPart/2);
             else
                 smallTheta(range) = smallTheta(range)+...
-                    2*pi*floor((iPart+1)/2);
+                2*pi*floor((iPart+1)/2);
             end
             s = s * (-1);
         end
         
-        assert(isreal(smallTheta),strcat('Not all phase values are real in Segment',num2str(iSeg),'.'));
+%         hold on
+%         plot(smallTheta)
+        
+        assert(isreal(smallTheta),...
+            ['Not all phase values are real in Segment ' num2str(iSeg) '.']);
         
         % Calculate phase values from inperpolated "smallTheta"
         xSample = 1 : nPulses * nRecords;
         theta(:,iSeg) = mod(interp1(xFit(~isnan(xFit)),...
             smallTheta(~isnan(smallTheta)),xSample,'spline','extrap'),2*pi);
         theta(isnan(X(:,iSeg)),iSeg) = NaN;
-        
+
         %subtract offset
         [~,Imax] = max(X(:,iSeg));
         [~,Imin] = min(X(:,iSeg));
         span = 100;
-        offset = mean(X(Imin-span:Imin+span,iSeg))+0.5*(mean(X(Imax-span:Imax+span,iSeg))-mean(X(Imin-span:Imin+span,iSeg)));
+        assert((Imin-span)>0 && (Imin+span)<nPulses*nRecords && ...
+            (Imax-span)>0 && (Imax+span)<nPulses*nRecords,...
+            'Indizes for offset correction out of range.');
+        minValue = mean(X(Imin-span:Imin+span,iSeg));
+        maxValue = mean(X(Imax-span:Imax+span,iSeg));
+        offset = minValue+0.5*(maxValue-minValue);
         X(:,iSeg)=X(:,iSeg)-offset;
     end
 end
