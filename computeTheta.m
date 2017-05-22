@@ -52,18 +52,28 @@ for iSeg = 1:nSegments
         theta(isnan(X)) = NaN;
     else
         % Method: Inverse sine function on normalized y-values
-        peakHeight = 0.5 * (max(yFit));
+        peakHeight = 0.35 * (max(yFit));
         peakDistance = 0.3 * length(yFit);
         peakWidth = 0.01 * length(yFit);  
         
-        findpeaks(yFit,'MinPeakHeight',peakHeight,...
-            'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
-        hold on;     
+        
+        if iSeg == 3
+             findpeaks(yFit,'MinPeakHeight',peakHeight,...
+             'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
+              hold on;
+              findpeaks(-yFit,'MinPeakHeight',peakHeight,...
+              'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
+              hold on;
+        end
+         
+%         findpeaks(yFit,'MinPeakHeight',peakHeight,...
+%             'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
+%         hold on;     
         [maxpks,maxlocs] = findpeaks(yFit,'MinPeakHeight',peakHeight,...
             'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
-        findpeaks(-yFit,'MinPeakHeight',peakHeight,...
-            'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
-        hold on;
+%         findpeaks(-yFit,'MinPeakHeight',peakHeight,...
+%             'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
+%         hold on;
         [minpks,minlocs] = findpeaks(-yFit,'MinPeakHeight',peakHeight,...
             'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
         assert(abs(length(maxpks)-length(minpks))<2,...
@@ -124,6 +134,13 @@ for iSeg = 1:nSegments
                 ynorm(end) = ynorm(end) + 2*eps;
                 ynorm(1) = ynorm(1) - 2*eps;
             end
+            [maxVal,iMax] = max(ynorm);
+            
+            
+            if iSeg == 3
+                plot(ynorm);
+            end
+            
             
             % Calculate phases
             if s==1
