@@ -121,20 +121,10 @@ for iSeg = 1:nSegments
             ynorm = 2*(y-maxValue)/normDiff + 1;
             
             % Correct for machine precision
-            if (ynorm(end)==max(ynorm))
-                ynorm(end) = ynorm(end) - 2*eps;
-                ynorm(1) = ynorm(1) + 2*eps;
-            else
-                ynorm(end) = ynorm(end) + 2*eps;
-                ynorm(1) = ynorm(1) - 2*eps;
-            end
-            [maxVal,iMax] = max(ynorm);
-            
-            
-            if iSeg == 3
-                plot(ynorm);
-            end
-            
+            [~,iMax] = max(ynorm);
+            ynorm(iMax) = ynorm(iMax) - 2*eps;
+            [~,iMin] = min(ynorm);
+            ynorm(iMin) = ynorm(iMin) + 2*eps;
             
             % Calculate phases
             if s==1
