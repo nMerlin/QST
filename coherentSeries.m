@@ -67,10 +67,10 @@ for number = 1:size(dataStruct,2)
     dispstat(['mainPrepareData number ' num2str(number)],'timestamp','keepthis',quiet);
     [ X, theta ] = mainPrepareData( filenameLO, filenameSIG );
     dispstat(['discretize data ' num2str(number)],'timestamp','keepthis',quiet);
-    [ Xdis, thetadis ] = discretizeData( X, theta, 400 );
+    [ Xdis, thetadis ] = discretizeTheta( X, theta, 400 );
     dispstat(['compute and plot Expectations ' num2str(number)],'timestamp','keepthis',quiet);
     [ ~,~, ~, ~, expDelQ, expDelP, unc, ~, meanN ] =...
-        computeExpectations2( Xdis, thetadis, strrep(num2str(filenameSIG),'-LOwithLO','') );
+        computeExpectations2( Xdis, thetadis, strrep(num2str(filenameSIG),'-LOwithLO.raw','') );
     dataStruct(number).meanN = meanN;
     dataStruct(number).unc = unc(1,1);
     dataStruct(number).delQ = expDelQ(1,1);
