@@ -55,16 +55,18 @@ for i = Seg:Seg %nSegments
      plot(x, expP(:,i), x, expP2(:,i), x, expQ(:,i), x, expQ2(:,i), x, expDelQ(:,i),...
      x, expDelP(:,i), x,  unc(:,i), x, nPhotons(:,i), 'linewidth', 2);
      xlabel('Phase \theta');
+     hold on;
+     plot(x,0.5*ones(length(x)),'k-','lineWidth',0.5);
 end
 axis([0 2*pi min(min(meanX))-0.5 max(max(meanX2))+0.5]);
 set(0,'DefaultLegendInterpreter','latex');
 set(0,'DefaultTextInterpreter','latex');
 legend('$<P>$', '$<P^{2}>$', '$<Q>$', '$<Q^{2}>$', '$\Delta Q$',...
-    '$\Delta P$', '$\Delta Q \cdot \Delta P$ ', '$<n>$ ', 'location', 'best');
+    '$\Delta P$', '$\Delta Q \cdot \Delta P$ ', '$<n>$ ','0.5', 'location', 'best');
 title(strcat('Mean Photon number =','\, ',num2str(meanN)));
 
 % Save plot
-print(strcat('expect-',filename,'-', strrep(num2str(meanN),'.',','),'photons'), '-dpng');
+%print(strcat('expect-',filename,'-', strrep(num2str(meanN),'.',','),'photons'), '-dpng');
 
 end % computeExpectations
 
