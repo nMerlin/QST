@@ -82,8 +82,8 @@ delQs = cell2mat({dataStruct.delQ});
 delPs = cell2mat({dataStruct.delP});
 
 dispstat('plot uncertainties over mean photon number','timestamp','keepthis',quiet);
-plot(meanNs,delQs,meanNs,delPs,meanNs,uncs, 'o');
-legend( '$\Delta Q$','$\Delta P$', '$\Delta Q \cdot \Delta P$ ''Location','northeast');
+plot(meanNs,delQs,'o',meanNs,delPs,'o', meanNs,uncs, 'o');
+legend( '$\Delta Q$','$\Delta P$', '$\Delta Q \cdot \Delta P$ ','Location','northeast');
 axis ([0 max(meanNs)+1 0 2]);
 set(0,'DefaultLegendInterpreter','latex');
 set(0,'DefaultTextInterpreter','latex');
