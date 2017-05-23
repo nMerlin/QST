@@ -13,7 +13,7 @@ if verbose == 0
     quiet = 'quiet';
 end
 
-dataStruct = struct('filename',{},'powerLO', {},'meanN',{}, 'unc', {}, 'DelQ', {}, 'DelP', {});
+dataStruct = struct('filename',{},'powerLO', {},'meanN',{}, 'unc', {}, 'delQ', {}, 'delP', {});
 dataStructLOonly = struct('filename',{},'number',{});
 
 %%% Create data overview
@@ -55,7 +55,7 @@ for name = {rawDataContents.name}
 end
 LOnumbers = cell2mat({dataStructLOonly.number});
 
-parfor number = 1:size(dataStruct(:,1))
+for number = 1:size(dataStruct,2)
     filenameSIG = dataStruct(number).filename;
     if isempty(filenameSIG)
         continue
@@ -79,6 +79,7 @@ end
 meanNs = cell2mat({dataStruct.meanN});
 uncs = cell2mat({dataStruct.unc});
 delQs = cell2mat({dataStruct.delQ});
+delPs = cell2mat({dataStruct.delP});
 
 dispstat('plot uncertainties over mean photon number','timestamp','keepthis',quiet);
 plot(meanNs,delQs,meanNs,delPs,meanNs,uncs, 'o');
