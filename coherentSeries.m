@@ -1,4 +1,4 @@
-function [] = coherentSeries()
+function [] = coherentSeries(varargin)
 %This function evaluates a measurement series of coherent states with
 %different photon numbers.
 % Optional input arguments
@@ -55,8 +55,11 @@ for name = {rawDataContents.name}
 end
 LOnumbers = cell2mat({dataStructLOonly.number});
 
-for number = 1:size(dataStruct(:,2))
+parfor number = 1:size(dataStruct(:,1))
     filenameSIG = dataStruct(number).filename;
+    if isempty(filenameSIG)
+        continue
+    end    
     %find adequate LOonly-file
     LOnumber = max(LOnumbers(LOnumbers<=number));    
     filenameLO = dataStructLOonly(LOnumber).filename;
@@ -76,7 +79,6 @@ end
 meanNs = cell2mat({dataStruct.meanN});
 uncs = cell2mat({dataStruct.unc});
 delQs = cell2mat({dataStruct.delQ});
-delPs = cell2mat({dataStruct.delP});
 
 dispstat('plot uncertainties over mean photon number','timestamp','keepthis',quiet);
 plot(meanNs,delQs,meanNs,delPs,meanNs,uncs, 'o');
