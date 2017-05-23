@@ -1,4 +1,4 @@
-function [ expQ, expP, expQ2, expP2, expDelQ, expDelP, unc, nPhotons, meanN ] = computeExpectations2( X, theta )
+function [ expQ, expP, expQ2, expP2, expDelQ, expDelP, unc, nPhotons, meanN ] = computeExpectations2( X, theta, filename )
 %COMPUTEEXPECTATIONS Computes <Q>, <P>, <Q^2>, <P^2>
 %
 %   X and THETA should be discretized for theta with DISCRETIZETHETA
@@ -39,15 +39,18 @@ for iSegment = 1 : nSegments
     expDelP(:,iSegment) = sqrt(expP2(:,iSegment)-(expP(:,iSegment)).^2);
 end % iSegment
 
+%use this Segment
+Seg = 1;
+
 % Coherent state photon number
 nPhotons = expQ.^2 + expP.^2;
-meanN = mean(mean(nPhotons));
+meanN = mean(nPhotons(:,Seg));
 
 %uncertainty value
 unc = expDelQ.*expDelP;
 
 % Plot
-for i = 1:1 %nSegments
+for i = Seg:Seg %nSegments
      x = meanTheta(:,i);
      plot(x, expP(:,i), x, expP2(:,i), x, expQ(:,i), x, expQ2(:,i), x, expDelQ(:,i),...
      x, expDelP(:,i), x,  unc(:,i), x, nPhotons(:,i), 'linewidth', 2);
@@ -61,8 +64,7 @@ legend('$<P>$', '$<P^{2}>$', '$<Q>$', '$<Q^{2}>$', '$\Delta Q$',...
 title(strcat('Mean Photon number =','\, ',num2str(meanN)));
 
 % Save plot
-%dateString = datestr(datetime('now'),'yyyymmddTHHMMSS');
-%print(['expectations-' dateString], '-dpng');
+print(strcat('expect-',filename,'-', strrep(num2str(meanN),'.',','),'photons'), '-dpng');
 
 end % computeExpectations
 
