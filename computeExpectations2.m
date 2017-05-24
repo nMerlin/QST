@@ -4,6 +4,11 @@ function [ expQ, expP, expQ2, expP2, expDelQ, expDelP, unc, nPhotons, meanN ] = 
 %   X and THETA should be discretized for theta with DISCRETIZETHETA
 %   PHASEQ gives the arbitrary phase for Q
 
+Norm = 1/sqrt(2);
+%Norm ist the factor in the relation between the quadratures and the ladder
+%operators: q = Norm*(a^{+} + a), p = Norm*i*(a^{+} - a)
+%typical values are 1/sqrt(2) or 1/2. 
+
 [~, nIntervals, nSegments] = size(X);
 
 % Compute <Q> and <P>
@@ -43,7 +48,7 @@ end % iSegment
 Seg = 1;
 
 % Coherent state photon number
-nPhotons = expQ.^2 + expP.^2;
+nPhotons = (expQ2 + expP2)/(4*Norm^2) -0.5 ;
 meanN = mean(nPhotons(:,Seg));
 
 %uncertainty value
@@ -56,17 +61,17 @@ for i = Seg:Seg %nSegments
      x, expDelP(:,i), x,  unc(:,i), x, nPhotons(:,i), 'linewidth', 2);
      xlabel('Phase \theta');
      hold on;
-     plot(x,0.5*ones(length(x)),'k-','lineWidth',0.5);
+     plot(x,Norm^2*ones(length(x)),'k-','lineWidth',0.5);
 end
 axis([0 2*pi min(min(meanX))-0.5 max(max(meanX2))+0.5]);
 set(0,'DefaultLegendInterpreter','latex');
 set(0,'DefaultTextInterpreter','latex');
 legend('$<P>$', '$<P^{2}>$', '$<Q>$', '$<Q^{2}>$', '$\Delta Q$',...
-    '$\Delta P$', '$\Delta Q \cdot \Delta P$ ', '$<n>$ ','0.5', 'location', 'best');
+    '$\Delta P$', '$\Delta Q \cdot \Delta P$ ', '$<n>$ ','uncertainty limit', 'location', 'best');
 title(strcat('Mean Photon number =','\, ',num2str(meanN)));
 
 % Save plot
-%print(strcat('expect-',filename,'-', strrep(num2str(meanN),'.',','),'photons'), '-dpng');
+print(strcat('expect-',filename,'-', strrep(num2str(meanN),'.',','),'photons'), '-dpng');
 
 end % computeExpectations
 
