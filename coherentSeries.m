@@ -13,6 +13,11 @@ if verbose == 0
     quiet = 'quiet';
 end
 
+Norm = 1/sqrt(2);
+%Norm ist the factor in the relation between the quadratures and the ladder
+%operators: q = Norm*(a^{+} + a), p = Norm*i*(a^{+} - a)
+%typical values are 1/sqrt(2) or 1/2. 
+
 dataStruct = struct('filename',{},'powerLO', {},'meanN',{}, 'unc', {}, 'delQ', {}, 'delP', {});
 dataStructLOonly = struct('filename',{},'number',{});
 
@@ -55,6 +60,8 @@ for name = {rawDataContents.name}
 end
 LOnumbers = cell2mat({dataStructLOonly.number});
 
+%Segment to be used
+Seg = 1;
 for number = 1:size(dataStruct,2)
     filenameSIG = dataStruct(number).filename;
     if isempty(filenameSIG)
@@ -72,9 +79,9 @@ for number = 1:size(dataStruct,2)
     [ ~,~, ~, ~, expDelQ, expDelP, unc, ~, meanN ] =...
         computeExpectations2( Xdis, thetadis, strrep(num2str(filenameSIG),'-LOwithLO.raw','') );
     dataStruct(number).meanN = meanN;
-    dataStruct(number).unc = unc(1,1);
-    dataStruct(number).delQ = expDelQ(1,1);
-    dataStruct(number).delP = expDelP(1,1);   
+    dataStruct(number).unc = mean(unc(:,Seg));
+    dataStruct(number).delQ = mean(expDelQ(:,Seg));
+    dataStruct(number).delP = mean(expDelP(:,Seg));   
 end
 meanNs = cell2mat({dataStruct.meanN});
 uncs = cell2mat({dataStruct.unc});
@@ -82,14 +89,21 @@ delQs = cell2mat({dataStruct.delQ});
 delPs = cell2mat({dataStruct.delP});
 
 dispstat('plot uncertainties over mean photon number','timestamp','keepthis',quiet);
+close all;
 semilogx(meanNs,delQs,'o',meanNs,delPs,'o', meanNs,uncs, 'o');
+hold on;
+semilogx(1:max(meanNs),Norm^2*ones(length(1:max(meanNs))),'k-');
 legend( '$\Delta Q$','$\Delta P$', '$\Delta Q \cdot \Delta P$ ','Location','northeast');
-axis ([0 max(meanNs)+0.1 0 2]);
+axis ([0 max(meanNs)+1 0 1.5]);
 set(0,'DefaultLegendInterpreter','latex');
 set(0,'DefaultTextInterpreter','latex');
 xlabel('mean Photonnumber');
 ylabel('Uncertainty [a. u.]');    
 print('UncertaintiesOverPhotonnumber','-dpng');
 
+% Saving important results
+dateString = datestr(datetime('now'),'yyyymmddTHHMMSS');
+save(['photonnumberDataset-' dateString '.mat'], ...
+    'meanNs', 'delQs', 'delPs', 'uncs');
 
 end
