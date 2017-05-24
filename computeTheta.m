@@ -27,6 +27,7 @@ for iSeg = 1:nSegments
     
     % Average over recordings and create fit input x/y data
     yFit = mean(XOld(:,:,iSeg));
+    yFit=smooth(yFit,5)';   %smoothing of yFit decreases "Dips" in theta
     xFit = (1:nRecords) * nPulses - round(nPulses/2);
     xFit(isnan(yFit)) = NaN;
     
@@ -94,7 +95,6 @@ for iSeg = 1:nSegments
         % direction of the first visible flank; also account for the
         % different directions of the piezo movement
         ss = sign(pksDiff(1))*piezoSign;
-        disp(ss);
         s = ss;
         for iPart = 0:nTurningPoints
             % Normalize to interval [-1;1]
@@ -103,11 +103,11 @@ for iSeg = 1:nSegments
                 normDiff = max(abs(pksDiff(1)),abs(leftex-pks(1)));
                 maxValue = max([pks(1),pks(2),leftex]);
             elseif iPart == nTurningPoints
-                range = (locs(end)+1):length(smallTheta);
+                range = (locs(end)):length(smallTheta);
                 normDiff = max(abs(pksDiff(end)),abs(rightex-pks(end)));
                 maxValue = max([pks(end),pks(end-1),rightex]);
             else
-                range = (locs(iPart)+1):(locs(iPart+1));
+                range = (locs(iPart)):(locs(iPart+1));
                 normDiff = abs(pksDiff(iPart));
                 maxValue = max(pks(iPart),pks(iPart+1));
             end
@@ -126,6 +126,9 @@ for iSeg = 1:nSegments
             ynorm(iMax) = ynorm(iMax) - 2*eps;
             [~,iMin] = min(ynorm);
             ynorm(iMin) = ynorm(iMin) + 2*eps;
+            
+            plot(ynorm);
+            hold on;
             
             % Calculate phases
             if s==1
@@ -153,8 +156,9 @@ for iSeg = 1:nSegments
             s = s * (-1);
         end
         
-%          hold on
-%          plot(smallTheta)
+        
+        plot(smallTheta);
+        hold on;
         
         assert(isreal(smallTheta),...
             ['Not all phase values are real in Segment ' num2str(iSeg) '.']);
