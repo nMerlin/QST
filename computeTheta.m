@@ -127,8 +127,8 @@ for iSeg = 1:nSegments
             [~,iMin] = min(ynorm);
             ynorm(iMin) = ynorm(iMin) + 2*eps;
             
-            plot(ynorm);
-            hold on;
+%             plot(ynorm);
+%             hold on;
             
             % Calculate phases
             if s==1
@@ -157,8 +157,8 @@ for iSeg = 1:nSegments
         end
         
         
-        plot(smallTheta);
-        hold on;
+%         plot(smallTheta);
+%         hold on;
         
         assert(isreal(smallTheta),...
             ['Not all phase values are real in Segment ' num2str(iSeg) '.']);
@@ -170,18 +170,26 @@ for iSeg = 1:nSegments
         theta(isnan(X(:,iSeg)),iSeg) = NaN;
 
         %subtract offset
-        [~,Imax] = max(X(:,iSeg));
-        [~,Imin] = min(X(:,iSeg));
+        [~,I] = sort(theta(:,iSeg));
+        Xsorted = X(I,iSeg);
+        XsortedSmoothed = smooth(Xsorted,20,'moving');
+        [~,Imax] = max(XsortedSmoothed);
+        [~,Imin] = min(XsortedSmoothed);
         span = 100;
         assert((Imin-span)>0 && (Imin+span)<nPulses*nRecords && ...
             (Imax-span)>0 && (Imax+span)<nPulses*nRecords,...
             'Indizes for offset correction out of range.');
-        minValue = mean(X(Imin-span:Imin+span,iSeg));
-        maxValue = mean(X(Imax-span:Imax+span,iSeg));
+        minValue = mean(Xsorted(Imin-span:Imin+span));
+        maxValue = mean(Xsorted(Imax-span:Imax+span));
         offset = minValue+0.5*(maxValue-minValue);
         X(:,iSeg)=X(:,iSeg)-offset;
+
     end
 end
+
+%Concatenate the segments 
+% theta = reshape(theta,size(theta,1)*size(theta,2) ,1);
+% X = reshape(X,size(X,1)*size(X,2) ,1);
 
 end
 
