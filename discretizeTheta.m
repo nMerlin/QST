@@ -1,6 +1,5 @@
 function [ X, theta ] = discretizeTheta( X, theta, nIntervals )
 %DISCRETIZETHETA Divides the range of theta values into discrete intervals
-
 EPSILON = 1e-12;
 
 [nRows, nSegments] = size(theta);
