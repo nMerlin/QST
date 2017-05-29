@@ -1,6 +1,10 @@
-function [ X, theta ] = mainPrepareData( filenameLO, filenameSIG )
+function [ X, theta ] = mainPrepareData( filenameLO, filenameSIG)
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
+Norm = 1/sqrt(2);
+%Norm ist the factor in the relation between the quadratures and the ladder
+%operators: q = Norm*(a^{+} + a), p = Norm*i*(a^{+} - a)
+%typical values are 1/sqrt(2) or 1/2. 
 
 CALIBRATION_CH1 = 4.596047840078126e-05; % Ampere per Volt
 
@@ -14,14 +18,14 @@ NLO = mean(var(XLO));
 X = computeQuadratures(data8bit, config, CALIBRATION_CH1);
 [X, piezoSign] = piezoSegments(timestamps, X);
 % Calibration of quadratures
-X = X / sqrt(2 * NLO);
+X = Norm* X / sqrt(NLO);
 
 % Compute relative phases and removes offset
 [X, theta] = computeTheta(X,piezoSign,'verbose');
 
 % Saving important Variables (to delete the raw data manually)
 dateString = datestr(datetime('now'),'yyyymmddTHHMMSS');
-save(['quadratureDataset-' dateString '.mat'], ...
+save(['quadratureDataset-' strrep(num2str(filenameSIG),'LOwithLO.raw','') dateString '.mat'], ...
     'X', 'theta');
 
 end

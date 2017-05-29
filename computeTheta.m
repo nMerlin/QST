@@ -27,6 +27,7 @@ for iSeg = 1:nSegments
     
     % Average over recordings and create fit input x/y data
     yFit = mean(XOld(:,:,iSeg));
+    yFit=smooth(yFit,5)';   %smoothing of yFit decreases "Dips" in theta
     xFit = (1:nRecords) * nPulses - round(nPulses/2);
     xFit(isnan(yFit)) = NaN;
     
@@ -102,11 +103,11 @@ for iSeg = 1:nSegments
                 normDiff = max(abs(pksDiff(1)),abs(leftex-pks(1)));
                 maxValue = max([pks(1),pks(2),leftex]);
             elseif iPart == nTurningPoints
-                range = (locs(end)+1):length(smallTheta);
+                range = (locs(end)):length(smallTheta);
                 normDiff = max(abs(pksDiff(end)),abs(rightex-pks(end)));
                 maxValue = max([pks(end),pks(end-1),rightex]);
             else
-                range = (locs(iPart)+1):(locs(iPart+1));
+                range = (locs(iPart)):(locs(iPart+1));
                 normDiff = abs(pksDiff(iPart));
                 maxValue = max(pks(iPart),pks(iPart+1));
             end
@@ -126,23 +127,38 @@ for iSeg = 1:nSegments
             [~,iMin] = min(ynorm);
             ynorm(iMin) = ynorm(iMin) + 2*eps;
             
+            plot(ynorm);
+            hold on;
+            
             % Calculate phases
             if s==1
                 smallTheta(range) = asin(ynorm);
             else
                 smallTheta(range) = pi - asin(ynorm);
             end
-            if (ss == 1)
-               smallTheta(range) = smallTheta(range)+2*pi*floor(iPart/2);
+                    
+            if ( piezoSign == 1)
+                if ( ss == 1)
+                     smallTheta(range) = smallTheta(range)+2*pi*floor(iPart/2);                
+                else
+                     smallTheta(range) = smallTheta(range)+...
+                     2*pi*floor((iPart+1)/2);
+                end
             else
-                smallTheta(range) = smallTheta(range)+...
-                2*pi*floor((iPart+1)/2);
+                if ( ss == 1 )
+                     smallTheta(range) = smallTheta(range)-2*pi*floor((iPart+1)/2);                
+                else
+                     smallTheta(range) = smallTheta(range)-...
+                     2*pi*floor(iPart/2);
+                end
+                
             end
             s = s * (-1);
         end
         
-%         hold on
-%         plot(smallTheta)
+        
+        plot(smallTheta);
+        hold on;
         
         assert(isreal(smallTheta),...
             ['Not all phase values are real in Segment ' num2str(iSeg) '.']);
