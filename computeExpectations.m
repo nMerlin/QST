@@ -4,6 +4,11 @@ function [ expQ, expP, expQ2, expP2, expDelQ, expDelP, unc, nPhotons ] = compute
 %   X and THETA should be discretized for theta with DISCRETIZETHETA
 %   PHASEQ gives the arbitrary phase for Q
 
+Norm = 1/sqrt(2);
+%Norm ist the factor in the relation between the quadratures and the ladder
+%operators: q = Norm*(a^{+} + a), p = Norm*i*(a^{+} - a)
+%typical values are 1/sqrt(2) or 1/2. 
+
 [~, nIntervals, nSegments] = size(X);
 
 % Compute <Q> and <P>
@@ -41,7 +46,7 @@ for iSegment = 1 : nSegments
 end % iSegment
 
 % Coherent state photon number
-nPhotons = expQ.^2 + expP.^2;
+nPhotons = (expQ2 + expP2)/(4*Norm^2) -0.5 ;
 
 %uncertainty value
 unc = expDelQ.*expDelP;
