@@ -187,5 +187,9 @@ for iSeg = 1:nSegments
     end
 end
 
+%Concatenate the segments 
+% theta = reshape(theta,size(theta,1)*size(theta,2) ,1);
+% X = reshape(X,size(X,1)*size(X,2) ,1);
+
 end
 
