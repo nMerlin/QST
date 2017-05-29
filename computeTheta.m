@@ -53,7 +53,7 @@ for iSeg = 1:nSegments
     else
         % Method: Inverse sine function on normalized y-values
         peakHeight = 0.35 * (max(yFit));
-        peakDistance = 0.3 * length(yFit);
+        peakDistance = 0.4 * length(yFit);
         peakWidth = 0.01 * length(yFit);  
         
          findpeaks(yFit,'MinPeakHeight',peakHeight,...
