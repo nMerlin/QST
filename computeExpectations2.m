@@ -13,21 +13,11 @@ Norm = 1/sqrt(2);
 [~, nIntervals, nSegments] = size(X);
 
 % Compute <Q> and <P>
-meanX = zeros(nIntervals, nSegments);
-meanX2 = meanX;
+[meanX, meanX2] = deal(zeros(nIntervals, nSegments));
 meanTheta = zeros(nIntervals, nSegments);
-expQ = zeros(nIntervals, nSegments);
-expP = expQ;
-expQ2 = expQ;
-expP2 = expQ;
-expDelQ = expQ;
-expDelP = expQ;
-nPhotons = expQ;
-unc = expQ;
-meanN = zeros(nSegments);
-delQ = meanN;
-delP = meanN;
-meanUnc = meanN;
+[expQ, expP, expQ2, expP2, expDelQ, expDelP, nPhotons, unc] = ...
+    deal(zeros(nIntervals, nSegments));
+[meanN, delQ, delP, meanUnc] = deal(zeros(nSegments,1));
 
 for iSegment = 1 : nSegments
     % Compute averages and quadratic averages

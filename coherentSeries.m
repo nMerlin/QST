@@ -82,18 +82,42 @@ for number = 1:size(dataStruct,2)
     dataStruct(number).delP = delP;   
 end
 
+% Modify dataStruct with NaN-Values to convert it to arrays
+nPiezoSegments = 0;
+for iStruct = 1:length(dataStruct)
+    if length(dataStruct(iStruct).meanN) > nPiezoSegments
+        nPiezoSegments = length(dataStruct(iStruct).meanN);
+    end
+end
+for iStruct = 1:length(dataStruct)
+    if isempty(dataStruct(iStruct).meanN)
+        continue
+    end
+    meanN = dataStruct(iStruct).meanN;
+    dataStruct(iStruct).meanN = ...
+        [meanN; NaN(nPiezoSegments-length(meanN),1)];
+    unc = dataStruct(iStruct).unc;
+    dataStruct(iStruct).unc = ...
+        [meanN; NaN(nPiezoSegments-length(unc),1)];
+    delQ = dataStruct(iStruct).delQ;
+    dataStruct(iStruct).delQ = ...
+        [meanN; NaN(nPiezoSegments-length(delQ),1)];
+    delP = dataStruct(iStruct).delP;
+    dataStruct(iStruct).delP = ...
+        [meanN; NaN(1,nPiezoSegments-length(delP),1)];
+end
 meanNs = cell2mat({dataStruct.meanN});
 uncs = cell2mat({dataStruct.unc});
 delQs = cell2mat({dataStruct.delQ});
 delPs = cell2mat({dataStruct.delP});
 
+
 dispstat('plot uncertainties over mean photon number','timestamp','keepthis',quiet);
 for iSegment = 1:nSegments
-
     close all;
     semilogx(meanNs(iSegment,:),delQs(iSegment,:),'o',meanNs(iSegment,:),delPs(iSegment,:),'o', meanNs(iSegment,:),uncs(iSegment,:), 'o');
     hold on;
-    semilogx(1:max(meanNs(iSegment,:))+1,Norm^2*ones(1,max(meanNs(iSegment,:))+1),'k-');
+    semilogx(1:max(ceil(meanNs(iSegment,:))),Norm^2*ones(1,max(ceil(meanNs(iSegment,:)))),'k-');
     legend( '$\Delta Q$','$\Delta P$', '$\Delta Q \cdot \Delta P$ ','Location','northeast');
     axis ([1 max(meanNs(iSegment,:))+1 0 1.5]);
     set(0,'DefaultLegendInterpreter','latex');
