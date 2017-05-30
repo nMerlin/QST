@@ -11,6 +11,8 @@ CALIBRATION_CH1 = 4.596047840078126e-05; % Ampere per Volt
 % Compute number of LO photons
 [data8bit,config,~]=load8BitBinary(filenameLO,'dontsave');
 XLO = computeQuadratures(data8bit, config, CALIBRATION_CH1);
+
+% Calculate the variance piece-wise to compensate slow drifts (e.g. piezos)
 NLO = mean(var(XLO));
 
 % Compute quadratures for target quantum state
@@ -18,7 +20,7 @@ NLO = mean(var(XLO));
 X = computeQuadratures(data8bit, config, CALIBRATION_CH1);
 [X, piezoSign] = piezoSegments(timestamps, X);
 % Calibration of quadratures
-X = Norm* X / sqrt(NLO);
+X = Norm * X / sqrt(NLO);
 
 % Compute relative phases and removes offset
 [X, theta] = computeTheta(X,piezoSign,'verbose');
