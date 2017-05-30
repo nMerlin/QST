@@ -60,8 +60,6 @@ for name = {rawDataContents.name}
 end
 LOnumbers = cell2mat({dataStructLOonly.number});
 
-%Segment to be used
-Seg = 1;
 for number = 1:size(dataStruct,2)
     filenameSIG = dataStruct(number).filename;
     if isempty(filenameSIG)
@@ -74,32 +72,37 @@ for number = 1:size(dataStruct,2)
     dispstat(['mainPrepareData number ' num2str(number)],'timestamp','keepthis',quiet);
     [ X, theta ] = mainPrepareData( filenameLO, filenameSIG );
     dispstat(['discretize data ' num2str(number)],'timestamp','keepthis',quiet);
-    [ Xdis, thetadis ] = discretizeTheta( X, theta, 400 );
+    [ Xdis, thetadis ] = discretizeTheta( X, theta, 300 );
     dispstat(['compute and plot Expectations ' num2str(number)],'timestamp','keepthis',quiet);
-    [ ~,~, ~, ~, expDelQ, expDelP, unc, ~, meanN ] =...
+    [ ~,~, ~, ~, delQ, delP, meanUnc, ~, meanN, nSegments ] =...
         computeExpectations2( Xdis, thetadis, strrep(num2str(filenameSIG),'-LOwithLO.raw','') );
     dataStruct(number).meanN = meanN;
-    dataStruct(number).unc = mean(unc(:,Seg));
-    dataStruct(number).delQ = mean(expDelQ(:,Seg));
-    dataStruct(number).delP = mean(expDelP(:,Seg));   
+    dataStruct(number).unc = meanUnc;
+    dataStruct(number).delQ = delQ;
+    dataStruct(number).delP = delP;   
 end
+
 meanNs = cell2mat({dataStruct.meanN});
 uncs = cell2mat({dataStruct.unc});
 delQs = cell2mat({dataStruct.delQ});
 delPs = cell2mat({dataStruct.delP});
 
 dispstat('plot uncertainties over mean photon number','timestamp','keepthis',quiet);
-close all;
-semilogx(meanNs,delQs,'o',meanNs,delPs,'o', meanNs,uncs, 'o');
-hold on;
-semilogx(1:max(meanNs),Norm^2*ones(length(1:max(meanNs))),'k-');
-legend( '$\Delta Q$','$\Delta P$', '$\Delta Q \cdot \Delta P$ ','Location','northeast');
-axis ([0 max(meanNs)+1 0 1.5]);
-set(0,'DefaultLegendInterpreter','latex');
-set(0,'DefaultTextInterpreter','latex');
-xlabel('mean Photonnumber');
-ylabel('Uncertainty [a. u.]');    
-print('UncertaintiesOverPhotonnumber','-dpng');
+for iSegment = 1:nSegments
+
+    close all;
+    semilogx(meanNs(iSegment,:),delQs(iSegment,:),'o',meanNs(iSegment,:),delPs(iSegment,:),'o', meanNs(iSegment,:),uncs(iSegment,:), 'o');
+    hold on;
+    semilogx(1:max(meanNs(iSegment,:))+1,Norm^2*ones(1,max(meanNs(iSegment,:))+1),'k-');
+    legend( '$\Delta Q$','$\Delta P$', '$\Delta Q \cdot \Delta P$ ','Location','northeast');
+    axis ([1 max(meanNs(iSegment,:))+1 0 1.5]);
+    set(0,'DefaultLegendInterpreter','latex');
+    set(0,'DefaultTextInterpreter','latex');
+    xlabel('mean Photonnumber');
+    ylabel('Uncertainty [a. u.]');    
+    print(strcat('UncertaintiesOverPhotonnumber-Segment',num2str(iSegment)),'-dpng');
+
+end
 
 % Saving important results
 dateString = datestr(datetime('now'),'yyyymmddTHHMMSS');
