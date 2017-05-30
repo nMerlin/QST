@@ -1,4 +1,4 @@
-function [ expQ, expP, expQ2, expP2, expDelQ, expDelP, unc, nPhotons, meanN ] = computeExpectations2( X, theta, filename )
+function [ expQ, expP, expQ2, expP2, delQ, delP, meanUnc, nPhotons, meanN, nSegments ] = computeExpectations2( X, theta, filename )
 %COMPUTEEXPECTATIONS Computes <Q>, <P>, <Q^2>, <P^2> and uncertainties,
 %plots them over theta.
 %
@@ -22,6 +22,13 @@ expQ2 = expQ;
 expP2 = expQ;
 expDelQ = expQ;
 expDelP = expQ;
+nPhotons = expQ;
+unc = expQ;
+meanN = zeros(nSegments);
+delQ = meanN;
+delP = meanN;
+meanUnc = meanN;
+
 for iSegment = 1 : nSegments
     % Compute averages and quadratic averages
     for iInterval = 1 : nIntervals
@@ -43,65 +50,41 @@ for iSegment = 1 : nSegments
     expP(:,iSegment) = [meanX(indexP:end, iSegment)' meanX(1:indexP-1, iSegment)']';
     expP2(:,iSegment) = [meanX2(indexP:end, iSegment)' meanX2(1:indexP-1, iSegment)']';
     expDelP(:,iSegment) = sqrt(expP2(:,iSegment)-(expP(:,iSegment)).^2);
+
+    % Coherent state photon number
+    nPhotons(:,iSegment) = (expQ2(:,iSegment) + expP2(:,iSegment))/(4*Norm^2) -0.5 ;
+    meanN(iSegment) = mean(nPhotons(:,iSegment));
+
+    %uncertainty value
+    unc(:,iSegment) = expDelQ(:,iSegment).*expDelP(:,iSegment);
+    meanUnc(iSegment) = mean(unc(:,iSegment));
+    
+    [~,I] = max(expQ(:,iSegment));    
+    delQ(iSegment) = (expDelQ(I,iSegment));  %chose phase for evaluation of uncertainties where Q is max.
+    delP(iSegment) = (expDelP(I,iSegment));    
+
+    % Plot
+    close all;
+    x = meanTheta(:,iSegment);
+    plot(x, expP(:,iSegment), x, expP2(:,iSegment), x, expQ(:,iSegment), x,...
+        expQ2(:,iSegment), x, expDelQ(:,iSegment), x, expDelP(:,iSegment),...
+        x,  unc(:,iSegment), x, nPhotons(:,iSegment), 'linewidth', 2);
+
+    hold on;
+    plot(x,Norm^2*ones(length(x)),'k-','lineWidth',0.5);
+    xlabel('Phase \theta');
+    axis([0 2*pi min(min(meanX))-0.5 max(max(meanX2))+0.5]);
+    set(0,'DefaultLegendInterpreter','latex');
+    set(0,'DefaultTextInterpreter','latex');
+    legend('$<P>$', '$<P^{2}>$', '$<Q>$', '$<Q^{2}>$', '$\Delta Q$',...
+        '$\Delta P$', '$\Delta Q \cdot \Delta P$ ', '$<n>$ ','uncertainty limit', 'location', 'best');
+    title(strcat('Mean Photon number =','\, ',num2str(meanN(iSegment))));
+
+    % Save plot
+    print(strcat('expect-',filename,'-Segment',num2str(iSegment),'-',...
+        strrep(num2str(meanN(iSegment)),'.',','),'photons'), '-dpng');
+
 end % iSegment 
-
-% averages meanX over segments, then extracts expectations
-% for iSegment = 1 : nSegments
-%     % Compute averages and quadratic averages
-%     for iInterval = 1 : nIntervals
-%         meanX(iInterval, iSegment) = ...
-%             mean(X(~isnan(X(:,iInterval,iSegment)), iInterval, iSegment));
-%         meanTheta(iInterval, iSegment) = ...
-%             mean(theta(~isnan(theta(:, iInterval, iSegment)), ...
-%             iInterval, iSegment));
-%         meanX2(iInterval, iSegment) = ...
-%             mean(X(~isnan(X(:,iInterval,iSegment)), ...
-%             iInterval, iSegment).^2);
-%     end % iInterval
-% end % iSegment
-% meanX=mean(meanX,2);
-% meanX2=mean(meanX2,2);
-% meanTheta=mean(meanTheta,2);
-% expQ = meanX;  % Extract <Q>, <P>, <Q^2>, <P^2>
-% expQ2 = meanX2;
-% expDelQ = sqrt(expQ2-(expQ).^2);  
-% [~, indexP] = min(abs(meanTheta - (meanTheta(1) + pi/2)));
-% expP = [meanX(indexP:end)' meanX(1:indexP-1)']';
-% expP2 = [meanX2(indexP:end)' meanX2(1:indexP-1)']';
-% expDelP = sqrt(expP2-(expP).^2);
-
-%Segment to be used
-Seg = 1;
-
-% Coherent state photon number
-nPhotons = (expQ2 + expP2)/(4*Norm^2) -0.5 ;
-meanN = mean(nPhotons(:,Seg));
-%meanN = mean(nPhotons);  %if averaged over segments
-
-%uncertainty value
-unc = expDelQ.*expDelP;
-
-% Plot
-close all;
-x = meanTheta(:,Seg);
-plot(x, expP(:,Seg), x, expP2(:,Seg), x, expQ(:,Seg), x, expQ2(:,Seg), x, expDelQ(:,Seg),...
-x, expDelP(:,Seg), x,  unc(:,Seg), x, nPhotons(:,Seg), 'linewidth', 2);
-% x = meanTheta;
-% plot(x, expP, x, expP2, x, expQ, x, expQ2, x, expDelQ,...
-% x, expDelP, x,  unc, x, nPhotons, 'linewidth', 2);   %if averaged over segments
-
-hold on;
-plot(x,Norm^2*ones(length(x)),'k-','lineWidth',0.5);
-xlabel('Phase \theta');
-axis([0 2*pi min(min(meanX))-0.5 max(max(meanX2))+0.5]);
-set(0,'DefaultLegendInterpreter','latex');
-set(0,'DefaultTextInterpreter','latex');
-legend('$<P>$', '$<P^{2}>$', '$<Q>$', '$<Q^{2}>$', '$\Delta Q$',...
-    '$\Delta P$', '$\Delta Q \cdot \Delta P$ ', '$<n>$ ','uncertainty limit', 'location', 'best');
-title(strcat('Mean Photon number =','\, ',num2str(meanN)));
-
-% Save plot
-print(strcat('expect-',filename,'-', strrep(num2str(meanN),'.',','),'photons'), '-dpng');
 
 end % computeExpectations
 
