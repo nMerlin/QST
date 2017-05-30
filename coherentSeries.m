@@ -98,13 +98,13 @@ for iStruct = 1:length(dataStruct)
         [meanN; NaN(nPiezoSegments-length(meanN),1)];
     unc = dataStruct(iStruct).unc;
     dataStruct(iStruct).unc = ...
-        [meanN; NaN(nPiezoSegments-length(unc),1)];
+        [unc; NaN(nPiezoSegments-length(unc),1)];
     delQ = dataStruct(iStruct).delQ;
     dataStruct(iStruct).delQ = ...
-        [meanN; NaN(nPiezoSegments-length(delQ),1)];
+        [delQ; NaN(nPiezoSegments-length(delQ),1)];
     delP = dataStruct(iStruct).delP;
     dataStruct(iStruct).delP = ...
-        [meanN; NaN(1,nPiezoSegments-length(delP),1)];
+        [delP; NaN(1,nPiezoSegments-length(delP),1)];
 end
 meanNs = cell2mat({dataStruct.meanN});
 uncs = cell2mat({dataStruct.unc});
@@ -113,7 +113,7 @@ delPs = cell2mat({dataStruct.delP});
 
 
 dispstat('plot uncertainties over mean photon number','timestamp','keepthis',quiet);
-for iSegment = 1:nSegments
+for iSegment = 1:nPiezoSegments
     close all;
     semilogx(meanNs(iSegment,:),delQs(iSegment,:),'o',meanNs(iSegment,:),delPs(iSegment,:),'o', meanNs(iSegment,:),uncs(iSegment,:), 'o');
     hold on;
@@ -125,7 +125,6 @@ for iSegment = 1:nSegments
     xlabel('mean Photonnumber');
     ylabel('Uncertainty [a. u.]');    
     print(strcat('UncertaintiesOverPhotonnumber-Segment',num2str(iSegment)),'-dpng');
-
 end
 
 % Saving important results
