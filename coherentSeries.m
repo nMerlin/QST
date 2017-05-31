@@ -1,9 +1,14 @@
 function [] = coherentSeries(varargin)
 %This function evaluates a measurement series of coherent states with
 %different photon numbers.
+%
+% 'errorbars': Calculate the mean of uncertainties over all measured
+% piezo-segments and plot errorbars according to the standard deviation
+
 % Optional input arguments
 verbose = 0;
 quiet = 'notquiet';
+errorbars = 0;
 if nargin > 0
     for i = 1:nargin
         eval([varargin{i} '=1;']);
@@ -112,19 +117,47 @@ delQs = cell2mat({dataStruct.delQ});
 delPs = cell2mat({dataStruct.delP});
 
 
-dispstat('plot uncertainties over mean photon number','timestamp','keepthis',quiet);
-for iSegment = 1:nPiezoSegments
+dispstat('Plot uncertainties over mean photon number','timestamp',...
+    'keepthis',quiet);
+if errorbars == 0 % Create a separate plot for each piezo segment
+    for iSegment = 1:nPiezoSegments
+        close all;
+        semilogx(meanNs(iSegment,:),delQs(iSegment,:),'o',meanNs(iSegment,:),delPs(iSegment,:),'o', meanNs(iSegment,:),uncs(iSegment,:), 'o');
+        hold on;
+        semilogx(1:max(ceil(meanNs(iSegment,:))),Norm^2*ones(1,max(ceil(meanNs(iSegment,:)))),'k-');
+        legend( '$\Delta Q$','$\Delta P$', '$\Delta Q \cdot \Delta P$ ','Location','northeast');
+        axis ([1 max(meanNs(iSegment,:))+1 0 1.5]);
+        set(0,'DefaultLegendInterpreter','latex');
+        set(0,'DefaultTextInterpreter','latex');
+        xlabel('mean Photonnumber');
+        ylabel('Uncertainty [a. u.]');    
+        print(strcat('UncertaintiesOverPhotonnumber-Segment',num2str(iSegment)),'-dpng');
+        hold off;
+    end
+else % Create one plot that accounts for all piezo segments with error bars
     close all;
-    semilogx(meanNs(iSegment,:),delQs(iSegment,:),'o',meanNs(iSegment,:),delPs(iSegment,:),'o', meanNs(iSegment,:),uncs(iSegment,:), 'o');
     hold on;
-    semilogx(1:max(ceil(meanNs(iSegment,:))),Norm^2*ones(1,max(ceil(meanNs(iSegment,:)))),'k-');
+    %stdMeanNs = nanstd(meanNs);
+    meanNs = nanmean(meanNs);
+    stdDelQs = nanstd(delQs);
+    delQs = nanmean(delQs);
+    stdDelPs = nanstd(delPs);
+    delPs = nanmean(delPs);
+    stdUncs = nanstd(uncs);
+    uncs = nanmean(uncs);
+    errorbar(meanNs,delQs,stdDelQs,'o');
+    errorbar(meanNs,delPs,stdDelPs,'o');
+    errorbar(meanNs,uncs,stdUncs,'o');
+    set(gca, 'xscale', 'log');
+    semilogx(1:max(ceil(meanNs)),Norm^2*ones(1,max(ceil(meanNs))),'k-');
     legend( '$\Delta Q$','$\Delta P$', '$\Delta Q \cdot \Delta P$ ','Location','northeast');
-    axis ([1 max(meanNs(iSegment,:))+1 0 1.5]);
+    axis ([1 max(ceil(meanNs)) 0 1.5]);
     set(0,'DefaultLegendInterpreter','latex');
     set(0,'DefaultTextInterpreter','latex');
     xlabel('mean Photonnumber');
-    ylabel('Uncertainty [a. u.]');    
-    print(strcat('UncertaintiesOverPhotonnumber-Segment',num2str(iSegment)),'-dpng');
+    ylabel('Uncertainty [a. u.]');
+    print('UncertaintiesOverPhotonnumber-ErrorBars','-dpng');
+    hold off;
 end
 
 % Saving important results
