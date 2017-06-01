@@ -3,7 +3,7 @@ function [ X, theta ] = discretizeTheta( X, theta, nIntervals )
 EPSILON = 1e-12;
 
 [nRows, nSegments] = size(theta);
-XOut = NaN(nRows, nIntervals, nSegments);
+XOut = NaN(3*nRows/nIntervals, nIntervals, nSegments);
 thetaOut = XOut;
 maxCount = 0; % Keeps track of longest interval
 for iSeg = 1 : nSegments
