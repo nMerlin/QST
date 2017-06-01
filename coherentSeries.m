@@ -23,7 +23,8 @@ Norm = 1/sqrt(2);
 %operators: q = Norm*(a^{+} + a), p = Norm*i*(a^{+} - a)
 %typical values are 1/sqrt(2) or 1/2. 
 
-dataStruct = struct('filename',{},'powerLO', {},'meanN',{}, 'unc', {}, 'delQ', {}, 'delP', {});
+dataStruct = struct('filename',{},'powerLO', {},'meanN',{}, 'unc', {},...
+    'delQ', {}, 'delP', {});
 dataStructLOonly = struct('filename',{},'number',{});
 
 %%% Create data overview
@@ -31,7 +32,7 @@ dispstat('','init',quiet);
 dispstat('Checking filenames ...','timestamp','keepthis',quiet);
 rawDataContents = dir('raw-data');
 
-%LOwithLO-files
+% LOwithLO-files
 for name = {rawDataContents.name}
     % Loop only over *LOwithLO.raw files
     filename = cell2mat(name);
@@ -50,7 +51,7 @@ for name = {rawDataContents.name}
     dataStruct(number).powerLO = str2double(cell2mat(powerToken{1}));
 end
 
-%LOonly-files
+% LOonly-files
 for name = {rawDataContents.name}
     % Loop only over *LOonly.raw files
     filename = cell2mat(name);
@@ -93,7 +94,8 @@ for number = 1:size(dataStruct,2)
     LOnumber = max(LOnumbers(LOnumbers<=number));    
     filenameLO = dataStructLOonly(LOnumber).filename;
     
-    dispstat(['mainPrepareData number ' num2str(number)],'timestamp','keepthis',quiet);
+    dispstat(['mainPrepareData number ' num2str(number)],...
+        'timestamp','keepthis',quiet);
     [ X, theta ] = mainPrepareData( filenameLO, filenameSIG );
     dispstat(['discretize data ' num2str(number)],'timestamp','keepthis',quiet);
     [ Xdis, thetadis ] = discretizeTheta( X, theta, 100 );
