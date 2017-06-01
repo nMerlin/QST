@@ -19,7 +19,7 @@ end
 XOld = X;
 [nPulses, nRecords, nSegments] = size(XOld);
 [X, theta] = deal(zeros(nPulses * nRecords, nSegments));
-dispstat('Calculating phase values...','timestamp',...
+dispstat('Computing phase values ...','timestamp',...
         'keepthis',quiet);
 for iSeg = 1:nSegments
     % Data to operate on
