@@ -187,8 +187,13 @@ for iSeg = 1:nSegments
         [~,Imax] = max(XsortedSmoothed);
         [~,Imin] = min(XsortedSmoothed);
         span = 100;
-        minValue = mean(Xsorted(Imin:Imin+span));
-        maxValue = mean(Xsorted(Imax-span:Imax));
+        if Imin<Imax
+            minValue = mean(Xsorted(Imin:Imin+span));
+            maxValue = mean(Xsorted(Imax-span:Imax));
+        else
+            minValue = mean(Xsorted(Imin-span:Imin));
+            maxValue = mean(Xsorted(Imax:Imax+span));
+        end
         offset = minValue+0.5*(maxValue-minValue);
         X(:,iSeg)=X(:,iSeg)-offset;
 
