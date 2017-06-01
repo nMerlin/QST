@@ -187,11 +187,8 @@ for iSeg = 1:nSegments
         [~,Imax] = max(XsortedSmoothed);
         [~,Imin] = min(XsortedSmoothed);
         span = 100;
-        assert((Imin-span)>0 && (Imin+span)<nPulses*nRecords && ...
-            (Imax-span)>0 && (Imax+span)<nPulses*nRecords,...
-            'Indizes for offset correction out of range.');
-        minValue = mean(Xsorted(Imin-span:Imin+span));
-        maxValue = mean(Xsorted(Imax-span:Imax+span));
+        minValue = mean(Xsorted(Imin:Imin+span));
+        maxValue = mean(Xsorted(Imax-span:Imax));
         offset = minValue+0.5*(maxValue-minValue);
         X(:,iSeg)=X(:,iSeg)-offset;
 
