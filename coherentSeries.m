@@ -77,9 +77,9 @@ for number = 1:size(dataStruct,2)
     dispstat(['mainPrepareData number ' num2str(number)],'timestamp','keepthis',quiet);
     [ X, theta ] = mainPrepareData( filenameLO, filenameSIG );
     dispstat(['discretize data ' num2str(number)],'timestamp','keepthis',quiet);
-    [ Xdis, thetadis ] = discretizeTheta( X, theta, 300 );
+    [ Xdis, thetadis ] = discretizeTheta( X, theta, 100 );
     dispstat(['compute and plot Expectations ' num2str(number)],'timestamp','keepthis',quiet);
-    [ ~,~, ~, ~, delQ, delP, meanUnc, ~, meanN, nSegments ] =...
+    [ ~,~, ~, ~, delQ, delP, meanUnc, ~, meanN, ~ ] =...
         computeExpectations2( Xdis, thetadis, strrep(num2str(filenameSIG),'-LOwithLO.raw','') );
     dataStruct(number).meanN = meanN;
     dataStruct(number).unc = meanUnc;
