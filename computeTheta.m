@@ -52,18 +52,27 @@ for iSeg = 1:nSegments
         theta(isnan(X)) = NaN;
     else
         % Method: Inverse sine function on normalized y-values
-        peakHeight = 0.35 * (max(yFit));
-        peakDistance = 0.4 * length(yFit);
-        peakWidth = 0.01 * length(yFit);  
         
-         findpeaks(yFit,'MinPeakHeight',peakHeight,...
-             'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);     
-        [maxpks,maxlocs] = findpeaks(yFit,'MinPeakHeight',peakHeight,...
+        yFitNew = yFit - (min(yFit) + 0.5*(max(yFit) - min(yFit))); %subtract offset for finding peaks
+         
+        peakHeight = 0.3 * (max(yFitNew));
+        peakHeightMin = 0.3 * (max(-yFitNew));
+        peakDistance = 0.3 * length(yFit);
+        peakWidth = 0.01 * length(yFit);  
+      
+%          findpeaks(yFitNew,'MinPeakHeight',peakHeight,...
+%              'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
+%          hold on;
+%          findpeaks(-yFitNew,'MinPeakHeight',peakHeightMin,...
+%              'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
+        [~,maxlocs] = findpeaks(yFitNew,'MinPeakHeight',peakHeight,...
             'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
-         findpeaks(-yFit,'MinPeakHeight',peakHeight,...
-             'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
-        [minpks,minlocs] = findpeaks(-yFit,'MinPeakHeight',peakHeight,...
+        [~,minlocs] = findpeaks(-yFitNew,'MinPeakHeight',peakHeightMin,...
             'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
+        
+        maxpks = yFit(maxlocs);
+        minpks = yFit(minlocs);
+        
         assert(abs(length(maxpks)-length(minpks))<2,...
             strcat('Too many maxima or minima detected in Segment',num2str(iSeg),'!'));
         
@@ -72,7 +81,7 @@ for iSeg = 1:nSegments
         nTurningPoints = length(locs);
         assert(nTurningPoints>1, 'Not enough turning points encountered!');
         
-        pks = [maxpks -minpks];
+        pks = [maxpks minpks];
         pks = pks(I);
         pksDiff = -diff(pks);
         
@@ -127,9 +136,11 @@ for iSeg = 1:nSegments
             [~,iMin] = min(ynorm);
             ynorm(iMin) = ynorm(iMin) + 2*eps;
             
+            
+%             hold on;
 %             plot(ynorm);
 %             hold on;
-            
+%             
             % Calculate phases
             if s==1
                 smallTheta(range) = asin(ynorm);
