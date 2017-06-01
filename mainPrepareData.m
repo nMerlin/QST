@@ -9,7 +9,7 @@ Norm = 1/sqrt(2);
 CALIBRATION_CH1 = 4.596047840078126e-05; % Ampere per Volt
 
 % Compute number of LO photons
-dispstat('Computing number of LO photons...','timestamp','keepthis',0);
+dispstat('Computing number of LO photons ...','timestamp','keepthis',0);
 [data8bit,config,~]=load8BitBinary(filenameLO,'dontsave');
 XLO = computeQuadratures(data8bit, config, CALIBRATION_CH1);
 
@@ -17,7 +17,7 @@ XLO = computeQuadratures(data8bit, config, CALIBRATION_CH1);
 NLO = mean(var(XLO));
 
 % Compute quadratures for target quantum state
-dispstat('Computing quadraturs for target quantum state...',...
+dispstat('Computing quadratures for target quantum state ...',...
     'timestamp','keepthis',0);
 [data8bit,config,timestamps]=load8BitBinary(filenameSIG,'dontsave');
 X = computeQuadratures(data8bit, config, CALIBRATION_CH1);
@@ -26,11 +26,10 @@ X = computeQuadratures(data8bit, config, CALIBRATION_CH1);
 X = Norm * X / sqrt(NLO);
 
 % Compute relative phases and removes offset
-dispstat('Computing phases...','timestamp','keepthis',0);
 [X, theta] = computeTheta(X,piezoSign,'verbose');
 
 % Saving important Variables (to delete the raw data manually)
-dispstat('Saving...','timestamp','keepthis',0);
+dispstat('Saving ...','timestamp','keepthis',0);
 dateString = datestr(datetime('now'),'yyyymmddTHHMMSS');
 save(['quadratureDataset-' strrep(num2str(filenameSIG),'LOwithLO.raw','') dateString '.mat'], ...
     'X', 'theta');
