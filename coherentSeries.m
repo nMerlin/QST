@@ -66,10 +66,25 @@ end
 LOnumbers = cell2mat({dataStructLOonly.number});
 
 for number = 1:size(dataStruct,2)
+
     filenameSIG = dataStruct(number).filename;
     if isempty(filenameSIG)
         continue
     end    
+    
+    %look if there is already a quadrature dataset.
+    mainContents = dir();
+    for name = {mainContents.name}
+        % Loop only over *LOwithLO.raw files
+        mainName = cell2mat(name);
+        if not(isempty(regexpi(mainName,['quadratureDataset-' strrep(num2str(filenameSIG),'LOwithLO.raw','')],'match')))
+
+        else
+            continue
+        end
+    end
+    
+    
     %find adequate LOonly-file
     LOnumber = max(LOnumbers(LOnumbers<=number));    
     filenameLO = dataStructLOonly(LOnumber).filename;
