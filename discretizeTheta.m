@@ -1,38 +1,37 @@
 function [ X, theta ] = discretizeTheta( X, theta, nIntervals )
 %DISCRETIZETHETA Divides the range of theta values into discrete intervals
-EPSILON = 1e-12;
 
 [nRows, nSegments] = size(theta);
-XOut = NaN(3*nRows/nIntervals, nIntervals, nSegments);
+XOut = NaN(ceil(3*nRows/nIntervals), nIntervals, nSegments);
 thetaOut = XOut;
 maxCount = 0; % Keeps track of longest interval
 for iSeg = 1 : nSegments
-    thetaSegment = theta(:,iSeg);
-    
     % Remove NaN entries
-    thetaSegment = thetaSegment(~isnan(thetaSegment));
+    thetaSegment = theta(~isnan(theta(:,iSeg)),iSeg);
+    XSegment = X(~isnan(X(:,iSeg)),iSeg);
     
-    % Compute interval length
-    offset = min(thetaSegment) - EPSILON;
-    range = max(thetaSegment) - min(thetaSegment) + nIntervals * EPSILON;
-    interval = range / nIntervals;
+    % Sorting theta and X into intervals with MatLab functions
+    dispstat('Sorting theta and X accordingly ...',...
+    'timestamp','keepthis',0);
+    [N,~,bin] = histcounts(thetaSegment,nIntervals);
+    [~,I] = sort(bin);
+    thetaSegment = thetaSegment(I);
+    XSegment = XSegment(I);
     
-    % Sort theta and X into these intervals
-    intervalIndices = ceil((thetaSegment - offset) / interval);
-    I = ones(nIntervals,1);
-    for iPoint = 1 : length(intervalIndices)
-        iInterval = intervalIndices(iPoint);
-        thetaOut(I(iInterval), iInterval, iSeg) = theta(iPoint, iSeg);
-        XOut(I(iInterval), iInterval, iSeg) = X(iPoint, iSeg);
-        I(iInterval) = I(iInterval) + 1;
+    for iInterval = 1 : nIntervals
+        start = 1+sum(N(1:iInterval-1));
+        stop = start+N(iInterval)-1;
+        thetaOut(1:N(iInterval),iInterval,iSeg) = thetaSegment(start:stop);
+        XOut(1:N(iInterval),iInterval,iSeg) = XSegment(start:stop);
     end
-    maxCount = max(max(I), maxCount);
+    maxCount = max(max(N), maxCount);
 end
-maxCount = maxCount - 1; % Correct for +1 after adding any element
 
 % Clean output variables from unnecessary NaN values
 X = XOut(1:maxCount,:,:);
+X(X==0) = NaN;
 theta = thetaOut(1:maxCount,:,:);
+theta(theta==0) = NaN;
 
 end
 
