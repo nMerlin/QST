@@ -35,7 +35,8 @@ rawDataContents = dir('raw-data');
 for name = {rawDataContents.name}
     % Loop only over *LOwithLO.raw files
     filename = cell2mat(name);
-    if not(isempty(regexpi(filename,'LOwithLO.raw.','match'))) || isempty(regexpi(filename,'LOwithLO.raw','match'))
+    if not(isempty(regexpi(filename,'LOwithLO.raw.','match')))...
+            || isempty(regexpi(filename,'LOwithLO.raw','match'))
         continue
     end
     
@@ -53,7 +54,8 @@ end
 for name = {rawDataContents.name}
     % Loop only over *LOonly.raw files
     filename = cell2mat(name);
-    if not(isempty(regexpi(filename,'LOonly.raw.','match'))) || isempty(regexpi(filename,'LOonly.raw','match'))
+    if not(isempty(regexpi(filename,'LOonly.raw.','match')))...
+            || isempty(regexpi(filename,'LOonly.raw','match'))
         continue
     end
     
@@ -72,12 +74,14 @@ for number = 1:size(dataStruct,2)
         continue
     end    
     
-    %look if there is already a quadrature dataset.
+    % Use available quadrature dataset, if possible
     mainContents = dir();
     for name = {mainContents.name}
         % Loop only over *LOwithLO.raw files
         mainName = cell2mat(name);
-        if not(isempty(regexpi(mainName,['quadratureDataset-' strrep(num2str(filenameSIG),'LOwithLO.raw','')],'match')))
+        if not(isempty(regexpi(mainName,...
+                ['quadratureDataset-' strrep(num2str(filenameSIG),...
+                'LOwithLO.raw','')],'match')))
 
         else
             continue
