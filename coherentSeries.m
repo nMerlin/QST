@@ -148,6 +148,8 @@ else % Create one plot that accounts for all piezo segments with error bars
     errorbar(meanNs,delQs,stdDelQs,'o');
     errorbar(meanNs,delPs,stdDelPs,'o');
     errorbar(meanNs,uncs,stdUncs,'o');
+    % Horizontal error bars are usually smaller than the dot
+    % herrorbar(meanNs,uncs,stdMeanNs,stdMeanNs,'o');
     set(gca, 'xscale', 'log');
     semilogx(1:max(ceil(meanNs)),Norm^2*ones(1,max(ceil(meanNs))),'k-');
     legend( '$\Delta Q$','$\Delta P$', '$\Delta Q \cdot \Delta P$ ','Location','northeast');
