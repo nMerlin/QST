@@ -23,7 +23,8 @@ Norm = 1/sqrt(2);
 %operators: q = Norm*(a^{+} + a), p = Norm*i*(a^{+} - a)
 %typical values are 1/sqrt(2) or 1/2. 
 
-dataStruct = struct('filename',{},'powerLO', {},'meanN',{}, 'unc', {}, 'delQ', {}, 'delP', {});
+dataStruct = struct('filename',{},'powerLO', {},'meanN',{}, 'unc', {},...
+    'delQ', {}, 'delP', {});
 dataStructLOonly = struct('filename',{},'number',{});
 
 %%% Create data overview
@@ -31,11 +32,12 @@ dispstat('','init',quiet);
 dispstat('Checking filenames ...','timestamp','keepthis',quiet);
 rawDataContents = dir('raw-data');
 
-%LOwithLO-files
+% LOwithLO-files
 for name = {rawDataContents.name}
     % Loop only over *LOwithLO.raw files
     filename = cell2mat(name);
-    if not(isempty(regexpi(filename,'LOwithLO.raw.','match'))) || isempty(regexpi(filename,'LOwithLO.raw','match'))
+    if not(isempty(regexpi(filename,'LOwithLO.raw.','match')))...
+            || isempty(regexpi(filename,'LOwithLO.raw','match'))
         continue
     end
     
@@ -49,11 +51,12 @@ for name = {rawDataContents.name}
     dataStruct(number).powerLO = str2double(cell2mat(powerToken{1}));
 end
 
-%LOonly-files
+% LOonly-files
 for name = {rawDataContents.name}
     % Loop only over *LOonly.raw files
     filename = cell2mat(name);
-    if not(isempty(regexpi(filename,'LOonly.raw.','match'))) || isempty(regexpi(filename,'LOonly.raw','match'))
+    if not(isempty(regexpi(filename,'LOonly.raw.','match')))...
+            || isempty(regexpi(filename,'LOonly.raw','match'))
         continue
     end
     
@@ -65,37 +68,38 @@ for name = {rawDataContents.name}
 end
 LOnumbers = cell2mat({dataStructLOonly.number});
 
-for number = 1:size(dataStruct,2)
+for number = 1%1:size(dataStruct,2)
 
     filenameSIG = dataStruct(number).filename;
     if isempty(filenameSIG)
         continue
     end    
     
-    %look if there is already a quadrature dataset.
+    % Use available quadrature dataset, if possible
     mainContents = dir();
     datasetExisting = 0;
     for name = {mainContents.name}
-        % Loop only over *LOwithLO.raw files
         mainName = cell2mat(name);
-        if not(isempty(regexpi(mainName,['quadratureDataset-' strrep(num2str(filenameSIG),'LOwithLO.raw','')],'match')))
-            dataSetExisting = 1;
-            X = load(name).X;
-            theta = load(name).theta;
+        if not(isempty(regexpi(mainName,['quadratureDataset-' strrep(num2str(filenameSIG),...
+                'LOwithLO.raw','')],'match')))
+            datasetExisting = 1;
+            M = load(mainName);
+            X = M.X;
+            theta = M.theta;
         else
             continue
         end
     end
     
-    
-    %find adequate LOonly-file
-    LOnumber = max(LOnumbers(LOnumbers<=number));    
-    filenameLO = dataStructLOonly(LOnumber).filename;
-    
-    dispstat(['mainPrepareData number ' num2str(number)],'timestamp','keepthis',quiet);
-    [ X, theta ] = mainPrepareData( filenameLO, filenameSIG );
-    
-    
+    if datasetExisting == 0
+        %find adequate LOonly-file
+        LOnumber = max(LOnumbers(LOnumbers<=number));    
+        filenameLO = dataStructLOonly(LOnumber).filename;
+
+        dispstat(['mainPrepareData number ' num2str(number)],...
+            'timestamp','keepthis',quiet);
+        [ X, theta ] = mainPrepareData( filenameLO, filenameSIG );
+    end
     
     dispstat(['discretize data ' num2str(number)],'timestamp','keepthis',quiet);
     [ Xdis, thetadis ] = discretizeTheta( X, theta, 100 );
