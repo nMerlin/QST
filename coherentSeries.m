@@ -74,11 +74,14 @@ for number = 1:size(dataStruct,2)
     
     %look if there is already a quadrature dataset.
     mainContents = dir();
+    datasetExisting = 0;
     for name = {mainContents.name}
         % Loop only over *LOwithLO.raw files
         mainName = cell2mat(name);
         if not(isempty(regexpi(mainName,['quadratureDataset-' strrep(num2str(filenameSIG),'LOwithLO.raw','')],'match')))
-
+            dataSetExisting = 1;
+            X = load(name).X;
+            theta = load(name).theta;
         else
             continue
         end
@@ -91,6 +94,9 @@ for number = 1:size(dataStruct,2)
     
     dispstat(['mainPrepareData number ' num2str(number)],'timestamp','keepthis',quiet);
     [ X, theta ] = mainPrepareData( filenameLO, filenameSIG );
+    
+    
+    
     dispstat(['discretize data ' num2str(number)],'timestamp','keepthis',quiet);
     [ Xdis, thetadis ] = discretizeTheta( X, theta, 100 );
     dispstat(['compute and plot Expectations ' num2str(number)],'timestamp','keepthis',quiet);
