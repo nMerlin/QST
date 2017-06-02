@@ -10,9 +10,7 @@ for iSeg = 1 : nSegments
     thetaSegment = theta(~isnan(theta(:,iSeg)),iSeg);
     XSegment = X(~isnan(X(:,iSeg)),iSeg);
     
-    % Sorting theta and X into intervals with MatLab functions
-    dispstat('Sorting theta and X accordingly ...',...
-    'timestamp','keepthis',0);
+    % Sorting theta and X into intervals with MatLab functions 
     [N,~,bin] = histcounts(thetaSegment,nIntervals);
     [~,I] = sort(bin);
     thetaSegment = thetaSegment(I);
