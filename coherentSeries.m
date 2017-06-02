@@ -68,7 +68,7 @@ for name = {rawDataContents.name}
 end
 LOnumbers = cell2mat({dataStructLOonly.number});
 
-for number = 1%1:size(dataStruct,2)
+for number = 1:size(dataStruct,2)
 
     filenameSIG = dataStruct(number).filename;
     if isempty(filenameSIG)
