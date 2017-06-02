@@ -150,7 +150,7 @@ if errorbars == 0 % Create a separate plot for each piezo segment
         semilogx(meanNs(iSegment,:),delQs(iSegment,:),'o',meanNs(iSegment,:),delPs(iSegment,:),'o', meanNs(iSegment,:),uncs(iSegment,:), 'o');
         hold on;
         semilogx(1:max(ceil(meanNs(iSegment,:))),Norm^2*ones(1,max(ceil(meanNs(iSegment,:)))),'k-');
-        legend( '$\Delta Q$','$\Delta P$', '$\Delta Q \cdot \Delta P$ ','Location','northeast');
+        legend( '$\Delta Q$','$\Delta P$', '$\Delta Q \cdot \Delta P$ ','Location','northwest');
         axis ([1 max(meanNs(iSegment,:))+1 0 1.5]);
         set(0,'DefaultLegendInterpreter','latex');
         set(0,'DefaultTextInterpreter','latex');
@@ -177,7 +177,7 @@ else % Create one plot that accounts for all piezo segments with error bars
     % herrorbar(meanNs,uncs,stdMeanNs,stdMeanNs,'o');
     set(gca, 'xscale', 'log');
     semilogx(1:max(ceil(meanNs)),Norm^2*ones(1,max(ceil(meanNs))),'k-');
-    legend( '$\Delta Q$','$\Delta P$', '$\Delta Q \cdot \Delta P$ ','Location','northeast');
+    legend( '$\Delta Q$','$\Delta P$', '$\Delta Q \cdot \Delta P$ ','Location','northwest');
     axis ([1 max(ceil(meanNs)) 0 1.5]);
     set(0,'DefaultLegendInterpreter','latex');
     set(0,'DefaultTextInterpreter','latex');
