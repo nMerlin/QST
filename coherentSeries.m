@@ -136,11 +136,11 @@ for iStruct = 1:length(dataStruct)
     dataStruct(iStruct).delP = ...
         [delP; NaN(1,nPiezoSegments-length(delP),1)];
 end
+
 meanNs = cell2mat({dataStruct.meanN});
 uncs = cell2mat({dataStruct.unc});
 delQs = cell2mat({dataStruct.delQ});
 delPs = cell2mat({dataStruct.delP});
-
 
 dispstat('Plot uncertainties over mean photon number','timestamp',...
     'keepthis',quiet);
