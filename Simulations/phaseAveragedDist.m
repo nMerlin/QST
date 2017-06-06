@@ -1,6 +1,8 @@
 function [ avPr ] = phaseAveragedDist( WF )
-%PHASEAVERAGEDDIST Computes the result of a phase-averaged measurement
-%   Detailed explanation goes here
+%PHASEAVERAGEDDIST Simulate phase-averaged quadrature measurement
+%   
+%   Arguments:
+%       WF - discretized Wigner function of the target state
 
 qRange = -20:0.125:20;
 
