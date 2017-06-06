@@ -4,9 +4,6 @@ function [  ] = plotWigner( WF, varargin )
 %   Noes:
 %   p and q have to be set manually
 
-p = -20:0.125:20;
-q = -20:0.125:20;
-
 image = 0;
 surface = 0;
 narrow = 0;
