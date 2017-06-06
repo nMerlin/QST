@@ -7,9 +7,9 @@ function [ rho ] = coherentState( nMax, nAv )
 % Coherent state density matrix in the Fock (number) state representation
 alpha = sqrt(nAv);
 rho = zeros(nMax+1,1);
-for n = 1:(nMax+1)
-    for m = 1:(nMax+1)
-        rho(n,m) = alpha^(n+m)/sqrt(factorial(n)*factorial(m))*...
+for n = 0:nMax
+    for m = 0:nMax
+        rho(n+1,m+1) = abs(alpha)^(n+m)/sqrt(factorial(n)*factorial(m))*...
             exp(-abs(alpha)^2);
     end
 end
