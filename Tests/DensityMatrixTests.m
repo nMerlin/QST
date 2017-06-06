@@ -3,7 +3,7 @@ function tests = coherentStateTest
 tests = functiontests(localfunctions);
 end
 
-function testNormalization(testCase)
+function testCoherentStateNorm(testCase)
 % Trace of density matrix should be 1
 expSolution = 1;
 
