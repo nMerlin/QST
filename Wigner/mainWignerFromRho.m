@@ -2,8 +2,7 @@ function WF = mainWignerFromRho(rho)
 
 %directory = 'Z:\freefilesync-lab\matlab\QST\Wigner';
 %directory = 'D:\@archive\2016-08-30-wigner-test';
-directory = 'C:\Users\Public\Documents\Data\Wigner';
-%directory = 'C:\Users\lab\Documents\@archived-data\Wigner';
+directory = 'C:\Users\lab\Documents\@archived-data\Wigner';
 
 maxn=size(rho,1);
 load(strcat(directory,'\n0m0'));
