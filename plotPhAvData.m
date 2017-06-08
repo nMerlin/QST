@@ -1,6 +1,10 @@
-function [ nAv ] = plotPhAvData( X, filename )
-%UNTITLED2 Summary of this function goes here
-%   Detailed explanation goes here
+function [nAv, width, dip, distTherm, distCoh] = plotPhAvData(X, filename)
+%PLOTPHAVDATA Evaluates the quadratures X from a phase-averaged state
+%   
+%   Input Paramters:
+%   X - Matrix containing the measured quadrature values. You can create it
+%       for example with the function PREPAREPHAVDATA
+%   FILENAME - this string will be included in the filename of the png-file
 
 % Remove offset
 X = X(:);
@@ -33,6 +37,10 @@ if nMax<101
     plot(xAxis,qThermal,'linewidth',2);
     plot(xAxis,qCoherent,'linewidth',2);
     legend('Measured','Thermal','Coherent');
+    
+    % Calculate euclidean distance from both theoretical states
+    distTherm = sqrt(sum((qThermal - h.Values).^2));
+    distCoh = sqrt(sum((qCoherent - h.Values).^2));
 else
     legend('Measured');
 end
@@ -41,12 +49,16 @@ ylabel('Probability');
 title(['Phase-averaged quantum state (n=',num2str(nAv),')']);
 
 % Adjust axis limits
-minX = -2*fwhm(xAxis,h.Values);
+width = fwhm(xAxis,h.Values);
+minX = -2*width;
 xlim([minX -minX]);
 hold off;
 
+% Calculate dip height
+dip = abs(max(h.Values)-h.Values(floor(length(h.Values))));
+
 % Save figure
-print(strcat('PHAV-',filename,'-',num2str(nAv),'photons', '-dpng');
+print(strcat('PHAV-',filename,'-',num2str(nAv),'photons.png'), '-dpng');
 
 end
 
