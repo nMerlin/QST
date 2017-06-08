@@ -93,7 +93,7 @@ for number = 1:size(dataStruct,2)
     
     if datasetExisting == 0
         %find adequate LOonly-file
-        LOnumber = max(LOnumbers(LOnumbers<=number));    
+        LOnumber = max(LOnumbers(LOnumbers<=number));
         filenameLO = dataStructLOonly(LOnumber).filename;
 
         dispstat(['mainPrepareData number ' num2str(number)],...
