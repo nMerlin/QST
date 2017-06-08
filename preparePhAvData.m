@@ -20,7 +20,7 @@ NLO = mean(var(XLO));
 % Compute quadratures for target quantum state
 dispstat('Computing quadratures for target quantum state ...',...
     'timestamp','keepthis',0);
-[data8bit,config,timestamps]=load8BitBinary(filenameSIG,'dontsave');
+[data8bit,config,~]=load8BitBinary(filenameSIG,'dontsave');
 X = computeQuadratures(data8bit, config, CALIBRATION_CH1);
 
 % Calibration of quadratures to vacuum state
