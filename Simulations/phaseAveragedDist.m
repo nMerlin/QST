@@ -13,7 +13,7 @@ for nTheta = 1:360
     projections(nTheta,:) = real(sum(rotWF));
 end
 
-avPr = sum(projections)/(360*64); % Factor 64 has to be somewhere in WF...
+avPr = sum(projections)/360; % Factor 64 has to be somewhere in WF...
 plot(avPr);
 
 end
