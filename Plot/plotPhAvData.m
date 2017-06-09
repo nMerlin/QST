@@ -14,7 +14,7 @@ X = X - mean(mean(X));
 nAv = mean(X.^2)-0.5;
 
 % Simulations only if nMax<101
-nMax = max(ceil(3*nAv),30);
+nMax = max(ceil(4*nAv),30);
 if nMax<101
     % Simulate theoretical thermal state with nAv photons
     assert(nMax<101,'nMax too high for simulation');
@@ -29,7 +29,8 @@ if nMax<101
 end
 
 % Plot results
-edges = -20.0625:0.125:20.0625;
+edges = -30.0625:0.125:30.0625;
+xHist = -30:0.125:30;
 xAxis = -20:0.125:20;
 h = histogram(X,edges,'Normalization','probability');
 if nMax<101
@@ -39,19 +40,24 @@ if nMax<101
     legend('Measured','Thermal','Coherent');
     
     % Calculate euclidean distance from both theoretical states
-    distTherm = sqrt(sum((qThermal - h.Values).^2));
-    distCoh = sqrt(sum((qCoherent - h.Values).^2));
+    start = (length(h.Values) - length(qThermal))/2+1;
+    stop = start + length(qThermal) - 1;
+    distTherm = sqrt(sum((qThermal - h.Values(start:stop)).^2));
+    distCoh = sqrt(sum((qCoherent - h.Values(start:stop)).^2));
 else
     legend('Measured');
+    [distTherm,distCoh] = deal(NaN);
 end
 xlabel('Q');
 ylabel('Probability');
-title(['Phase-averaged quantum state (n=',num2str(nAv),')']);
+title({filename,['Phase-averaged quantum state (n=',num2str(nAv),')']});
 
 % Adjust axis limits
-width = fwhm(xAxis,h.Values);
-minX = -2*width;
-xlim([minX -minX]);
+width = fwhm(xHist,h.Values);
+% minX = -2*width;
+% xlim([minX -minX]);
+maxX = 2*sqrt(nAv)+3;
+xlim([-maxX maxX]);
 hold off;
 
 % Calculate dip height
