@@ -11,7 +11,7 @@ function [ WF ] = cohWigner( q, p, nPhotons )
 %       nPhotons - average number of photons
 
 sigma = 1/sqrt(2); % Select another norm if applicable
-q0 = sqrt(4*sigma^2*nPhotons);
+q0 = sqrt(2*nPhotons); % Change that for another normalization!
 p0 = 0;
 
 WF = zeros(length(q),length(p));
