@@ -16,4 +16,3 @@ meanP2 = mean(q.^2*sum(WF,2));
 nPhotons = 1/(4*A^2)*(meanQ2 + meanP2) - 1/2;
 
 end
-
