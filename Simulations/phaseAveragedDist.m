@@ -1,10 +1,8 @@
-function [ avPr ] = phaseAveragedDist( WF )
+function [ avPr ] = phaseAveragedDist( WF, qRange )
 %PHASEAVERAGEDDIST Simulate phase-averaged quadrature measurement
 %   
 %   Arguments:
 %       WF - discretized Wigner function of the target state
-
-qRange = -20:0.125:20;
 
 projections = zeros(360,length(qRange)); % projections of rotated WFs
 for nTheta = 1:360
@@ -13,8 +11,8 @@ for nTheta = 1:360
     projections(nTheta,:) = real(sum(rotWF));
 end
 
-avPr = sum(projections)/360; % Factor 64 has to be somewhere in WF...
-plot(avPr);
+avPr = sum(projections)/360;
+%plot(avPr);
 
 end
 
