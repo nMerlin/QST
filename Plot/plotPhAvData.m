@@ -13,55 +13,33 @@ X = X - mean(mean(X));
 % Mean photon number
 nAv = mean(X.^2)-0.5;
 
-% Simulations only if nMax<101
-nMax = max(ceil(4*nAv),30);
-if nMax<101
-    % Simulate theoretical thermal state with nAv photons
-    assert(nMax<101,'nMax too high for simulation');
-    rho = thermalState(nMax,nAv);
-    WF = real(mainWignerFromRho(rho))/64;
-    qThermal = sum(WF);
-
-    % Simulate theoretical coherent state with nAv photons
-    rho = coherentState(nMax,nAv);
-    WF = real(mainWignerFromRho(rho))/64;
-    qCoherent = phaseAveragedDist(WF);
-end
-
-% Plot results
-% edges = -30.0625:0.125:30.0625;
-% xHist = -30:0.125:30;
-xAxis = -20:0.125:20;
-
 % Adjust histogram edges to discretization and plot histogram
 uniq = unique(X(:));
+maxValue = max(-min(uniq),max(uniq));
 hDisc = min(diff(uniq)); % discretization
-histEdges = (min(uniq)-hDisc/2):hDisc:(max(uniq)+hDisc/2);
+histEdges = (-maxValue-hDisc/2):hDisc:(maxValue+hDisc/2);
 xHist = min(uniq):hDisc:max(uniq);
 h = histogram(X,histEdges,'Normalization','probability');
+hold on;
 h.EdgeColor = 'b';
 
-% Plot theory curves
-if nMax<101
-    hold on;
-    renorm = min(diff(xAxis))/hDisc;
-    qThermal = qThermal/renorm;
-    qCoherent = qCoherent/renorm;
-    plot(xAxis,qThermal,'linewidth',2);
-    plot(xAxis,qCoherent,'linewidth',2);
-    legend('Measured','Thermal','Coherent');
+%%% Compute and plot theory curves
+% Thermal State
+xAxis = -maxValue:hDisc:maxValue;
+WF = thermWigner(xAxis,xAxis,nAv);
+qThermal = sum(WF);
+WF = cohWigner(xAxis,xAxis,nAv);
+qCoherent = phaseAveragedDist(WF,xAxis);
+plot(xAxis,qThermal,'linewidth',2);
+plot(xAxis,qCoherent,'linewidth',2);
+legend('Measured','Thermal','Coherent');
     
-    % Calculate euclidean distance from both theoretical states
-    start = (length(h.Values) - length(qThermal))/2+1;
-    stop = start + length(qThermal) - 1;
-%     distTherm = sqrt(sum((qThermal - h.Values(start:stop)).^2));
-%     distCoh = sqrt(sum((qCoherent - h.Values(start:stop)).^2));
-    distTherm = [];
-    distCoh = [];
-else
-    legend('Measured');
-    [distTherm,distCoh] = deal(NaN);
-end
+% Calculate euclidean distance from both theoretical states
+% start = (length(h.Values) - length(qThermal))/2+1;
+% stop = start + length(qThermal) - 1;
+distTherm = sqrt(sum((qThermal - h.Values).^2));
+distCoh = sqrt(sum((qCoherent - h.Values).^2));
+
 xlabel('Q');
 ylabel('Probability');
 title({filename,['Phase-averaged quantum state (n=',num2str(nAv),')']});
