@@ -10,18 +10,12 @@ function WF = incoherentSuperposition( nPhotons, alpha, q, varargin )
 %       gif - creates a gif-file with a 3D-animation for different alpha
 
 % Optional input arguments
-verbose = 0;
 gif = 0;
-quiet = 'notquiet';
 if nargin > 3
     for i = 4:nargin
         eval([varargin{i-3} '=1;']);
     end
 end
-if verbose == 0
-    quiet = 'quiet';
-end
-
 
 WF_thermal = thermWigner(q,q,nPhotons);
 WF_coherent = cohWigner(q,q,nPhotons);
