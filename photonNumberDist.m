@@ -2,13 +2,25 @@ function [Pn]= photonNumberDist(X, filename)
 %  Reconstructs the Photon Number Distribution (the diagonal part of the 
 %  density matrix) from a phase-averaged state.
 %  It only delivers proper results for mean photon numbers up to ca 50
-%  due to calculation of Hermite Polynoms.
-%   
+%  due to calculation of Hermite Polynomials.
+%  The idea comes from 
+%  Konrad Banaszek: Maximum likelihood estimation of photon number distribution
+%  from homodyne statistics, Phys. Rev. A 57, 5013-5015 (1998)
+%     (arXiv:physics/9712043)
+%  According to this, the phase-averaged probability distribution p(q) 
+%  is a linear combination of the photon number distribution p_n:
+%  P(q) = sum_{n=0}^{\infty} A_n (q) * p_n  (1), 
+%  with A_n (q) = sum_{m=0}^{n} (1-eff)^(n-m) * eff^m * n! /(sqrt(pi)* 2^m * (n-m)! * (m!)^2) 
+%  * (H_m (q))^2 * exp(-q^2).  (2)
+%  Eff is the detection efficiency, H_m is the mth Hermite Polynomial. 
+%  The code cuts the sum in (1) off at n = Nmax and solves the linear equation system for p_n.
+%  In the paper, a maximum likelihood method is proposed. 
+
 %   Input Parameters:
 %   X - Matrix containing the measured quadrature values. You can create it
 %       for example with the function PREPAREPHAVDATA
 %   FILENAME - this string will be included in the filename of the png-file
-
+%   The function hermitePoly(n) is needed.
 
 %Remove offset
 X = X(:);
@@ -34,8 +46,6 @@ eff = 1;
 H = zeros(length(q),Nmax+1);
 for n = 0:Nmax
     H(:,n+1) = polyval(hermitePoly(n),q) .* exp(-q.^2).* polyval(hermitePoly(n),q) ;
-    %H(:,n+1) = polyval(hermitePoly(n),q).^2 .* exp(-q.^2);
-    %H(:,n+1) = 2*log(polyval(hermitePoly(n),q)) -q.^2;  %with log
 end
 
 if eff == 1
@@ -50,7 +60,6 @@ if eff == 1
     A = zeros(length(q),Nmax+1);
     for n = 1:Nmax+1
         A(:,n) = H(:,n)*a(n);
-        %A(:,n) = H(:,n) + log(a(n)); %with log
     end
      
 else
@@ -59,7 +68,8 @@ else
     Acoeff = zeros(Nmax+1,Nmax+1);
     for n = 0:Nmax
         for m = 0:n
-            Acoeff(n+1,m+1) = (1-eff)^(n-m)*eff^m*factorial(n)/(sqrt(pi)*2^m*factorial(n-m)*(factorial(m))^2);  
+            Acoeff(n+1,m+1) = (1-eff)^(n-m)*eff^m*factorial(n)/ ...
+                (sqrt(pi)*2^m*factorial(n-m)*(factorial(m))^2);  
         end
     end
 
@@ -71,8 +81,6 @@ else
          end     
      end
 end
-
-%A = exp(A);
 
 Pn = A\Pq';   
 
