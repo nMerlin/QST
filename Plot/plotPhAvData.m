@@ -36,6 +36,7 @@ maxValue = max(-min(uniq),max(uniq));
 hDisc = min(diff(uniq)); % discretization
 histEdges = (-maxValue-hDisc/2):hDisc:(maxValue+hDisc/2);
 xHist = min(uniq):hDisc:max(uniq);
+clf;
 h = histogram(X,histEdges,'Normalization','probability');
 hold on;
 h.EdgeColor = 'b';
@@ -68,12 +69,14 @@ xlim([-maxX maxX]);
 dip = abs(max(h.Values)-h.Values(floor(length(h.Values))));
 
 % Plot inset with piecewise photon numbers
-insetAx = axes('Parent',gcf,'Position',[0.18 0.6 0.15 0.25]);
+mainFigure = gcf;
+insetAx = axes('Parent',mainFigure,'Position',[0.18 0.6 0.15 0.25]);
 plot(piecewiseN);
 set(insetAx,'FontSize',8,'XLim',[1 length(piecewiseN)], ...
     'YLim',[min(piecewiseN) max(piecewiseN)],'XTickLabel','');
 xlabel('Time');
 title('Photon Number');
+figure(mainFigure);
 
 % Fit incoherent superposition
 if incoherent == 1
