@@ -20,10 +20,13 @@ if verbose == 0
     quiet = 'quiet';
 end
 
+%%% Piecewise photon number
+X = X - mean(mean(X));
+piecewiseN = mean(X.^2)-0.5;
+
+%%% Global photon number
 % Remove offset
 X = X(:);
-X = X - mean(mean(X));
-
 % Mean photon number
 nAv = mean(X.^2)-0.5;
 
@@ -58,11 +61,19 @@ title({filename,['Phase-averaged quantum state (n=',num2str(nAv),')']});
 
 % Adjust axis limits
 width = fwhm(xHist,h.Values);
-maxX = 2*sqrt(nAv)+3;
+maxX = 3*sqrt(nAv)+3;
 xlim([-maxX maxX]);
 
 % Calculate dip height
 dip = abs(max(h.Values)-h.Values(floor(length(h.Values))));
+
+% Plot inset with piecewise photon numbers
+insetAx = axes('Parent',gcf,'Position',[0.18 0.6 0.15 0.25]);
+plot(piecewiseN);
+set(insetAx,'FontSize',8,'XLim',[1 length(piecewiseN)], ...
+    'YLim',[min(piecewiseN) max(piecewiseN)],'XTickLabel','');
+xlabel('Time');
+title('Photon Number');
 
 % Fit incoherent superposition
 if incoherent == 1
