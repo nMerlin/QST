@@ -20,7 +20,7 @@ if verbose == 0
     quiet = 'quiet';
 end
 
-%%% Piecewise photon number
+%%% Piecewise photon number <a^+ a>
 X = X - mean(mean(X));
 ada = mean(X.^2)-0.5;
 
