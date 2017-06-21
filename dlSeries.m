@@ -16,7 +16,7 @@ end
 
 %%% Variables
 LOStruct = struct('filename',{},'number',{});
-dataStruct = struct('filename',{});
+dataStruct = struct('filename',{},'nAv',{});
 
 %%% Create data overview
 dispstat('','init',quiet);
@@ -76,6 +76,7 @@ for iStruct = 1:length(dataStruct)
     % Compute and plot histograms
     filename = regexprep(filenameSIG,'.raw','');
     [nAv, width, dip, distTherm, distCoh] = plotPhAvData(X, filename);
+    dataStruct(iStruct).nAv = nAv;
     
     % Save quadratures and results
     save([filename,'.mat'],'X','nAv','width','dip','distTherm','distCoh');
