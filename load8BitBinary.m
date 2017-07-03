@@ -52,7 +52,7 @@ memsize = config.SpectrumCard.ModeSetup.Memory_I32;
 number_of_recordings = memsize/segmentsize;
 data = fread(datafileID,[segmentsize*channelnumber number_of_recordings], 'int8=>int8');
 if channelnumber>1
-    data8bit = zeros(segmentsize,memsize/segmentsize,channelnumber);
+    data8bit = zeros(segmentsize,memsize/segmentsize,channelnumber,'int8');
     for block=1:number_of_recordings
         for iChannel=1:channelnumber
             data8bit(:,block,iChannel) = data(iChannel:channelnumber:segmentsize*channelnumber,block);
