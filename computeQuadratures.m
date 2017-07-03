@@ -33,19 +33,17 @@ if ((nRows-locs(end))<ceil(window/2))
 end
 
 % Integration loop
+start = locs-ceil(window/2);
+stop = locs+ceil(window/2);
+windowTime = (stop-start+1) * 1 / SAMPLERATE;
+
 nWindows = length(locs);
 X = zeros(nWindows, nColumns);
-for iColumn = 1 : nColumns
     for iWindow = 1 : nWindows
         % Integration and calibration step
-        start = locs(iWindow)-ceil(window/2);
-        stop = locs(iWindow)+ceil(window/2);
-        windowTime = (stop-start+1) * 1 / SAMPLERATE;
-        X(iWindow, iColumn) = sum(data8bit(start:stop, iColumn)) * ...
-            INT8_TO_VOLTAGE * amperePerVolt * windowTime / ...
-            ELEMENTARY_CHARGE;
+        X(iWindow, :) = sum(data8bit(start(iWindow):stop(iWindow), :)) * ...
+             windowTime(iWindow) ;
     end % iWindow
-end % iColumn
-
+X = X * INT8_TO_VOLTAGE * amperePerVolt / ELEMENTARY_CHARGE;
 end
 
