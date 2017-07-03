@@ -12,11 +12,10 @@ function [  ] = plotPointwiseVariance( data, filename )
 %   
 %   See also: POINTWISEVARIANCE
 
-[~,pvar] = pointwiseVariance(data);
+%% Plot pointwise variance
+pointwiseVariance(data, 'showplot');
 
-assert(isvector(pvar),'PVAR is not a vector!');
-findpeaks(pvar,'MinPeakHeight',mean(pvar),'MinPeakDistance',10);
-
+%% Handle saving of the plot
 switch nargin
     case 2
         assert(ischar(filename),'FILENAME is not a character array!');
