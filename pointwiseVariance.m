@@ -23,7 +23,7 @@ for row=1:rows
     pvar(row) = var(double(data(row,:)));
 end
 
-[~,locs] = findpeaks(pvar,'MinPeakHeight',max(pvar)*0.15,'MinPeakDistance',40);
+[~,locs] = findpeaks(pvar,'MinPeakHeight',mean(pvar),'MinPeakDistance',10);
 assert(not(isempty(locs)),'No maxima found in the pointwise variance!');
 
 end
