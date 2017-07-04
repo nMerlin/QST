@@ -12,15 +12,15 @@ function [ data8bit, config, timestamps ] = load8BitBinary( filename, varargin )
 %   [DATA8BIT, CONFIG, TIMESTAMPS] = LOAD8BITBINARY(filename) Additionally
 %   to the previously discussed array DATA8BIT, the structure CONFIG
 %   consists of the configuration data and TIMESTAMPS is a 1D-array
-%   containing the timestamps of the trigger events.
+%   containing the timestamps of the trigger events. 
 
 % Optional input arguments
 dontsave = 0;
-if nargin == 0
+if isempty(varargin) 
     return
-elseif nargin > 1
-    for i = 2:nargin
-        eval([varargin{i-1} '=1;']);
+else
+    for i = 1:length(varargin)
+        eval([varargin{i} '=1;']);
     end
 end
 
@@ -50,6 +50,7 @@ channelnumber = config.SpectrumCard.Channel00.Enable_BOOL + ...
 segmentsize = config.SpectrumCard.ModeSetup.Segmentsize_I32;
 memsize = config.SpectrumCard.ModeSetup.Memory_I32;
 number_of_recordings = memsize/segmentsize;
+
 data = fread(datafileID,[segmentsize*channelnumber number_of_recordings], 'int8=>int8');
 if channelnumber>1
     data8bit = zeros(segmentsize,memsize/segmentsize,channelnumber,'int8');
