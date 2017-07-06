@@ -9,6 +9,7 @@ function [nAv, width, dip, distTherm, distCoh] = plotPhAvData(X, filename, varar
 
 % Optional input arguments
 verbose = 0;
+offset = 0;
 quiet = 'notquiet';
 incoherent = 0;
 if nargin > 2
@@ -21,7 +22,9 @@ if verbose == 0
 end
 
 %%% Piecewise photon number <a^+ a>
-X = X - mean(mean(X));
+if offset == 0
+    X = X - mean(mean(X));
+end
 ada = mean(X.^2)-0.5;
 
 %%% Piecewise <a^+ a^+ a a>, in the following adadaa, and g2(t,t)
