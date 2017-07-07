@@ -1,5 +1,7 @@
-function [X1, X2, X3, timestamps] = prepare3ChData(filenameLO, filenameSIG)
+function [X1, X2, X3] = prepare3ChData(filenameLO, filenameSIG)
 %PREPARE3CHDATA Returns quadratures of a 3-Channel-Measurement
+%
+% The quadrature matrices are already cut into piezo segments.
 %
 %   filenameLO - filename of the LO-data used for correct normalization
 %   filenameSIG - filename of the raw 3-Channel-Data
@@ -39,8 +41,13 @@ for iCh = 1:3
     X = Norm * X / sqrt(NLO);
     
     % Removing Offsets
-    dispstat('Removing piecewise offset ...','timestamp', 'keepthis',0);
+    dispstat('Removing piecewise offset ...','timestamp','keepthis',0);
     X = bsxfun(@minus, X, mean(X));
+    
+    % Cut the raw data into segments according to piezo modulation
+    dispstat('Reshaping into piezo segments ...', ...
+        'timestamp','keepthis',0);
+    X = piezoSegments(timestamps,X);
 
     switch iCh
         case 1
