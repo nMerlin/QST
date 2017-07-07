@@ -37,6 +37,10 @@ for iCh = 1:3
 
     % Calibration of quadratures to vacuum state
     X = Norm * X / sqrt(NLO);
+    
+    % Removing Offsets
+    dispstat('Removing piecewise offset ...','timestamp', 'keepthis',0);
+    X = bsxfun(@minus, X, mean(X));
 
     switch iCh
         case 1
