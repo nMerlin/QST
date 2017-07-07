@@ -1,7 +1,14 @@
-function [ segments, piezoSign ] = piezoSegments( timestamps, sourceArray )
+function [segments, piezoSign] = piezoSegments(timestamps, sourceArray, varargin)
 %PIEZOSEGMENTS(timestamps,sourceArray) divides the source Arrays into
 %segments corresponding to single flanks of the piezo triangular
 %modulation. It looks for long gaps in the TIMESTAMPS array.
+
+cut = 0;
+if nargin > 2
+    for i = 3:nargin
+        eval([varargin{i-2} '=1;']);
+    end
+end
 
 % Check data format
 [nRows, nColumns] = size(sourceArray);
@@ -30,6 +37,11 @@ if nRows>1 % 2D input arrays
     for iGap=1:nSegments
         seg = sourceArray(:,gapStarts(iGap)+1:gapStarts(iGap+1));
         segments(:,:,iGap) = [seg NaN(nRows, lSegments-size(seg,2))];
+    end
+    % Optional: Cut piezo segments to equal length without NaN
+    if cut == 1
+        nDelete = max(sum(sum(isnan(segments))))/nRows;
+        segments = segments(:,1:end-nDelete,:);
     end
 else % 1D input arrays
     segments = NaN(lSegments,nSegments);
