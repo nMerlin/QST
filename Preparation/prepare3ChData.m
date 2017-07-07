@@ -44,10 +44,11 @@ for iCh = 1:3
     dispstat('Removing piecewise offset ...','timestamp','keepthis',0);
     X = bsxfun(@minus, X, mean(X));
     
-    % Cut the raw data into segments according to piezo modulation
+    % Cut the raw data into segments of equal length according to piezo
+    % modulation
     dispstat('Reshaping into piezo segments ...', ...
         'timestamp','keepthis',0);
-    X = piezoSegments(timestamps,X);
+    X = piezoSegments(timestamps,X,'cut');
 
     switch iCh
         case 1
