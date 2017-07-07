@@ -1,6 +1,8 @@
 function [X1, X2, X3, timestamps] = prepare3ChData(filenameLO, filenameSIG)
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
+%PREPARE3CHDATA Returns quadratures of a 3-Channel-Measurement
+%
+%   filenameLO - filename of the LO-data used for correct normalization
+%   filenameSIG - filename of the raw 3-Channel-Data
 
 CALIBRATION_CH1 = 4.596047840078126e-05; % Ampere per Volt
 
