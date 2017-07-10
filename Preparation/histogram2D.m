@@ -16,6 +16,7 @@ optArgs(1:nVarargin) = varargin;
 [plotArg,nBinsA,nBinsB] = optArgs{:};
 
 %% Calculate binning and histogram
+A = A(:); B = B(:);
 if nBinsA == 0
     [binsA, nBinsA] = minBins(A);
 else
