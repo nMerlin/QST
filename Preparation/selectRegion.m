@@ -7,15 +7,15 @@ function [X,theta] = selectRegion(O1,O2,O3,theta,varargin)
 
 %% Handle optional input arguments and default values
 nVarargin = length(varargin);
-optArgs = {'rectangle' [2 2 0.5 0.5]};
+optArgs = {'rectangle' 2 2 0.5 0.5};
 optArgs(1:nVarargin) = varargin;
-[type pos] = optArgs{:}; % Smoothing parameter
+[type,x,y,w,h] = optArgs{:}; % Smoothing parameter
 
 %% Selection process
 switch type
     case 'rectangle'
-        iSelect = find(O1>pos(1) & O1<pos(1)+pos(3) & O2>pos(2) & ...
-            O2<pos(2)+pos(4));
+        iSelect = find(O1>x & O1<x+w & O2>y & ...
+            O2<y+h);
 end
 X = O3(iSelect);
 theta = theta(iSelect);
