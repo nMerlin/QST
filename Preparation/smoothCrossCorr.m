@@ -18,7 +18,6 @@ XProd = Xa.*Xb;
 x = 1:(nPulses*nPieces);
 y = reshape(XProd,[nPulses*nPieces nSegments]);
 ys = transpose(csaps(x,y',P_SMOOTH,x));
-ys = ys(:);
 
 end
 
