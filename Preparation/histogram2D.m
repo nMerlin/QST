@@ -11,7 +11,7 @@ function [H, binsA, binsB] = histogram2D(A,B,varargin)
 
 %% Handle optional input arguments
 nVarargin = length(varargin);
-optArgs = {'noplot' 0 0};
+optArgs = {'noplot' 1000 1000};
 optArgs(1:nVarargin) = varargin;
 [plotArg,nBinsA,nBinsB] = optArgs{:};
 
