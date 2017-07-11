@@ -1,15 +1,16 @@
-function plot3ChGif(O1,O2,O3,theta,varargin)
-%PLOT3CHGIF Creates a GIF while scanning different regions in a 3Ch-Dataset
+function plot3ChMovie(O1,O2,O3,theta,varargin)
+%PLOT3CHMOVIE Creates a MP4-file while scanning different regions in a
+%3Ch-Dataset
 %
 % Arguments:
 %   (O1,O2,O3,theta) - 3-Channel dataset where O1 and O2 are orthogonal
 % Optional Arguments:
-%   plot3ChGif(~,~,~,~,filename) - 'filename' is the name of the output
+%   plot3ChMovie(~,~,~,~,filename) - 'filename' is the name of the output
 %       file, the default is '3ChGif.gif'
-%   plot3ChGif(~,~,~,~,~,scanMode) - scanMode selects the mode of scanning.
-%       The default 'square' scans a small square in lines along the O1
-%       and O2 directions.
-%   plot3ChGif(~,~,~,~,~,~,nBins) - number of bins for the 1D histogram
+%   plot3ChMovie(~,~,~,~,~,scanMode) - scanMode selects the mode of
+%       scanning. The default 'square' scans a small square in lines along
+%       the O1 and O2 directions.
+%   plot3ChMovie(~,~,~,~,~,~,nBins) - number of bins for the 1D histogram
 %       (default: 100)
 
 %% Handle optional input arguments and default values
