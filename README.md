@@ -1,7 +1,7 @@
 # QST
 A set of MatLab scripts for optical homodyne quantum state tomography.
 
-[Demo for 3-Channel data analysis](https://github.com/nmerlin/QST/gh-pages/demo3ChAnalysis.html)
+[Demo for 3-Channel data analysis](https://github.com/nMerlin/QST/gh-pages/README.md)
 
 ## Software Requirements
 Currently, the tools are developed and tested with:
