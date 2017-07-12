@@ -34,7 +34,7 @@ if strcmp(plotArg,'plot')
     ys = ys(x);
     plot(x,ys); hold on;
     plot(x(iOrth),ys(iOrth),'.'); hold off;
-    legend('Smoothed Cross-Correlation','Selected Data Points');
+    legend('Smoothed Cross-Correlation X1.*X2','Selected Data Points');
 end
 
 end
