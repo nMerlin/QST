@@ -32,9 +32,13 @@ axis manual  % keep the current or manually chosen axis limits
 [H, binsO1, binsO2] = histogram2D(O1,O2);
 
 % Create movie object
-movie = VideoWriter(filename, 'MPEG-4');
-movie.Quality = 100;
-open(movie);
+if ~strcmp(filename,'nomovie')
+    movie = VideoWriter(filename, 'MPEG-4');
+    movie.Quality = 100;
+    open(movie);
+else
+    x = x(1);
+end
 
 for k = 1:length(x)
     clf(h);
@@ -65,9 +69,11 @@ for k = 1:length(x)
     %% Write movie
     % Capture the plot as an image
     %frame = getframe(h); (no control over resolution)
-    frame = print(h,'-r150','-RGBImage');
-    for i = 1:delays
-        writeVideo(movie, frame);
+    if ~strcmp(filename,'nomovie')
+        frame = print(h,'-r150','-RGBImage');
+        for i = 1:delays
+            writeVideo(movie, frame);
+        end
     end
     
 %     % Write to GIF
@@ -82,7 +88,9 @@ for k = 1:length(x)
 %     end
 end
 
-close(movie);
+if ~strcmp(filename,'nomovie')
+    close(movie);
+end
 
 end
 
