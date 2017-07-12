@@ -45,3 +45,37 @@ plotCrossCorrelation(X1,X2,X3);
 % you can choose your own range by specifying the _ORTH_WIDTH_ parameter:
 %
 %   selectOrthogonal(X1,X2,X3,'noplot',ORTH_WIDTH)
+
+%% 2D Histogram
+% It is sometimes useful to calculate and visualize a two dimensional
+% histogram of quadrature data. For example of _O1_ and _O2_ from the
+% previous function outputs. The amplitudes of these orthogonal channels
+% give a point in a phasor diagram and therefore a phase.
+[H, binsO1, binsO2] = histogram2D(O1,O2,'plot');
+
+%% Visualizing the selection process with a Movie
+% Next, we select from the orthogonally pre-selected dataset (O1,O2,O3)
+% only such points, that lie in a specific region of the previously plotted
+% histogram. If we plot a histogram of such data for the third channel, O3,
+% this should result in a phase-averaged coherent state, when the original
+% measurement was performed on a thermal state. The following function does
+% this selection and plotting for many different regions and saves the
+% results to a Movie. The input variable _theta_ is empty for now.
+theta = sparse(zeros(size(O1)));
+plot3ChMovie(O1,O2,O3,theta,'nomovie');
+
+%%
+% The optional paramter _'nomovie'_ prevents the creation of the movie. The
+% blue region in the inset illustrates the selected region. And the main
+% plot shows the corresponding histogram of the selected O3-values.
+
+%% Helper functions
+% Selectiing a specific region in a given orthogonal 3-Channel dataset. X
+% consists of the selected O3 values.
+%
+%   [X,theta] = selectRegion(O1,O2,O3,theta,varargin)
+%
+% If the data in A only exhibits a certain number of different values (e.g.
+% 8-bit, ...), you can get the minimum number _nbins_ of bins _bins_.
+%
+%   [bins, nBins] = minBins(A)
