@@ -1,0 +1,178 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>How to analyse a 3-Channel dataset</title><meta name="generator" content="MATLAB 8.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-07-12"><meta name="DC.source" content="demo3ChAnalysis.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>How to analyse a 3-Channel dataset</h1><!--introduction--><p>Data from a 3-Channel homodyne quantum state measurement has its own functions for evaluation which will be presented here.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Loading a single data-file</a></li><li><a href="#2">Plotting Cross-Correlations</a></li><li><a href="#4">Select datapoints where two channels are orthogonal</a></li><li><a href="#6">2D Histogram</a></li><li><a href="#7">Visualizing the selection process with a Movie</a></li><li><a href="#9">Helper functions</a></li></ul></div><h2>Loading a single data-file<a name="1"></a></h2><p>For each dataset you need to specify two files: The file <i>filenameSIG</i> where you recorded an actual signal, and the file <i>filenameLO</i> where you recorded the vacuum. The vacuum signal is used to normalize the computed quadratures. Otherwise you would not be able to calculate photon numbers later on. X1, X2 and X3 are the calculated quadratures for the corresponding channels with their offset already subtracted.</p><pre class="codeinput">[X1,X2,X3] = prepare3ChData(filenameLO, filenameSIG);
+</pre><pre class="codeoutput">14:44:05 Load LO data
+14:44:05 Load Signal data
+14:44:36 Computing number of LO photons for Channel 1
+14:44:38 Computing quadratures for target quantum state for Channel 1
+14:45:29 Removing piecewise offset ...
+14:45:29 Reshaping into piezo segments ...
+14:45:31 Computing number of LO photons for Channel 2
+14:45:32 Computing quadratures for target quantum state for Channel 2
+14:46:19 Removing piecewise offset ...
+14:46:20 Reshaping into piezo segments ...
+14:46:21 Computing number of LO photons for Channel 3
+14:46:22 Computing quadratures for target quantum state for Channel 3
+14:47:10 Removing piecewise offset ...
+14:47:10 Reshaping into piezo segments ...
+</pre><h2>Plotting Cross-Correlations<a name="2"></a></h2><p>For a first overview of your dataset it can be helpful to plot the 3 possible cross-correlations between the channels. The following cross-correlations originate from a thermal light measurement. Therefore, the cross-correlations are the only way to see wether there is a defined phase between your channels or not. Per default, the plot is limited to two consecutive piezo segments.</p><pre class="codeinput">plotCrossCorrelation(X1,X2,X3);
+</pre><img vspace="5" hspace="5" src="demo3ChAnalysis_01.png" alt=""> <p>The previous plotting function makes use of the function</p><pre class="language-matlab">ys = smoothCrossCorr(Xa,Xb,varargin)
+</pre><p>which generates a smoothed version of the vector</p><pre class="language-matlab">Xa.*Xb
+</pre><p>with the help of cubic smoothing splines.</p><h2>Select datapoints where two channels are orthogonal<a name="4"></a></h2><p>To reconstruct the phase between the signal field and our local oscillator, we need to work only on data points, where two homodyne channels are orthogonal to each other. At these points, the cross-correlation of the two channels is on average zero. The following function selects such triples (O1,O2,O3) from (X1,X2,X3), where X1 and X2 are orthogonal.</p><pre class="codeinput">[O1,O2,O3] = selectOrthogonal(X1,X2,X3,<span class="string">'plot'</span>);
+</pre><img vspace="5" hspace="5" src="demo3ChAnalysis_02.png" alt=""> <p>The default setting selects a range of 5% (Max-Min) around zero. However, you can choose your own range by specifying the <i>ORTH_WIDTH</i> parameter:</p><pre class="language-matlab">selectOrthogonal(X1,X2,X3,<span class="string">'noplot'</span>,ORTH_WIDTH)
+</pre><h2>2D Histogram<a name="6"></a></h2><p>It is sometimes useful to calculate and visualize a two dimensional histogram of quadrature data. For example of <i>O1</i> and <i>O2</i> from the previous function outputs. The amplitudes of these orthogonal channels give a point in a phasor diagram and therefore a phase.</p><pre class="codeinput">[H, binsO1, binsO2] = histogram2D(O1,O2,<span class="string">'plot'</span>);
+</pre><img vspace="5" hspace="5" src="demo3ChAnalysis_03.png" alt=""> <h2>Visualizing the selection process with a Movie<a name="7"></a></h2><p>Next, we select from the orthogonally pre-selected dataset (O1,O2,O3) only such points, that lie in a specific region of the previously plotted histogram. If we plot a histogram of such data for the third channel, O3, this should result in a phase-averaged coherent state, when the original measurement was performed on a thermal state. The following function does this selection and plotting for many different regions and saves the results to a Movie. The input variable <i>theta</i> is empty for now.</p><pre class="codeinput">theta = sparse(zeros(size(O1)));
+plot3ChMovie(O1,O2,O3,theta,<span class="string">'nomovie'</span>);
+</pre><img vspace="5" hspace="5" src="demo3ChAnalysis_04.png" alt=""> <p>The optional paramter <i>'nomovie'</i> prevents the creation of the movie. The blue region in the inset illustrates the selected region. And the main plot shows the corresponding histogram of the selected O3-values.</p><h2>Helper functions<a name="9"></a></h2><p>Selectiing a specific region in a given orthogonal 3-Channel dataset. X consists of the selected O3 values.</p><pre class="language-matlab">[X,theta] = selectRegion(O1,O2,O3,theta,varargin)
+</pre><p>If the data in A only exhibits a certain number of different values (e.g. 8-bit, ...), you can get the minimum number <i>nbins</i> of bins <i>bins</i>.</p><pre class="language-matlab">[bins, nBins] = minBins(A)
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% How to analyse a 3-Channel dataset
+% Data from a 3-Channel homodyne quantum state measurement has its own
+% functions for evaluation which will be presented here.
+
+%% Loading a single data-file
+% For each dataset you need to specify two files: The file _filenameSIG_
+% where you recorded an actual signal, and the file _filenameLO_ where you
+% recorded the vacuum. The vacuum signal is used to normalize the computed
+% quadratures. Otherwise you would not be able to calculate photon numbers
+% later on. X1, X2 and X3 are the calculated quadratures for the
+% corresponding channels with their offset already subtracted.
+[X1,X2,X3] = prepare3ChData(filenameLO, filenameSIG);
+
+%% Plotting Cross-Correlations
+% For a first overview of your dataset it can be helpful to plot the 3
+% possible cross-correlations between the channels. The following
+% cross-correlations originate from a thermal light measurement. Therefore,
+% the cross-correlations are the only way to see wether there is a defined
+% phase between your channels or not. Per default, the plot is limited to
+% two consecutive piezo segments.
+plotCrossCorrelation(X1,X2,X3);
+
+%%
+% The previous plotting function makes use of the function
+%
+%   ys = smoothCrossCorr(Xa,Xb,varargin)
+%
+% which generates a smoothed version of the vector
+%
+%   Xa.*Xb
+%
+% with the help of cubic smoothing splines.
+
+%% Select datapoints where two channels are orthogonal
+% To reconstruct the phase between the signal field and our local
+% oscillator, we need to work only on data points, where two homodyne
+% channels are orthogonal to each other. At these points, the
+% cross-correlation of the two channels is on average zero. The following
+% function selects such triples (O1,O2,O3) from (X1,X2,X3), where X1 and X2
+% are orthogonal.
+[O1,O2,O3] = selectOrthogonal(X1,X2,X3,'plot');
+
+%%
+% The default setting selects a range of 5% (Max-Min) around zero. However,
+% you can choose your own range by specifying the _ORTH_WIDTH_ parameter:
+%
+%   selectOrthogonal(X1,X2,X3,'noplot',ORTH_WIDTH)
+
+%% 2D Histogram
+% It is sometimes useful to calculate and visualize a two dimensional
+% histogram of quadrature data. For example of _O1_ and _O2_ from the
+% previous function outputs. The amplitudes of these orthogonal channels
+% give a point in a phasor diagram and therefore a phase.
+[H, binsO1, binsO2] = histogram2D(O1,O2,'plot');
+
+%% Visualizing the selection process with a Movie
+% Next, we select from the orthogonally pre-selected dataset (O1,O2,O3)
+% only such points, that lie in a specific region of the previously plotted
+% histogram. If we plot a histogram of such data for the third channel, O3,
+% this should result in a phase-averaged coherent state, when the original
+% measurement was performed on a thermal state. The following function does
+% this selection and plotting for many different regions and saves the
+% results to a Movie. The input variable _theta_ is empty for now.
+theta = sparse(zeros(size(O1)));
+plot3ChMovie(O1,O2,O3,theta,'nomovie');
+
+%%
+% The optional paramter _'nomovie'_ prevents the creation of the movie. The
+% blue region in the inset illustrates the selected region. And the main
+% plot shows the corresponding histogram of the selected O3-values.
+
+%% Helper functions
+% Selectiing a specific region in a given orthogonal 3-Channel dataset. X
+% consists of the selected O3 values.
+%
+%   [X,theta] = selectRegion(O1,O2,O3,theta,varargin)
+%
+% If the data in A only exhibits a certain number of different values (e.g.
+% 8-bit, ...), you can get the minimum number _nbins_ of bins _bins_.
+%
+%   [bins, nBins] = minBins(A)
+##### SOURCE END #####
+--></body></html>
