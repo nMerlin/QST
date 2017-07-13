@@ -15,7 +15,7 @@
 % For a first overview of your dataset it can be helpful to plot the 3
 % possible cross-correlations between the channels. The following
 % cross-correlations originate from a thermal light measurement. Therefore,
-% the cross-correlations are the only way to see wether there is a defined
+% the cross-correlations are the only way to see whether there is a defined
 % phase between your channels or not. Per default, the plot is limited to
 % two consecutive piezo segments.
 plotCrossCorrelation(X1,X2,X3);
@@ -65,12 +65,12 @@ theta = sparse(zeros(size(O1)));
 plot3ChMovie(O1,O2,O3,theta,'nomovie');
 
 %%
-% The optional paramter _'nomovie'_ prevents the creation of the movie. The
+% The optional parameter _'nomovie'_ prevents the creation of the movie. The
 % blue region in the inset illustrates the selected region. And the main
 % plot shows the corresponding histogram of the selected O3-values.
 
 %% Helper functions
-% Selectiing a specific region in a given orthogonal 3-Channel dataset. X
+% Selecting a specific region in a given orthogonal 3-Channel dataset. X
 % consists of the selected O3 values.
 %
 %   [X,theta] = selectRegion(O1,O2,O3,theta,varargin)
