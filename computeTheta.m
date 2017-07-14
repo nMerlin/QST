@@ -77,7 +77,7 @@ for iSeg = 1:nSegments
             strcat('Too many maxima or minima detected in Segment', ...
             num2str(iSeg),'!'));
         
-        % Sort peaks (assumption: we only see "global" maxima and minima)
+        %% Sort peaks (assumption: we only see "global" maxima and minima)
         [locs, I] = sort([maxlocs minlocs]);
         nTurningPoints = length(locs);
         assert(nTurningPoints>1, 'Not enough turning points encountered!');
@@ -116,8 +116,10 @@ for iSeg = 1:nSegments
             locs(end) = I;
             pks(end) = maxVal;
         end
+        % Last peak is a minimum and right extremum is a maximum
         if pks(end)<0
             rightex = max(yFit(locs(end):end));
+        % Last peak is a maximum and right extremum is a minimum
         else
             rightex = min(yFit(locs(end):end));
         end
