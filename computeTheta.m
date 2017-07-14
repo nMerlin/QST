@@ -90,9 +90,10 @@ for iSeg = 1:nSegments
         if pks(1)<0 && minVal<pks(1)
             locs(1) = I;
             pks(1) = minVal;
+        end
         % First peak is a maximum and left extremum is a higher maximum
         [maxVal,I] = max(yFit(1:locs(1)));
-        elseif pks(1)>0 && maxVal>pks(1)
+        if pks(1)>0 && maxVal>pks(1)
             locs(1) = I;
             pks(1) = maxVal;
         end
@@ -110,9 +111,10 @@ for iSeg = 1:nSegments
         if pks(end)<0 && minVal<pks(end)
             locs(end) = I;
             pks(end) = minVal;
+        end
         % Last peak is a maximum and right extremum is a higher maximum
         [maxVal,I] = max(yFit(locs(end):end));
-        elseif pks(end)>0 && maxVal>pks(end)
+        if pks(end)>0 && maxVal>pks(end)
             locs(end) = I;
             pks(end) = maxVal;
         end
