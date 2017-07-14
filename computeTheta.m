@@ -58,13 +58,13 @@ for iSeg = 1:nSegments
         peakHeight = 0.3 * (max(yFitNew));
         peakHeightMin = 0.3 * (max(-yFitNew));
         peakDistance = 0.3 * length(yFit);
-        peakWidth = 0.01 * length(yFit);  
+        peakWidth = 0.01 * length(yFit);
       
-%          findpeaks(yFitNew,'MinPeakHeight',peakHeight,...
-%              'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
-%          hold on;
-%          findpeaks(-yFitNew,'MinPeakHeight',peakHeightMin,...
-%              'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
+%         findpeaks(yFitNew,'MinPeakHeight',peakHeight,...
+%             'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
+%         hold on;
+%         findpeaks(-yFitNew,'MinPeakHeight',peakHeightMin,...
+%             'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
         [~,maxlocs] = findpeaks(yFitNew,'MinPeakHeight',peakHeight,...
             'MinPeakDistance',peakDistance,'MinPeakWidth',peakWidth);
         [~,minlocs] = findpeaks(-yFitNew,'MinPeakHeight',peakHeightMin,...
@@ -74,35 +74,59 @@ for iSeg = 1:nSegments
         minpks = yFit(minlocs);
         
         assert(abs(length(maxpks)-length(minpks))<2,...
-            strcat('Too many maxima or minima detected in Segment',num2str(iSeg),'!'));
+            strcat('Too many maxima or minima detected in Segment', ...
+            num2str(iSeg),'!'));
         
         % Sort peaks (assumption: we only see "global" maxima and minima)
         [locs, I] = sort([maxlocs minlocs]);
         nTurningPoints = length(locs);
         assert(nTurningPoints>1, 'Not enough turning points encountered!');
-        
         pks = [maxpks minpks];
         pks = pks(I);
-        pksDiff = -diff(pks);
         
-        %look for extrema on boundaries:
-        %left boundary:
+        %% Look for extrema on left boundary
+        % First peak is a minimum and left extremum is a lower minimum
+        [minVal,I] = min(yFit(1:locs(1)));
+        if pks(1)<0 && minVal<pks(1)
+            locs(1) = I;
+            pks(1) = minVal;
+        % First peak is a maximum and left extremum is a higher maximum
+        [maxVal,I] = max(yFit(1:locs(1)));
+        elseif pks(1)>0 && maxVal>pks(1)
+            locs(1) = I;
+            pks(1) = maxVal;
+        end
+        % First peak is a minimum and left extremum is a maximum
         if pks(1)<0
             leftex = max(yFit(1:locs(1)));
+        % First peak is a maximum and left extremum is a minimum
         else
             leftex = min(yFit(1:locs(1)));
         end
-        %right boundary:
+        
+        %% Look for extrema on right boundary
+        % Last peak is a minimum and right extremum is a lower minimum
+        [minVal,I] = min(yFit(locs(end):end));
+        if pks(end)<0 && minVal<pks(end)
+            locs(end) = I;
+            pks(end) = minVal;
+        % Last peak is a maximum and right extremum is a higher maximum
+        [maxVal,I] = max(yFit(locs(end):end));
+        elseif pks(end)>0 && maxVal>pks(end)
+            locs(end) = I;
+            pks(end) = maxVal;
+        end
         if pks(end)<0
             rightex = max(yFit(locs(end):end));
         else
             rightex = min(yFit(locs(end):end));
         end
 
-        % Loop over all visible flanks
+        %% Loop over all visible flanks
         smallTheta = zeros(length(yFit),1);
         % direction of the first visible flank; also account for the
         % different directions of the piezo movement
+        pksDiff = -diff(pks);
         ss = sign(pksDiff(1))*piezoSign;
         s = ss;
         for iPart = 0:nTurningPoints
