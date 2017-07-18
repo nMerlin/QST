@@ -70,11 +70,11 @@ for iSeg = 1:nSegments
     %% Account for wrongly detected peaks close to the boundaries
     % An extremum very close to the boundary could be the result of local
     % fluctuations instead of the piezo modulation. If such an extremum is
-    % closer to the boundary than 5% of a period, then it is rejected, if
+    % closer to the boundary than 2% of a period, then it is rejected, if
     % its value is not within a 5% range of the second extremum in the
     % direction of 0.
     
-    if locs(1)<0.05*periodLength && abs((pks(1)-pks(3))/pks(3))>0.05
+    if locs(1)<0.02*periodLength && abs((pks(1)-pks(3))/pks(3))>0.05
         if (pks(1)>0 && (pks(3)-pks(1))/abs(pks(3))>0.05) || ...
                 (pks(1)<0 && (pks(1)-pks(3))/abs(pks(3))>0.05)
             locs = locs(2:end);
