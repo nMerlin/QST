@@ -71,66 +71,69 @@ for iSeg = 1:nSegments
     % An extremum very close to the boundary could be the result of local
     % fluctuations instead of the piezo modulation. If such an extremum is
     % closer to the boundary than 2% of a period, then it is rejected, if
-    % its value is not within a 5% range of the second extremum in the
-    % direction of 0.
-    
-    if locs(1)<0.02*periodLength && abs((pks(1)-pks(3))/pks(3))>0.05
+    % its value is lower than 95% of the corresponding second extremum.
+    % 
+    % Left boundary:
+    if locs(1)<0.02*periodLength
         if (pks(1)>0 && (pks(3)-pks(1))/abs(pks(3))>0.05) || ...
                 (pks(1)<0 && (pks(1)-pks(3))/abs(pks(3))>0.05)
             locs = locs(2:end);
             pks = pks(2:end);
         end
     end
+    % Right boundary:
+    if (length(y)-locs(end))<0.02*periodLength
+        if (pks(end)>0 && (pks(end-2)-pks(end))/abs(pks(end-2))>0.05) ||...
+                (pks(end)<0 && (pks(end)-pks(end-2))/abs(pks(end-2))>0.05)
+            locs = locs(1:end-1);
+            pks = pks(1:end-1);
+        end
+    end
     
     nTurningPoints = length(locs);
     assert(nTurningPoints>1, 'Not enough turning points encountered!');
     
-    %% Catch ...
-    % First peak is a minimum and left extremum is a lower minimum
-    [minVal,I] = min(y(1:locs(1)));
-    if pks(1)<0 && minVal<pks(1)
-        locs(1) = I;
-        pks(1) = minVal;
+    %% Account for extrema lying directly on a boundary (1)
+    % If an extremal point is the first or last point in the data set, then
+    % the _findpeaks_ function won't detect it. Therefore, we have to catch
+    % these exceptions here. If the boundary extremum is lower than the
+    % corresponding second extremum, nothing happens, otherwise it will be
+    % added to the list of peaks.
+    %
+    % Left boundary:
+    if (pks(1)<0 && y(1)>pks(2)) || (pks(1)>0 && y(1)<pks(2))
+        locs = [1;locs];
+        pks = [y(1);pks];
     end
-    % First peak is a maximum and left extremum is a higher maximum
-    [maxVal,I] = max(y(1:locs(1)));
-    if pks(1)>0 && maxVal>pks(1)
-        locs(1) = I;
-        pks(1) = maxVal;
-    end
-    % First peak is a minimum and left extremum is a maximum
-    if pks(1)<0
-        leftex = max(y(1:locs(1)));
-    % First peak is a maximum and left extremum is a minimum
-    else
-        leftex = min(y(1:locs(1)));
-    end
-        
-    %% Look for extrema on right boundary
-    % Last peak is a minimum and right extremum is a lower minimum
-    [minVal,I] = min(y(locs(end):end));
-    if pks(end)<0 && minVal<pks(end)
-        locs(end) = I;
-        pks(end) = minVal;
-    end
-    % Last peak is a maximum and right extremum is a higher maximum
-    [maxVal,I] = max(y(locs(end):end));
-    if pks(end)>0 && maxVal>pks(end)
-        locs(end) = I;
-        pks(end) = maxVal;
-    end
-    % Last peak is a minimum and right extremum is a maximum
-    if pks(end)<0
-        rightex = max(y(locs(end):end));
-    % Last peak is a maximum and right extremum is a minimum
-    else
-        rightex = min(y(locs(end):end));
+    % Right boundary:
+    if (pks(end)<0 && y(end)>pks(end-1)) || ...
+            (pks(end)>0 && y(end)<pks(end-1))
+        locs = [locs;length(y)];
+        pks = [pks;y(end)];
     end
     
-    plot(y); hold on;
-    plot(locs,pks,'ro'); hold off;
-    legend(num2str(iSeg));
-    waitforbuttonpress;
+    %% Account for extrema lying directly on a boundary (2)
+    % Similar to the previous correction, _findpeaks_ could detect a peak,
+    % but the value directly at the boundary is higher than this peak. In
+    % this case, we have to replace the extremum with the boundary point.
+    %
+    % Left boundary:
+    if (pks(1)<0 && y(1)<pks(1)) || (pks(1)>0 && y(1)>pks(1))
+        pks(1) = y(1);
+        locs(1) = 1;
+    end
+    % Right boundary:
+    if (pks(end)<0 && y(end)<pks(end)) || (pks(end)>0 && y(end)>pks(end))
+        pks(end) = y(end);
+        locs(end) = length(y);
+    end
+    
+    if strcmp(plotArg,'plot')
+        plot(y); hold on;
+        plot(locs,pks,'ro'); hold off;
+        legend(num2str(iSeg));
+        waitforbuttonpress;
+    end
     
     %% Loop over all visible flanks
     % _ss_ accounts for the direction of the first visible flank and for
@@ -142,12 +145,12 @@ for iSeg = 1:nSegments
         % Normalize to interval [-1;1]
         if iPart == 0
             range = 1:locs(1);
-            normDiff = max(abs(pksDiff(1)),abs(leftex-pks(1)));
-            maxValue = max([pks(1),pks(2),leftex]);
+            normDiff = abs(pksDiff(1));
+            maxValue = max([pks(1),pks(2)]);
         elseif iPart == nTurningPoints
             range = (locs(end)):length(theta(:,iSeg));
-            normDiff = max(abs(pksDiff(end)),abs(rightex-pks(end)));
-            maxValue = max([pks(end),pks(end-1),rightex]);
+            normDiff = abs(pksDiff(end));
+            maxValue = max([pks(end),pks(end-1)]);
         else
             range = (locs(iPart)):(locs(iPart+1));
             normDiff = abs(pksDiff(iPart));
