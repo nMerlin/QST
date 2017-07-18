@@ -73,9 +73,10 @@ for iSeg = 1:nSegments
     % closer to the boundary than 5% of a period, then it is rejected, if
     % its value is not within a 5% range of the second extremum in the
     % direction of 0.
+    
     if locs(1)<0.05*periodLength && abs((pks(1)-pks(3))/pks(3))>0.05
-        if (pks(1)>0 && (pks(2)-pks(1))>0.5) || ...
-                (pks(1)<0 && (pks(1)-pks(2))>0.5)
+        if (pks(1)>0 && (pks(3)-pks(1))/abs(pks(3))>0.05) || ...
+                (pks(1)<0 && (pks(1)-pks(3))/abs(pks(3))>0.05)
             locs = locs(2:end);
             pks = pks(2:end);
         end
@@ -128,6 +129,7 @@ for iSeg = 1:nSegments
     
     plot(y); hold on;
     plot(locs,pks,'ro'); hold off;
+    legend(num2str(iSeg));
     waitforbuttonpress;
     
     %% Loop over all visible flanks
