@@ -8,6 +8,13 @@ function [theta, selSeg] = computePhase(ys,piezoSign,varargin)
 %   theta - Reconstructed phase values
 %   selSeg - the reconstruction was successfull for these segments
 
+%% Global parameters
+% For peak detection it is important to know how many wavelengths are
+% located in one measured piezo segment. Optional: Implement automatic
+% computation from config.
+periodsPerSeg = 1.2;
+periodLength = length(ys)*periodsPerSeg;
+
 %% Handle optional input arguments
 nVarargin = length(varargin);
 optArgs = {'noplot'};
@@ -23,7 +30,6 @@ for iSeg = 1:nSegments
     % To reconstruct the phase, the algorithm has to identify maxima and
     % minima in the data. This is done by the function _findpeaks_.
     % However, the parameters have to be chosen carefully.
-    periodsPerSeg = 1.2; % Optional: Compute automatically from config.
     peakOpts.MinPeakDistance = 0.6 * length(y)/periodsPerSeg;
     % _MinPeakDistance_ is by far the most important parameter. It
     % determines how far away of each other the found peaks must be. In our
@@ -58,12 +64,27 @@ for iSeg = 1:nSegments
     
     %% Sort peaks (assumption: we only see "global" maxima and minima)
     [locs, I] = sort([maxlocs;minlocs]);
-    nTurningPoints = length(locs);
-    assert(nTurningPoints>1, 'Not enough turning points encountered!');
     pks = [maxpks;minpks];
     pks = pks(I);
     
-    %% Look for extrema on left boundary
+    %% Account for wrongly detected peaks close to the boundaries
+    % An extremum very close to the boundary could be the result of local
+    % fluctuations instead of the piezo modulation. If such an extremum is
+    % closer to the boundary than 5% of a period, then it is rejected, if
+    % its value is not within a 5% range of the second extremum in the
+    % direction of 0.
+    if locs(1)<0.05*periodLength && abs((pks(1)-pks(3))/pks(3))>0.05
+        if (pks(1)>0 && (pks(2)-pks(1))>0.5) || ...
+                (pks(1)<0 && (pks(1)-pks(2))>0.5)
+            locs = locs(2:end);
+            pks = pks(2:end);
+        end
+    end
+    
+    nTurningPoints = length(locs);
+    assert(nTurningPoints>1, 'Not enough turning points encountered!');
+    
+    %% Catch ...
     % First peak is a minimum and left extremum is a lower minimum
     [minVal,I] = min(y(1:locs(1)));
     if pks(1)<0 && minVal<pks(1)
@@ -104,6 +125,10 @@ for iSeg = 1:nSegments
     else
         rightex = min(y(locs(end):end));
     end
+    
+    plot(y); hold on;
+    plot(locs,pks,'ro'); hold off;
+    waitforbuttonpress;
     
     %% Loop over all visible flanks
     % _ss_ accounts for the direction of the first visible flank and for
