@@ -1,15 +1,19 @@
 function [nAv, width, dip, distTherm, distCoh] = plotPhAvData(X, filename, varargin)
 %PLOTPHAVDATA Evaluates the quadratures X from a phase-averaged state
 %   
-%   Mandatory Paramters:
-%       X - Matrix containing the measured quadrature values. You can
-%           create it for example with the function PREPAREPHAVDATA
-%       FILENAME - this string will be included in the filename of 
-%           the png-file
+% Mandatory Paramters:
+%   X - Matrix containing the measured quadrature values. You can
+%       create it for example with the function PREPAREPHAVDATA
+%   FILENAME - this string will be included in the filename of 
+%       the png-file
+%
+% Optional Parameters:
+%   'limBins': Limit the number of bins in the histogram to 1000
 
-% Optional input arguments
+%% Optional input arguments
 verbose = 0;
 offset = 0;
+limBins = 0;
 quiet = 'notquiet';
 incoherent = 0;
 if nargin > 2
@@ -19,6 +23,15 @@ if nargin > 2
 end
 if verbose == 0
     quiet = 'quiet';
+end
+
+%% Account for different sizes of X
+% X can have the shape [nPoints,nRecords] or [nPoints,nRecords,nSegments],
+% where _nSegments_ is the number of piezo segments. The following code
+% identifies the shape and transforms it to the first type, if necessary.
+if ndims(X) == 3
+    [nPoints,nRecords,nSegments] = size(X);
+    X = reshape(X,[nPoints,nRecords*nSegments]);
 end
 
 %%% Piecewise photon number <a^+ a>
@@ -37,8 +50,17 @@ X = X(:);
 % Mean photon number
 nAv = mean(X.^2)-0.5;
 
-% Adjust histogram edges to discretization and plot histogram
-[xHist,~,histEdges] = minBins(X);
+%% Create and plot histogram
+% Adjust histogram edges to the discretization of X, if the option
+% 'minDisc' is set. Otherwise, the number of bins is 1000 by default.
+if limBins == 0
+    [xHist,~,histEdges] = minBins(X,'sym');
+else
+    maxVal = max(-min(X),max(X));
+    xHist = linspace(-maxVal,maxVal,1000);
+    disc = min(diff(xHist));
+    histEdges = (-maxVal-disc/2):disc:(maxVal+disc/2);
+end
 clf;
 h = histogram(X,histEdges,'Normalization','probability');
 hold on;
@@ -46,7 +68,7 @@ h.EdgeColor = 'b';
 
 %%% Compute and plot theory curves
 % Thermal State
-xAxis = -xHist;
+xAxis = xHist;
 WF_therm = thermWigner(xAxis,xAxis,nAv);
 qThermal = sum(WF_therm);
 WF_coh = cohWigner(xAxis,xAxis,nAv);
