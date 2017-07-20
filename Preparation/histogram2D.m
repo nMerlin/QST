@@ -18,14 +18,16 @@ optArgs(1:nVarargin) = varargin;
 %% Calculate binning and histogram
 A = A(:); B = B(:);
 if nBinsA == 0
-    [binsA, nBinsA] = minBins(A);
+    [binsA, nBinsA] = minBins(A,'sym');
 else
-    binsA = linspace(min(A),max(A),nBinsA);
+    maxVal = max(-min(A),max(A));
+    binsA = linspace(-maxVal,maxVal,nBinsA);
 end
 if nBinsB == 0
-    [binsB, nBinsB] = minBins(B);
+    [binsB, nBinsB] = minBins(B,'sym');
 else
-    binsB = linspace(min(B),max(B),nBinsB);
+    maxVal = max(-min(A),max(A));
+    binsB = linspace(-maxVal,maxVal,nBinsB);
 end
 % map A and B to bin indices
 Ai = round(interp1(binsA,1:nBinsA,A,'linear','extrap'));
