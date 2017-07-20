@@ -45,7 +45,8 @@ theta = theta(:,segSel==1);
 
 %% Optional: Save the output paramters
 if ~isempty(p.Results.Filename)
-    save(['validatedSegments-',p.Results.Filename,'.mat'],'X1','X2','X3','theta');
+    save(['validatedSegments-',p.Results.Filename,'.mat'],'X1', ...
+        'X2','X3','theta');
 end
 
 end
