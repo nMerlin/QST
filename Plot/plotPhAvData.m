@@ -38,11 +38,7 @@ X = X(:);
 nAv = mean(X.^2)-0.5;
 
 % Adjust histogram edges to discretization and plot histogram
-uniq = unique(X(:));
-maxValue = max(-min(uniq),max(uniq));
-hDisc = min(diff(uniq)); % discretization
-histEdges = (-maxValue-hDisc/2):hDisc:(maxValue+hDisc/2);
-xHist = min(uniq):hDisc:max(uniq);
+[xHist,~,histEdges] = minBins(X);
 clf;
 h = histogram(X,histEdges,'Normalization','probability');
 hold on;
@@ -50,7 +46,7 @@ h.EdgeColor = 'b';
 
 %%% Compute and plot theory curves
 % Thermal State
-xAxis = -maxValue:hDisc:maxValue;
+xAxis = -xHist;
 WF_therm = thermWigner(xAxis,xAxis,nAv);
 qThermal = sum(WF_therm);
 WF_coh = cohWigner(xAxis,xAxis,nAv);
