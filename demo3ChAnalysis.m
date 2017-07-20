@@ -36,9 +36,9 @@ plotCrossCorrelation(X1,X2,X3);
 % oscillator, we need to work only on data points, where two homodyne
 % channels are orthogonal to each other. At these points, the
 % cross-correlation of the two channels is on average zero. The following
-% function selects such triples (O1,O2,O3) from (X1,X2,X3), where X1 and X2
-% are orthogonal.
-[O1,O2,O3] = selectOrthogonal(X1,X2,X3,'plot');
+% function selects such quadruplets (O1,O2,O3,oTheta) from
+% (X1,X2,X3,theta), where X1 and X2 are orthogonal.
+[O1,O2,O3,oTheta] = selectOrthogonal(X1,X2,X3,theta);
 
 %%
 % The default setting selects a range of 5% (Max-Min) around zero. However,
