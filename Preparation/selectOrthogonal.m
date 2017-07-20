@@ -1,4 +1,4 @@
-function [O1,O2,O3] = selectOrthogonal(X1,X2,X3,varargin)
+function [O1,O2,O3,oTheta] = selectOrthogonal(X1,X2,X3,theta,varargin)
 %SELECTORTHOGONAL Select all data points where X1 and X2 are orthogonal
 %
 % Input Arguments:
@@ -24,7 +24,7 @@ globMax = max(ys(:));
 globMin = min(ys(:));
 halfWidth = ORTH_WIDTH * (globMax - globMin) / 2;
 iOrth = find(ys<halfWidth & ys>-halfWidth); % Indices for selection
-O1 = X1(iOrth); O2 = X2(iOrth); O3 = X3(iOrth);
+O1 = X1(iOrth); O2 = X2(iOrth); O3 = X3(iOrth); oTheta = theta(iOrth);
 
 %% Visualize the selection process for two piezo segments
 if strcmp(plotArg,'plot')
