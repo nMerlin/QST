@@ -8,7 +8,7 @@ function [theta, selSeg] = computePhase(ys,piezoSign,varargin)
 %   theta - Reconstructed phase values
 %   selSeg - the reconstruction was successfull for these segments
 
-%% Global parameters
+%% Constants
 % For peak detection it is important to know how many wavelengths are
 % located in one measured piezo segment. Optional: Implement automatic
 % computation from config.
