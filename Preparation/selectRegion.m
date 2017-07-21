@@ -9,11 +9,13 @@ function [X,theta] = selectRegion(O1,O2,O3,theta,varargin)
 p = inputParser;
 defaultType = 'rectangle';
 defaultPosition = [2 2 0.5 0.5];
+defaultPlotOpt = 'hide';
 addParameter(p,'Type',defaultType,@isstr);
 addParameter(p,'Position',defaultPosition,@isvector);
+addParameter(p,'Plot',defaultPlotOpt,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[position,type] = c{:};
+[plotopt,position,type] = c{:};
 
 %% Selection process
 switch type
@@ -35,5 +37,12 @@ theta(iTan) = theta(iTan) - (atan(quot(iTan)));
 iTan = find(O1<=0);
 theta(iTan) = theta(iTan) - (atan(quot(iTan)) + pi);
 theta = theta(iSelect);
+
+%% Show selection
+if strcmp(plotopt,'show')
+    [H, binsO1, binsO2] = histogram2D(O1,O2);
+    imagesc(binsO1,binsO2,H); axis on; colormap hot; hold on;
+    plot(O1(iSelect),O2(iSelect),'.'); hold off;
+end
 
 end
