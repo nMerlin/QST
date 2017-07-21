@@ -1,4 +1,4 @@
-function [theta, selSeg] = computePhase(ys,piezoSign,varargin)
+function theta = computePhase(ys,piezoSign,varargin)
 %COMPUTEPHASE Reconstruct phase from smoothed cross-correlation data
 %
 % Input Arguments:
@@ -21,9 +21,9 @@ optArgs = {'noplot'};
 optArgs(1:nVarargin) = varargin;
 [plotArg] = optArgs{:};
 
+%% Reconstruct the phase for each piezo segment
 [nPoints,nSegments] = size(ys);
 theta = zeros(nPoints,nSegments);
-selSeg = ones(1,nSegments);
 for iSeg = 1:nSegments
     y = ys(:,iSeg);
     %% Parameters for the function _findpeaks_
@@ -50,7 +50,6 @@ for iSeg = 1:nSegments
         key = waitforbuttonpress;
         if key == 0
             theta(:,iSeg) = NaN(nPoints,1);
-            selSeg(iSeg) = false;
             continue
         end
     end
