@@ -1,4 +1,4 @@
-function theta = computePhase(ys,piezoSign,varargin)
+function theta = computePhase(Xa,Xb,piezoSign,varargin)
 %COMPUTEPHASE Reconstruct phase from smoothed cross-correlation data
 %
 % Input Arguments:
@@ -6,14 +6,12 @@ function theta = computePhase(ys,piezoSign,varargin)
 %
 % Output Arguments:
 %   theta - Reconstructed phase values
-%   selSeg - the reconstruction was successfull for these segments
 
 %% Constants
 % For peak detection it is important to know how many wavelengths are
 % located in one measured piezo segment. Optional: Implement automatic
 % computation from config.
 periodsPerSeg = 1.2;
-periodLength = length(ys)*periodsPerSeg;
 
 %% Handle optional input arguments
 nVarargin = length(varargin);
@@ -22,6 +20,8 @@ optArgs(1:nVarargin) = varargin;
 [plotArg] = optArgs{:};
 
 %% Reconstruct the phase for each piezo segment
+ys = smoothCrossCorr(Xa,Xb);
+periodLength = length(ys)*periodsPerSeg;
 [nPoints,nSegments] = size(ys);
 theta = zeros(nPoints,nSegments);
 for iSeg = 1:nSegments
