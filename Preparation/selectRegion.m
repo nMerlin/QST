@@ -34,11 +34,7 @@ end
 X = O3(iSelect);
 
 %% Phase calculation
-quot = O2./O1;
-iTan = find(O1>0);
-theta(iTan) = theta(iTan) - (atan(quot(iTan)));
-iTan = find(O1<=0);
-theta(iTan) = theta(iTan) - (atan(quot(iTan)) + pi);
+theta = mod(theta - atan2(O2,O1),2*pi);
 theta = theta(iSelect);
 
 %% Show selection
