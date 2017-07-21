@@ -31,6 +31,24 @@ plotCrossCorrelation(X1,X2,X3);
 %
 % with the help of cubic smoothing splines.
 
+%% Compute phase between two channels
+% When analyzing a 3 Channel dataset, the final result will be a dataset
+% (X,theta), from which it is possible to reconstruct the full Wigner
+% function. Therefore, two channels, e.g. X1 & X2 are only used to
+% reconstruct the phase _theta_ and selecting the region of interest. The
+% third channel, X3, delivers the values for X, after all post-selections
+% are done. To get a meaningful phase, we first need to compute the
+% relative phase between X1 and X3, which is done here.
+theta = computePhase(X1,X3,piezoSign);
+
+%%
+% The variable _piezoSign_ is important, when you want to put the data from
+% different measurements together. It tells the function in which direction
+% the piezo actuator started the movement in the first segment. In
+% principle, in two different measurements, the acuator could move in
+% opposite directions in the first segment, which would lead to wrong phase
+% values.
+
 %% Select datapoints where two channels are orthogonal
 % To reconstruct the phase between the signal field and our local
 % oscillator, we need to work only on data points, where two homodyne
@@ -61,8 +79,7 @@ plotCrossCorrelation(X1,X2,X3);
 % measurement was performed on a thermal state. The following function does
 % this selection and plotting for many different regions and saves the
 % results to a Movie. The input variable _theta_ is empty for now.
-theta = sparse(zeros(size(O1)));
-plot3ChMovie(O1,O2,O3,theta,'nomovie');
+plot3ChMovie(O1,O2,O3,otheta,'nomovie');
 
 %%
 % The optional paramter _'nomovie'_ prevents the creation of the movie. The
