@@ -20,7 +20,10 @@ c = struct2cell(p.Results);
 %% Selection process
 switch type
     case 'rectangle'
-        [x,y,w,h] = position(1:4);
+        x = position(1);
+        y = position(2);
+        w = position(3);
+        h = position(4);
         iSelect = find(O1>x & O1<x+w & O2>y & ...
             O2<y+h);
     case 'halfcircle'
