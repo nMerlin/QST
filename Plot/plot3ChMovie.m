@@ -1,4 +1,4 @@
-function plot3ChMovie(O1,O2,O3,theta,varargin)
+function plot3ChMovie(O1,O2,O3,oTheta,varargin)
 %PLOT3CHMOVIE Creates a MP4-file while scanning different regions in a
 %3Ch-Dataset
 %
@@ -13,11 +13,19 @@ function plot3ChMovie(O1,O2,O3,theta,varargin)
 %   plot3ChMovie(~,~,~,~,~,~,nBins) - number of bins for the 1D histogram
 %       (default: 100)
 
-%% Handle optional input arguments and default values
-nVarargin = length(varargin);
-optArgs = {'3ChMovie.mp4' 'square' 100 5};
-optArgs(1:nVarargin) = varargin;
-[filename,scanMode,nBins,delays] = optArgs{:};
+%% Validate and parse input arguments
+p = inputParser;
+defaultFilename = '3ChMovie.mp4';
+defaultScanMode = 'square';
+defaultNBins = 100;
+defaultDelays = 5;
+addParameter(p,'Filename',defaultFilename,@isstr);
+addParameter(p,'ScanMode',defaultScanMode,@isstr);
+addParameter(p,'nBins',defaultNBins,@isnumeric);
+addParameter(p,'Delays',defaultDelays,@isnumeric);
+parse(p,varargin{:});
+c = struct2cell(p.Results);
+[delays,filename,nBins,scanMode] = c{:};
 
 switch scanMode
     case 'square'
@@ -44,7 +52,7 @@ for k = 1:length(x)
     clf(h);
     
     % Main plot
-    XSel = selectRegion(O1,O2,O3,theta,region{1},x(k),y(k), ...
+    XSel = selectRegion(O1,O2,O3,oTheta,region{1},x(k),y(k), ...
         region{2},region{3});
     edges = linspace(-10,10,nBins);
     histogram(XSel,edges,'Normalization','probability');
