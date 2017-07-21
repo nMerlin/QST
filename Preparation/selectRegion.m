@@ -18,6 +18,13 @@ switch type
             O2<y+h);
 end
 X = O3(iSelect);
+
+%% Phase calculation
+quot = O2./O1;
+iTan = find(O1>0);
+theta(iTan) = theta(iTan) + atan(quot(iTan));
+iTan = find(O1<=0);
+theta(iTan) = theta(iTan) + atan(quot(iTan)) + pi;
 theta = theta(iSelect);
 
 end
