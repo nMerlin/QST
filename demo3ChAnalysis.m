@@ -8,7 +8,9 @@
 % recorded the vacuum. The vacuum signal is used to normalize the computed
 % quadratures. Otherwise you would not be able to calculate photon numbers
 % later on. X1, X2 and X3 are the calculated quadratures for the
-% corresponding channels with their offset already subtracted.
+% corresponding channels with their offset already subtracted. It is
+% assumed, that X3 has a very slow or no phase-modulation, X1 has a
+% modulation of 2w and X2 of w (e.g. w=25Hz).
 [X1,X2,X3] = prepare3ChData(filenameLO, filenameSIG);
 
 %% Plotting Cross-Correlations
@@ -31,7 +33,7 @@ plotCrossCorrelation(X1,X2,X3);
 %
 % with the help of cubic smoothing splines.
 
-%% Compute phase between two channels
+%% Compute phase between X1 and X3
 % When analyzing a 3 Channel dataset, the final result will be a dataset
 % (X,theta), from which it is possible to reconstruct the full Wigner
 % function. Therefore, two channels, e.g. X1 & X2 are only used to
@@ -42,12 +44,20 @@ plotCrossCorrelation(X1,X2,X3);
 theta = computePhase(X1,X3,piezoSign);
 
 %%
-% The variable _piezoSign_ is important, when you want to put the data from
+% The variable _piezoSign_ is important when you want to put the data from
 % different measurements together. It tells the function in which direction
 % the piezo actuator started the movement in the first segment. In
 % principle, in two different measurements, the acuator could move in
 % opposite directions in the first segment, which would lead to wrong phase
 % values.
+
+%% Phase Validation
+% It is possible that _computePhase_ doesn't reconstruct the phase for
+% some piezo segments correctly. Therefore, the following function can be
+% used to manually select only the correctly reconstructed segments. The
+% segments are plotted consecutively. Then, with a keyboard button press,
+% the segment is selected and with a mouse button press rejected.
+[X1,X2,X3,theta] = segmentValidation(X1,X2,X3,theta);
 
 %% Select datapoints where two channels are orthogonal
 % To reconstruct the phase between the signal field and our local
@@ -55,14 +65,16 @@ theta = computePhase(X1,X3,piezoSign);
 % channels are orthogonal to each other. At these points, the
 % cross-correlation of the two channels is on average zero. The following
 % function selects such quadruplets (O1,O2,O3,oTheta) from
-% (X1,X2,X3,theta), where X1 and X2 are orthogonal.
-[O1,O2,O3,oTheta] = selectOrthogonal(X1,X2,X3,theta);
+% (X1,X2,X3,theta), where X1 and X2 are orthogonal. Furthermore, there are
+% two kinds of orthogonality: pi/2 and 3*pi/2. The function distinguishes
+% them and updates the sign of the O2-values accordingly.
+[O1,O2,O3,oTheta] = selectOrthogonal(X1,X2,X3,theta,piezosign,'Plot','plot');
 
 %%
 % The default setting selects a range of 5% (Max-Min) around zero. However,
-% you can choose your own range by specifying the _ORTH_WIDTH_ parameter:
+% you can choose your own range by specifying the 'Width' parameter:
 %
-%   selectOrthogonal(X1,X2,X3,'noplot',ORTH_WIDTH)
+%   selectOrthogonal(...,'Width',width)
 
 %% 2D Histogram
 % It is sometimes useful to calculate and visualize a two dimensional
@@ -79,19 +91,20 @@ theta = computePhase(X1,X3,piezoSign);
 % measurement was performed on a thermal state. The following function does
 % this selection and plotting for many different regions and saves the
 % results to a Movie. The input variable _theta_ is empty for now.
-plot3ChMovie(O1,O2,O3,otheta,'nomovie');
+plot3ChMovie(O1,O2,O3,oTheta,'nomovie');
 
 %%
 % The optional paramter _'nomovie'_ prevents the creation of the movie. The
 % blue region in the inset illustrates the selected region. And the main
 % plot shows the corresponding histogram of the selected O3-values.
 
+%% Selecting an arbitrary region of points
+% The following function selects a specific region in a given orthogonal
+% 3-Channel dataset. X consists of the selected O3 values and theta of the
+% corresponding phase values (already adjusted with the atan2(O2,O1).
+[X,theta] = selectRegion(O1,O2,O3,oTheta,'Plot','show');
+
 %% Helper functions
-% Selectiing a specific region in a given orthogonal 3-Channel dataset. X
-% consists of the selected O3 values.
-%
-%   [X,theta] = selectRegion(O1,O2,O3,theta,varargin)
-%
 % If the data in A only exhibits a certain number of different values (e.g.
 % 8-bit, ...), you can get the minimum number _nbins_ of bins _bins_.
 %
