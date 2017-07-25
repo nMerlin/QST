@@ -1,3 +1,3 @@
 # Ignore MatLab autosave-files
 *.asv
-./gh-pages
+gh-pages
