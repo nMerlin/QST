@@ -8,18 +8,22 @@ function [O1,O2,O3,oTheta] = selectOrthogonal(X1,X2,X3,theta,piezosign,varargin)
 %   piezosign - starting sign of the piezo movement
 %
 % Optional Arguments:
-%   selectOrthogonal(X1,X2,X3,'plot'): Visualize the selection process
-%   selectOrthogonal(X1,X2,X3,~,ORTH_WIDTH): Specify the range, in percent
+%   selectOrthogonal(...,'Plot','plot'): Visualize the selection process
+%   selectOrthogonal(...,'Width',width): Specify the range, in percent
 %       of the total data range, to select as orthogonal data points.
 
 %% Constants
 SHIFT = 10000;
 
-%% Handle optional input arguments and default values
-nVarargin = length(varargin);
-optArgs = {'noplot' 0.05};
-optArgs(1:nVarargin) = varargin;
-[plotArg,ORTH_WIDTH] = optArgs{:}; %Width of orthogonal range in % of max-min
+%% Validate and parse input arguments
+p = inputParser;
+defaultPlot = 'noplot';
+defaultWidth = 0.05; % Width of orthogonal range in % of max-min
+addParameter(p,'Plot',defaultPlot,@isstr);
+addParameter(p,'Width',defaultWidth,@isnumeric);
+parse(p,varargin{:});
+c = struct2cell(p.Results);
+[plotArg,ORTH_WIDTH] = c{:};
 
 %% Calculate smoothed cross-correlation
 ys = smoothCrossCorr(X1,X2);
