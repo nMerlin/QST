@@ -13,7 +13,7 @@ CALIBRATION_CH1 = 4.596047840078126e-05; % Ampere per Volt
 %typical values are 1/sqrt(2) or 1/2.
 Norm = 1/sqrt(2);
 
-dispstat('Load LO data','timestamp','keepthis',0);
+dispstat('Load LO data','init','timestamp','keepthis',0);
 [data8bitLO,configLO,~]=load8BitBinary(filenameLO,'dontsave');
 
 dispstat('Load Signal data','timestamp','keepthis',0);
