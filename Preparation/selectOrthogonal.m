@@ -1,14 +1,19 @@
-function [O1,O2,O3,oTheta] = selectOrthogonal(X1,X2,X3,theta,varargin)
+function [O1,O2,O3,oTheta] = selectOrthogonal(X1,X2,X3,theta,piezosign,varargin)
 %SELECTORTHOGONAL Select all data points where X1 and X2 are orthogonal
 %
 % Input Arguments:
 %   (X1,X2,X3) is a 3-Channel dataset, prepared by PREPARE3CHDATA (i.e.
 %   reshaped into piezo-segments with offset already removed)
+%   theta - reconstructed phase for X3, prepared with COMPUTEPHASE
+%   piezosign - starting sign of the piezo movement
 %
 % Optional Arguments:
 %   selectOrthogonal(X1,X2,X3,'plot'): Visualize the selection process
 %   selectOrthogonal(X1,X2,X3,~,ORTH_WIDTH): Specify the range, in percent
 %       of the total data range, to select as orthogonal data points.
+
+%% Constants
+SHIFT = 10000;
 
 %% Handle optional input arguments and default values
 nVarargin = length(varargin);
@@ -20,11 +25,20 @@ optArgs(1:nVarargin) = varargin;
 ys = smoothCrossCorr(X1,X2);
 
 %% Select triples where X1 and X2 are orthogonal
+% Find points, where the cross-correlation of X1 and X2 is in a ORTH_WIDTH
+% range around 0. When doing this, we are not distinguishing between a
+% phase of pi/2 and a phase of 3*pi/2 between X1 and X2. Therfore, it is
+% important to invert the sign of X2 values that are on negative flanks.
 globMax = max(ys(:));
 globMin = min(ys(:));
 halfWidth = ORTH_WIDTH * (globMax - globMin) / 2;
 iOrth = find(ys<halfWidth & ys>-halfWidth); % Indices for selection
 O1 = X1(iOrth); O2 = X2(iOrth); O3 = X3(iOrth); oTheta = theta(iOrth);
+ysShift = circshift(ys,SHIFT,1);
+iMinus = find((iOrth>SHIFT) & ((ys(iOrth)-ysShift(iOrth))<0));
+ysShift = circshift(ys,-SHIFT,1);
+iMinus = [iMinus; find((iOrth<=SHIFT) & ((ys(iOrth)-ysShift(iOrth))>0))];
+O2(iMinus) = -O2(iMinus);
 
 %% Visualize the selection process for two piezo segments
 if strcmp(plotArg,'plot')
