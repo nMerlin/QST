@@ -30,6 +30,10 @@ switch type
         r = position(1); % inner radius
         w = position(2); % outer radius = r+w
         iSelect = find(sqrt(O1.^2+O2.^2)>r & sqrt(O1.^2+O2.^2)<r+w & O2>0);
+    case 'fullcircle'
+        r = position(1); % innter radius
+        w = position(2); % outer radius = r+w
+        iSelect = find(sqrt(O1.^2+O2.^2)>r & sqrt(O1.^2+O2.^2)<r+w);
 end
 X = O3(iSelect);
 
