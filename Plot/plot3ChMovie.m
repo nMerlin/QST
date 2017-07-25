@@ -16,7 +16,7 @@ function plot3ChMovie(O1,O2,O3,oTheta,varargin)
 %% Validate and parse input arguments
 p = inputParser;
 defaultFilename = '3ChMovie.mp4';
-defaultScanMode = 'square';
+defaultScanMode = 'rectangle';
 defaultNBins = 100;
 defaultDelays = 5;
 addParameter(p,'Filename',defaultFilename,@isstr);
@@ -28,7 +28,7 @@ c = struct2cell(p.Results);
 [delays,filename,nBins,scanMode] = c{:};
 
 switch scanMode
-    case 'square'
+    case 'rectangle'
         region = {'rectangle' 0.5 0.5};
         x = repmat(-5:0.5:4.5,1,length(-5:0.5:4.5)); x = x';
         y = repmat(4.5:-0.5:-5,length(4.5:-0.5:-5),1); y = y(:);
@@ -52,8 +52,8 @@ for k = 1:length(x)
     clf(h);
     
     % Main plot
-    XSel = selectRegion(O1,O2,O3,oTheta,region{1},x(k),y(k), ...
-        region{2},region{3});
+    XSel = selectRegion(O1,O2,O3,oTheta,'Type',scanMode,'Position', ...
+        [x(k),y(k),region{2},region{3}]);
     edges = linspace(-10,10,nBins);
     histogram(XSel,edges,'Normalization','probability');
     set(gca,'YLim',[0 0.05],'XLim',[-10 10]);
@@ -68,7 +68,7 @@ for k = 1:length(x)
     ylabel('X2');
     hold on;
     switch scanMode
-        case 'square'
+        case 'rectangle'
             fill([x(k) x(k)+region{2} x(k)+region{2} x(k)], ...
                 [y(k) y(k) y(k)+region{3} y(k)+region{3}],'b');
     end
