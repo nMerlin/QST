@@ -13,8 +13,8 @@ theta = theta(~isnan(theta));
 assert(length(X)==length(theta), ['X and THETA should have the same ' ...
     'length after stripping all NaN values!']);
 
-MAX_FOCK_STATE = 20;
-N_ITERATIONS = 20;
+MAX_FOCK_STATE = 30;
+N_ITERATIONS = 30;
 
 PI1D = computeProjector1D( X, theta, MAX_FOCK_STATE);
 nX = length(X);
