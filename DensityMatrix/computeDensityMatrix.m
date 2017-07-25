@@ -6,7 +6,7 @@ function [rho,history] = computeDensityMatrix( X, theta, varargin )
 %       - have their NaN values at the same places.
 
 %% Constants
-MAX_FOCK_STATE = 20;
+MAX_FOCK_STATE = 30;
 N_ITERATIONS = 100;
 
 %% Validate and parse input arguments
@@ -17,7 +17,7 @@ addParameter(p,'Rho',defaultRho,@ismatrix);
 addParameter(p,'Iterations',defaultIterations,@isnumeric);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[nextRho,N_ITERATIONS] = c{:};
+[N_ITERATIONS,nextRho] = c{:};
 
 % Stripping off NaN values
 dispstat('','init');
