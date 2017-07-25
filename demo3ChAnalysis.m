@@ -104,8 +104,21 @@ plot3ChMovie(O1,O2,O3,oTheta,'nomovie');
 % corresponding phase values (already adjusted with the atan2(O2,O1).
 [X,theta] = selectRegion(O1,O2,O3,oTheta,'Plot','show');
 
+%% Visualization of density matrix reconstruction
+% To get an impression how well the reconstruction algorithm works and how
+% fast it converges, it may be useful to visualize this process with a
+% movie.
+[rho100,history] = computeDensityMatrix(X,theta,'Iterations',100);
+history = num2cell(history,[1 2]);
+plotMovie(@plotRho,history,'Delays',5,'ZLim',[-0.2 0.2]);
+
 %% Helper functions
 % If the data in A only exhibits a certain number of different values (e.g.
 % 8-bit, ...), you can get the minimum number _nbins_ of bins _bins_.
 %
 %   [bins, nBins] = minBins(A)
+%
+% The generic function _plotMovie_ takes any suitable plotting function as
+% input to generate the plots. One of them creates a 3D-bar chart of _rho_:
+%
+%   plotRho(rho);
