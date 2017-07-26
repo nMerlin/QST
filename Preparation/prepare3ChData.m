@@ -1,4 +1,4 @@
-function [X1, X2, X3] = prepare3ChData(filenameLO, filenameSIG)
+function [X1, X2, X3, piezoSign] = prepare3ChData(filenameLO, filenameSIG)
 %PREPARE3CHDATA Returns quadratures of a 3-Channel-Measurement
 %
 % The quadrature matrices are already cut into piezo segments.
@@ -48,7 +48,7 @@ for iCh = 1:3
     % modulation
     dispstat('Reshaping into piezo segments ...', ...
         'timestamp','keepthis',0);
-    X = piezoSegments(timestamps,X,'cut');
+    [X,piezoSign] = piezoSegments(timestamps,X,'cut');
 
     switch iCh
         case 1
