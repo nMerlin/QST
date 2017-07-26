@@ -1,8 +1,6 @@
 function theta = computePhase(Xa,Xb,piezoSign,varargin)
-%COMPUTEPHASE Reconstruct phase from smoothed cross-correlation data
-%
-% Input Arguments:
-%   ys = smoothCrossCorr(Xa,Xb,varargin)
+%COMPUTEPHASE Reconstruct phase between Xa and Xb which can be obtained with
+% prepare3ChData.
 %
 % Output Arguments:
 %   theta - Reconstructed phase values
