@@ -1,11 +1,11 @@
-function [O1,O2,O3,oTheta] = selectOrthogonal(X1,X2,X3,theta,piezosign,varargin)
+function [O1,O2,O3,oTheta] = selectOrthogonal(X1,X2,X3,theta,piezoSign,varargin)
 %SELECTORTHOGONAL Select all data points where X1 and X2 are orthogonal
 %
 % Input Arguments:
 %   (X1,X2,X3) is a 3-Channel dataset, prepared by PREPARE3CHDATA (i.e.
 %   reshaped into piezo-segments with offset already removed)
 %   theta - reconstructed phase for X3, prepared with COMPUTEPHASE
-%   piezosign - starting sign of the piezo movement
+%   piezoSign - starting sign of the piezo movement
 %
 % Optional Arguments:
 %   selectOrthogonal(...,'Plot','plot'): Visualize the selection process
