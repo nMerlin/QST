@@ -11,7 +11,9 @@
 % corresponding channels with their offset already subtracted. It is
 % assumed, that X3 has a very slow or no phase-modulation, X1 has a
 % modulation of 2w and X2 of w (e.g. w=25Hz).
-[X1,X2,X3] = prepare3ChData(filenameLO, filenameSIG);
+% piezoSign is 1 or -1 depending on the direction of the first segment of
+% the channel with the highest modulation frequency.
+[X1,X2,X3, piezoSign] = prepare3ChData(filenameLO, filenameSIG);
 
 %% Plotting Cross-Correlations
 % For a first overview of your dataset it can be helpful to plot the 3
@@ -68,7 +70,7 @@ theta = computePhase(X1,X3,piezoSign);
 % (X1,X2,X3,theta), where X1 and X2 are orthogonal. Furthermore, there are
 % two kinds of orthogonality: pi/2 and 3*pi/2. The function distinguishes
 % them and updates the sign of the O2-values accordingly.
-[O1,O2,O3,oTheta] = selectOrthogonal(X1,X2,X3,theta,piezosign,'Plot','plot');
+[O1,O2,O3,oTheta] = selectOrthogonal(X1,X2,X3,theta,piezoSign,'Plot','plot');
 
 %%
 % The default setting selects a range of 5% (Max-Min) around zero. However,
@@ -107,7 +109,7 @@ plot3ChMovie(O1,O2,O3,oTheta,'nomovie');
 %% Visualization of density matrix reconstruction
 % To get an impression how well the reconstruction algorithm works and how
 % fast it converges, it may be useful to visualize this process with a
-% movie.
+% movie.plot
 [rho100,history] = computeDensityMatrix(X,theta,'Iterations',100);
 history = num2cell(history,[1 2]);
 plotMovie(@plotRho,history,'Delays',5,'ZLim',[-0.2 0.2]);
