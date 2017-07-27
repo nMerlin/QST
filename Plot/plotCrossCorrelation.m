@@ -1,3 +1,4 @@
+
 function plotCrossCorrelation(X1, X2, X3, varargin)
 %PLOTCROSSCORRELATION Plot all three possible crosscorrelations
 %
