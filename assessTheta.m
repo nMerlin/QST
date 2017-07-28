@@ -34,7 +34,9 @@ text('Units','Normalized','Position',[0.6,0.9],'String',['Variance = ' num2str(p
 
 
 %% Sorting of Quadrature Values into Phase bins 
-nIntervals = 1000;
+nIntervals = 180; 
+% If nIntervals is too much, there are bins without or with
+% only few X Values, which result in a too high variance of the X variance.
 [N,~,bin] = histcounts(theta,nIntervals);
 [~,I] = sort(bin);
 X = X(I);
