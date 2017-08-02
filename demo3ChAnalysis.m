@@ -43,7 +43,8 @@ plotCrossCorrelation(X1,X2,X3);
 % third channel, X3, delivers the values for X, after all post-selections
 % are done. To get a meaningful phase, we first need to compute the
 % relative phase between X1 and X3, which is done here.
-theta = computePhase(X1,X3,piezoSign);
+% ys is the smoothed crosscorrelation between X1 and X3.
+[theta,ys] = computePhase(X1,X3,piezoSign);
 
 %%
 % The variable _piezoSign_ is important when you want to put the data from
@@ -59,7 +60,7 @@ theta = computePhase(X1,X3,piezoSign);
 % used to manually select only the correctly reconstructed segments. The
 % segments are plotted consecutively. Then, with a keyboard button press,
 % the segment is selected and with a mouse button press rejected.
-[X1,X2,X3,theta] = segmentValidation(X1,X2,X3,theta);
+[X1,X2,X3,theta] = segmentValidation(X1,X2,X3,ys,theta);
 
 %% Select datapoints where two channels are orthogonal
 % To reconstruct the phase between the signal field and our local
