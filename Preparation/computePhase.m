@@ -1,9 +1,11 @@
-function theta = computePhase(Xa,Xb,piezoSign,varargin)
+function [theta, ys] = computePhase(Xa,Xb,piezoSign,varargin)
 %COMPUTEPHASE Reconstruct phase between Xa and Xb which can be obtained with
 % prepare3ChData.
 %
 % Output Arguments:
 %   theta - Reconstructed phase values
+%   ys - smoothed crosscorrelation between Xa and Xb. This is needed for
+%   segmentValidation.
 
 %% Constants
 % For peak detection it is important to know how many wavelengths are
