@@ -8,7 +8,7 @@ function ys = smoothCrossCorr(Xa,Xb,varargin)
 %% Validate and parse input arguments
 p = inputParser;
 defaultType = 'moving';
-defaultParam = 10001;
+defaultParam = 5000;
 addParameter(p,'Type',defaultType,@isstr);
 addParameter(p,'Param',defaultParam,@isvector);
 parse(p,varargin{:});
@@ -24,8 +24,13 @@ XProd = Xa.*Xb;
 switch type
     case 'moving'
         y = reshape(XProd,[nPulses*nPieces*nSegments 1]);
-        ys = smooth(y,param,'moving'); %smoothing with moving average with ...
-        %span given by param.
+        [ys,~] = moving_average(y,param,1); %smoothing with moving average...
+        %by Carlos Vargas.
+        %param gives the semilength of the smoothing window, ...
+        %i.e. the window has the length 2*param +1. 
+        
+        ys(1:0.1*param)=moving_average(y(1:0.1*param),0.01*param,1);
+        
         ys = reshape(ys,[nPulses*nPieces nSegments]);
     case 'spline'
         x = 1:(nPulses*nPieces);
