@@ -1,9 +1,10 @@
-function [X1,X2,X3,theta] = segmentValidation(X1,X2,X3,theta,varargin)
+function [X1,X2,X3,theta] = segmentValidation(X1,X2,X3,ys,theta,varargin)
 %SEGMENTVALIDATION manual selection of correctly reconstructed phases
 %
 % Input Parameters:
 %   X1,X2,X3 - quadrature data in the format [nPoints,nRecords,nSegments]
 %   theta - reconstructed phase with cross correlation X1.*X3
+%   ys - smoothed cross correlation between X1 and X3
 %
 % Output Paramters:
 %   X1,X2,X3,theta - only the manually accepted parts of the corresponding
@@ -16,11 +17,8 @@ addParameter(p,'Filename',defaultFilename,@isstr);
 parse(p,varargin{:});
 
 %% Let the user choose the segments to reject
-% First, we need to calculate the smoothed cross correlation that was used
-% for phase reconstruction.
-ys = smoothCrossCorr(X1,X3);
 
-% Second, we loop over all piezo segments and ask the user whether he wants
+% We loop over all piezo segments and ask the user whether he wants
 % to reject the segment or not
 [~,~,nSegments] = size(X1);
 segSel = zeros(nSegments,1);
