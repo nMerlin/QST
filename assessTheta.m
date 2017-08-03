@@ -53,14 +53,13 @@ for iInterval = 1 : nIntervals
 end
 %compute mean and variance of Quadrature Values for each phase bin
 meanXBinned = mean(XOut, 'omitnan');
-meanXBinned2 = mean(XOut.^2, 'omitnan');
 varXBinned = var(XOut, 'omitnan');
 %Measure how constant the variance is
 varXvar = var(varXBinned, 'omitnan');
 
 waitforbuttonpress;
 clf();
-plot(1:nIntervals,meanXBinned,'b.',1:nIntervals,varXBinned,'r.',1:nIntervals,meanXBinned2,'g.');
+plot(1:nIntervals,meanXBinned,'b.',1:nIntervals,varXBinned,'r.');
 hold on;
 plot(1:nIntervals,Norm^2*ones(nIntervals),'k-','lineWidth',0.5);
 legend('Mean of phase-binned X','Variance of phase-binned X','Variance for coherent state');
