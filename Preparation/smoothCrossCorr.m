@@ -28,10 +28,12 @@ switch type
         %by Carlos Vargas.
         %param gives the semilength of the smoothing window, ...
         %i.e. the window has the length 2*param +1. 
-        
-        ys(1:0.1*param)=moving_average(y(1:0.1*param),0.01*param,1);
+
+        ys(1:0.5*param)=NaN(0.5*param,1);%corrects for boundarys
+        ys(end-0.5*param+1:end)=NaN(0.5*param,1);
         
         ys = reshape(ys,[nPulses*nPieces nSegments]);
+        
     case 'spline'
         x = 1:(nPulses*nPieces);
         y = reshape(XProd,[nPulses*nPieces nSegments]);
