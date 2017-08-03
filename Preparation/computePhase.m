@@ -22,7 +22,11 @@ optArgs(1:nVarargin) = varargin;
 %% Reconstruct the phase for each piezo segment
 ys = smoothCrossCorr(Xa,Xb);
 [nPoints,nSegments] = size(ys);
-ys = reshape(smooth(ys,5001,'moving'),[nPoints nSegments]);
+
+[ys,~] = nanmoving_average(reshape(ys,[nPoints*nSegments,1]),2500,1); 
+%smoothing a second time for uniformly distributed phase
+ys = reshape(ys,[nPoints,nSegments]);
+
 periodLength = length(ys)*periodsPerSeg;
 theta = zeros(nPoints,nSegments);
 for iSeg = 1:nSegments
