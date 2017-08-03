@@ -1,5 +1,5 @@
 
-function [q2Exp, q2squareExp, Var] = WignerTest2Ch(nTarget, nPS, QPS)
+function [q2Exp, q2squareExp, Var] = WignerTest2Ch(nTarget, nPS, QPS, region)
 
 %This function calculates expectation values for 2 channels.
 %One is the postselection chaneel with quadartures q1, p1. 
@@ -18,16 +18,31 @@ r = sqrt(nPS / n);
 t = sqrt(nTarget / n);  
 
 WF = Wigner2( q1, p1, q2, p2,n ,r, t , Norm);
-             
-%Integrate over P1:
-WF2 = sum(WF,2);
 
-%Select on Q1 = Qps +- width
-width = 0.5;
+width = 0.5; %selection width
+ 
 
-I = find(q1 <= QPS + width & q1 >= QPS - width);
-WF2 = sum(WF2( I, :, : ,:),1); % do I have to integrate over q1?
+switch region
+    case 'fullcircle'
+        R = zeros(length(q1),length(p1));
+        for iQ1 = 1:length(q1)
+            R(iQ1,:) = sqrt(q1(iQ1)^2+p1.^2);
+        end
 
+        [iQ1Select,iP1Select] = find(R>QPS-width & R<QPS+width);
+
+        WF2 = sum(WF( iQ1Select, iP1Select,: ,:),1); % integrate over q1
+        WF2 = sum(WF2( :, iP1Select ,:,:),2);% integrate over p1
+        
+        
+    case 'Qline'
+        %Integrate over P1:
+        WF2 = sum(WF,2);
+
+        %Select on Q1 = Qps +- width
+        I = find(q1 <= QPS + width & q1 >= QPS - width);
+        WF2 = sum(WF2( I, :, : ,:),1); 
+end
 
 %calculate expecatationvalues
 WF2 = reshape(WF2, [100 100]);
