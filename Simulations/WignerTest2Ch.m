@@ -8,7 +8,7 @@ function [q2Exp, q2squareExp, Var] = WignerTest2Ch(nTarget, nPS, QPS, region)
 %Norm ist the factor in the relation between the quadratures and the ladder
 %operators: q = Norm*(a^{+} + a), p = Norm*i*(a^{+} - a)
 %typical values are 1/sqrt(2) or 1/2.
-Norm = 1/sqrt(2);
+Norm = 1 /sqrt(2);
 
 [q1, p1, q2, p2] = deal(linspace(-10,10,100));
 %nTarget = 7.5;
@@ -50,7 +50,7 @@ WF2 = sum(WF2,2); %integrate over p32
 WF2 = WF2/sum(WF2); %for some reason, renormalization is necessary.
 q2Exp = q2*WF2;
 q2squareExp = (q2.*q2)*WF2;
-Var = q2squareExp - q2Exp;
+Var = q2squareExp - q2Exp^2;
 end
 
 
