@@ -1,6 +1,7 @@
-function [ expQ, expP, expQ2, expP2, delQ, delP, meanUnc, nPhotons, meanN, nSegments ] = computeExpectations2( X, theta, filename )
+function [ expQ, expP, expQ2, expP2, delQ, delP, meanUnc, nPhotons, meanN, nSegments ] = computeExpectations2( X, theta, filename, varargin )
 %COMPUTEEXPECTATIONS Computes <Q>, <P>, <Q^2>, <P^2> and uncertainties,
-%plots them over theta.
+%plots them over theta if 'Plot','plot' is input. In case 'Plot','hide' it 
+%doesn't plot.
 %
 %   X and THETA should be discretized for theta with DISCRETIZETHETA
 %   PHASEQ gives the arbitrary phase for Q
@@ -10,6 +11,15 @@ Norm = 1/sqrt(2);
 %operators: q = Norm*(a^{+} + a), p = Norm*i*(a^{+} - a)
 %typical values are 1/sqrt(2) or 1/2. 
 
+%% Validate and parse input arguments
+p = inputParser;
+defaultPlotOpt = 'plot';
+addParameter(p,'Plot',defaultPlotOpt,@isstr);
+parse(p,varargin{:});
+c = struct2cell(p.Results);
+[plotOpt] = c{:};
+
+%%
 [~, nIntervals, nSegments] = size(X);
 
 % Compute <Q> and <P>
@@ -53,27 +63,32 @@ for iSegment = 1 : nSegments
     delQ(iSegment) = (expDelQ(I,iSegment));  %chose phase for evaluation of uncertainties where Q is max.
     delP(iSegment) = (expDelP(I,iSegment));    
 
-    % Plot
-    close all;
-    x = meanTheta(:,iSegment);
-    plot(x, expP(:,iSegment), x, expP2(:,iSegment), x, expQ(:,iSegment), x,...
-        expQ2(:,iSegment), x, expDelQ(:,iSegment), x, expDelP(:,iSegment),...
-        x,  unc(:,iSegment), x, nPhotons(:,iSegment), 'linewidth', 2);
+    %% Plot
+    switch plotOpt
+        case 'plot'
+            close all;
+            x = meanTheta(:,iSegment);
+            plot(x, expP(:,iSegment), x, expP2(:,iSegment), x, expQ(:,iSegment), x,...
+                expQ2(:,iSegment), x, expDelQ(:,iSegment), x, expDelP(:,iSegment),...
+                x,  unc(:,iSegment), x, nPhotons(:,iSegment), 'linewidth', 2);
 
-    hold on;
-    plot(x,Norm^2*ones(length(x)),'k-','lineWidth',0.5);
-    xlabel('Phase \theta');
-    axis([0 2*pi min(min(meanX))-0.5 max(max(meanX2))+0.5]);
-    set(0,'DefaultLegendInterpreter','latex');
-    set(0,'DefaultTextInterpreter','latex');
-    legend('$<P>$', '$<P^{2}>$', '$<Q>$', '$<Q^{2}>$', '$\Delta Q$',...
-        '$\Delta P$', '$\Delta Q \cdot \Delta P$ ', '$<n>$ ','uncertainty limit', 'location', 'best');
-    title(strcat('Mean Photon number =','\, ',num2str(meanN(iSegment))));
+            hold on;
+            plot(x,Norm^2*ones(length(x)),'k-','lineWidth',0.5);
+            xlabel('Phase \theta');
+            axis([0 2*pi min(min(meanX))-0.5 max(max(meanX2))+0.5]);
+            set(0,'DefaultLegendInterpreter','latex');
+            set(0,'DefaultTextInterpreter','latex');
+            legend('$<P>$', '$<P^{2}>$', '$<Q>$', '$<Q^{2}>$', '$\Delta Q$',...
+                '$\Delta P$', '$\Delta Q \cdot \Delta P$ ', '$<n>$ ','uncertainty limit', 'location', 'best');
+            title(strcat('Mean Photon number =','\, ',num2str(meanN(iSegment))));
 
-    % Save plot
-    print(strcat('expect-',filename,'-Segment',num2str(iSegment),'-',...
-        strrep(num2str(meanN(iSegment)),'.',','),'photons'), '-dpng');
-
+            % Save plot
+            print(strcat('expect-',filename,'-Segment',num2str(iSegment),'-',...
+                strrep(num2str(meanN(iSegment)),'.',','),'photons'), '-dpng');
+        case 'hide'
+            continue;
+    end
+ 
 end % iSegment 
 
 end % computeExpectations
