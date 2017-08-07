@@ -43,6 +43,7 @@ iMinus = find((iOrth>SHIFT) & ((ys(iOrth)-ysShift(iOrth))<0));
 ysShift = circshift(ys,-SHIFT,1);
 iMinus = [iMinus; find((iOrth<=SHIFT) & ((ys(iOrth)-ysShift(iOrth))>0))];
 O2(iMinus) = -O2(iMinus);
+O2 = piezoSign*O2;  
 
 %% Visualize the selection process for two piezo segments
 if strcmp(plotArg,'plot')
