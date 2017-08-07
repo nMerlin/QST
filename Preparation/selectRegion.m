@@ -46,7 +46,7 @@ end
 X = O3(iSelect);
 
 %% Phase calculation
-theta = mod(theta - atan2(O2,O1),2*pi);
+theta = mod(theta + atan2(O2,O1),2*pi);
 theta = theta(iSelect);
 
 %% Show selection
