@@ -107,6 +107,17 @@ plot3ChMovie(O1,O2,O3,oTheta,'nomovie');
 % corresponding phase values (already adjusted with the atan2(O2,O1).
 [X,theta] = selectRegion(O1,O2,O3,oTheta,'Plot','show');
 
+%% Making a series of expectation values depending on selected region
+% The function 
+[fitFunctions] = QSeries(O1,O2,O3,oTheta,varargin);
+% computes the expectation values from the selected O3 values for several 
+% different regions. You can decide with 'Type' and 'Qline', 'fullcircle'
+% or 'Pline' which region to choose and its Position is varied during the
+% series. Then the expectation values are plotted over the positions and
+% some of them are fitted. The fit parameters are given as output. 
+% The same is dann for a region with constant position and varying width by
+WSeries(O1,O2,O3,oTheta,varargin);
+
 %% Visualization of density matrix reconstruction
 % To get an impression how well the reconstruction algorithm works and how
 % fast it converges, it may be useful to visualize this process with a
