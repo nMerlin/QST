@@ -28,7 +28,7 @@ window = round(INTEGRATION_DUTY_CYCLE * mean(diff(locs)));
 if (locs(1)<=ceil(window/2))
     locs = locs(2:end);
 end
-if ((nRows-locs(end))<ceil(window/2))
+if ((nRows-locs(end))<=ceil(window/2))
     locs = locs(1:length(locs)-1);
 end
 
