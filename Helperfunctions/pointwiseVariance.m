@@ -28,16 +28,13 @@ end
 
 %% Subtract DC offset and calculate pointwise variance
 assert(ismatrix(data),'DATA is not a matrix!');
-[rows,columns] = size(data);
-pvar = zeros(rows,1);
+[~,columns] = size(data);
 
 for column=1:columns
     data(:,column) = data(:,column) - mean(data(:,column));
 end
 
-for row=1:rows
-    pvar(row) = var(double(data(row,:)));
-end
+pvar = var(double(data),0,2);
 
 %% Find peaks
 options.MinPeakHeight = mean(pvar);
