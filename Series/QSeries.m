@@ -19,7 +19,7 @@ function [fitFunctions] = QSeries(O1,O2,O3,oTheta,varargin)
 %% Validate and parse input arguments
 p = inputParser;
 defaultType = 'Qline';
-defaultPlotOpt = 'plot';
+defaultPlotOpt = 'show';
 defaultMeasNumber = 11;
 addParameter(p,'Type',defaultType,@isstr);
 addParameter(p,'PlotExpectations',defaultPlotOpt,@isstr);
@@ -36,7 +36,9 @@ width = 0.5;
 
 for i = 1:length(Q)
     [XQ,thetaQ] = selectRegion(O1,O2,O3,oTheta,'Type',type,'Position',...
-        [Q(i) width],'Plot','hide');        
+        [Q(i) width],'Plot','hide');  
+    XQ = XQ(~isnan(thetaQ));
+    thetaQ=thetaQ(~isnan(thetaQ)); %remove X and theta values where theta is nan.
     [XQdis,thetaQdis]=discretizeTheta(XQ,thetaQ,180);
     [ expQ, ~, expQ2, ~, delQ, ~, meanUnc,~ , meanN, ~] =...
         computeExpectations2( XQdis, thetaQdis,[num2str(measNumber) '-' type '-Q-' ...
