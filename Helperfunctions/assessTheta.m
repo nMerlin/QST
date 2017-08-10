@@ -16,6 +16,11 @@ Norm = 1/sqrt(2);
 %operators: q = Norm*(a^{+} + a), p = Norm*i*(a^{+} - a)
 %typical values are 1/sqrt(2) or 1/2. 
 
+
+%% Strip X and theta of their NaN values
+X = X(~isnan(X));
+theta = theta(~isnan(theta));
+
 %% Create and plot histogram of phase 
 % The number of bins is 1000 by default.
 xHist = linspace(0,2*pi,1000);
