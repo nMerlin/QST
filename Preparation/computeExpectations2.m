@@ -13,7 +13,7 @@ Norm = 1/sqrt(2);
 
 %% Validate and parse input arguments
 p = inputParser;
-defaultPlotOpt = 'plot';
+defaultPlotOpt = 'show';
 addParameter(p,'Plot',defaultPlotOpt,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
@@ -65,7 +65,7 @@ for iSegment = 1 : nSegments
 
     %% Plot
     switch plotOpt
-        case 'plot'
+        case 'show'
             close all;
             x = meanTheta(:,iSegment);
             plot(x, expP(:,iSegment), x, expP2(:,iSegment), x, expQ(:,iSegment), x,...
