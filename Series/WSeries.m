@@ -1,5 +1,5 @@
 function [] = WSeries(O1,O2,O3,oTheta,varargin)
-%QSERIES - 
+%WSERIES - 
 % Input arguments: Selected datapoints from a 3-Channel-Measurement where
 % the two channels O1 and O2 are orthogonal. (See in demo3ChannelAnalysis
 % how this is done.)
@@ -30,14 +30,16 @@ c = struct2cell(p.Results);
 
 %% Compute expectation values for every Q and plot them
 
-w = linspace(0.01,0.3,11);
+w = linspace(0.01,5,30);
 Q = 2.5;
 
-[ expQmax,  expQ2max, expQ2min, delQmean, Unc, N]=deal(zeros(length(w),1));
+[ expQmax,  expQ2max, expQ2min, delQmean, Unc, N, nEvents]=deal(zeros(length(w),1));
 
 for i = 1:length(w)
     [XQ,thetaQ] = selectRegion(O1,O2,O3,oTheta,'Type',type,'Position',...
         [Q w(i)],'Plot','hide');        
+    XQ = XQ(~isnan(thetaQ));
+    thetaQ=thetaQ(~isnan(thetaQ)); %remove X and theta values where theta is nan.
     [XQdis,thetaQdis]=discretizeTheta(XQ,thetaQ,180);
     [ expQ, ~, expQ2, ~, delQ, ~, meanUnc,~ , meanN, ~] =...
         computeExpectations2( XQdis, thetaQdis,[num2str(measNumber) '-' type '-Q-' ...
@@ -49,19 +51,22 @@ for i = 1:length(w)
     delQmean(i) = mean(delQ);
     Unc(i) = meanUnc;
     N(i) = meanN;
+    nEvents(i) = length(XQ);
 end
+
+nEvents = nEvents / max(nEvents); %Normalize nEvents 
 
 %% Plot expectation values over w
 close all;
 hold off;
-plot(w, expQmax, w, expQ2max, w, expQ2min, w, delQmean, w, Unc, w, N, 'linewidth', 2);
+plot(w, expQmax, w, expQ2max, w, expQ2min, w, delQmean, w, Unc, w, N, w, nEvents,'linewidth', 2);
 
 xlabel('w_{PS}');
 %axis([0 max(Q) 0  ]);
 set(0,'DefaultLegendInterpreter','latex');
 set(0,'DefaultTextInterpreter','latex');
 legend('$<Q>_{max}$', '$<Q^{2}>_{max}$', '$<Q^{2}>_{min}$', '$<\Delta Q>$',...
-     '$<\Delta Q \cdot \Delta P>$ ', '$<n>$ ', 'location', 'best');
+     '$<\Delta Q \cdot \Delta P>$ ', '$<n>$ ', 'norm. N of Events', 'location', 'best');
 title([num2str(measNumber) '-' type '-$Q_{PS}$-' num2str(Q)]);
 
     % Save plot
