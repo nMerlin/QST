@@ -57,7 +57,8 @@ theta = computePhase(X1,X3,piezoSign);
 % used to manually select only the correctly reconstructed segments. The
 % segments are plotted consecutively. Then, with a keyboard button press,
 % the segment is selected and with a mouse button press rejected.
-[X1,X2,X3,theta] = segmentValidation(X1,X2,X3,theta);
+%
+%   [X1,X2,X3,theta] = segmentValidation(X1,X2,X3,theta);
 
 %% Select datapoints where two channels are orthogonal
 % To reconstruct the phase between the signal field and our local
