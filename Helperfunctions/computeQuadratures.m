@@ -22,13 +22,13 @@ end
 [locs,~] = pointwiseVariance(data8bit);
 
 % Eliminate locations whose corresponding window would be outside the range
-% of DATA.
+% of DATA (allowed are even windows that go exactly to the edge boundary).
 [nRows, nColumns] = size(data8bit);
 window = round(INTEGRATION_DUTY_CYCLE * mean(diff(locs)));
 if (locs(1)<=ceil(window/2))
     locs = locs(2:end);
 end
-if ((nRows-locs(end))<=ceil(window/2))
+if ((nRows-locs(end))<ceil(window/2))
     locs = locs(1:length(locs)-1);
 end
 
