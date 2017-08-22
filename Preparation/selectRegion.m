@@ -33,7 +33,15 @@ switch type
     case 'fullcircle'
         r = position(1); % innter radius
         w = position(2); % outer radius = r+w
-        iSelect = find(sqrt(O1.^2+O2.^2)>r & sqrt(O1.^2+O2.^2)<r+w);
+        iSelect = find(sqrt(O1.^2+O2.^2)>r-w/2 & sqrt(O1.^2+O2.^2)<r+w/2);
+    case 'Qline'
+        Q = position(1); % innter radius
+        w = position(2); % outer radius = r+w
+        iSelect = find(O1>Q-w/2 & O1<Q+w/2);
+    case 'Pline'
+        P = position(1); % innter radius
+        w = position(2); % outer radius = r+w
+        iSelect = find(O2>P-w/2 & O2<P+w/2);
 end
 X = O3(iSelect);
 

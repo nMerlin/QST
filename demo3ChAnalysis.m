@@ -11,13 +11,15 @@
 % corresponding channels with their offset already subtracted. It is
 % assumed, that X3 has a very slow or no phase-modulation, X1 has a
 % modulation of 2w and X2 of w (e.g. w=25Hz).
-[X1,X2,X3] = prepare3ChData(filenameLO, filenameSIG);
+% piezoSign is 1 or -1 depending on the direction of the first segment of
+% the channel with the highest modulation frequency.
+[X1,X2,X3, piezoSign] = prepare3ChData(filenameLO, filenameSIG);
 
 %% Plotting Cross-Correlations
 % For a first overview of your dataset it can be helpful to plot the 3
 % possible cross-correlations between the channels. The following
 % cross-correlations originate from a thermal light measurement. Therefore,
-% the cross-correlations are the only way to see wether there is a defined
+% the cross-correlations are the only way to see whether there is a defined
 % phase between your channels or not. Per default, the plot is limited to
 % two consecutive piezo segments.
 plotCrossCorrelation(X1,X2,X3);
@@ -41,7 +43,8 @@ plotCrossCorrelation(X1,X2,X3);
 % third channel, X3, delivers the values for X, after all post-selections
 % are done. To get a meaningful phase, we first need to compute the
 % relative phase between X1 and X3, which is done here.
-theta = computePhase(X1,X3,piezoSign);
+% ys is the smoothed crosscorrelation between X1 and X3.
+[theta,ys] = computePhase(X1,X3,piezoSign);
 
 %%
 % The variable _piezoSign_ is important when you want to put the data from
@@ -57,8 +60,7 @@ theta = computePhase(X1,X3,piezoSign);
 % used to manually select only the correctly reconstructed segments. The
 % segments are plotted consecutively. Then, with a keyboard button press,
 % the segment is selected and with a mouse button press rejected.
-%
-%   [X1,X2,X3,theta] = segmentValidation(X1,X2,X3,theta);
+[X1,X2,X3,theta] = segmentValidation(X1,X2,X3,ys,theta);
 
 %% Select datapoints where two channels are orthogonal
 % To reconstruct the phase between the signal field and our local
@@ -69,7 +71,7 @@ theta = computePhase(X1,X3,piezoSign);
 % (X1,X2,X3,theta), where X1 and X2 are orthogonal. Furthermore, there are
 % two kinds of orthogonality: pi/2 and 3*pi/2. The function distinguishes
 % them and updates the sign of the O2-values accordingly.
-[O1,O2,O3,oTheta] = selectOrthogonal(X1,X2,X3,theta,piezosign,'Plot','plot');
+[O1,O2,O3,oTheta] = selectOrthogonal(X1,X2,X3,theta,piezoSign,'Plot','plot');
 
 %%
 % The default setting selects a range of 5% (Max-Min) around zero. However,
@@ -95,7 +97,7 @@ theta = computePhase(X1,X3,piezoSign);
 plot3ChMovie(O1,O2,O3,oTheta,'nomovie');
 
 %%
-% The optional paramter _'nomovie'_ prevents the creation of the movie. The
+% The optional parameter _'nomovie'_ prevents the creation of the movie. The
 % blue region in the inset illustrates the selected region. And the main
 % plot shows the corresponding histogram of the selected O3-values.
 
@@ -105,10 +107,21 @@ plot3ChMovie(O1,O2,O3,oTheta,'nomovie');
 % corresponding phase values (already adjusted with the atan2(O2,O1).
 [X,theta] = selectRegion(O1,O2,O3,oTheta,'Plot','show');
 
+%% Making a series of expectation values depending on selected region
+% The function 
+[fitFunctions] = QSeries(O1,O2,O3,oTheta,varargin);
+% computes the expectation values from the selected O3 values for several 
+% different regions. You can decide with 'Type' and 'Qline', 'fullcircle'
+% or 'Pline' which region to choose and its Position is varied during the
+% series. Then the expectation values are plotted over the positions and
+% some of them are fitted. The fit parameters are given as output. 
+% The same is dann for a region with constant position and varying width by
+WSeries(O1,O2,O3,oTheta,varargin);
+
 %% Visualization of density matrix reconstruction
 % To get an impression how well the reconstruction algorithm works and how
 % fast it converges, it may be useful to visualize this process with a
-% movie.
+% movie.plot
 [rho100,history] = computeDensityMatrix(X,theta,'Iterations',100);
 history = num2cell(history,[1 2]);
 plotMovie(@plotRho,history,'Delays',5,'ZLim',[-0.2 0.2]);

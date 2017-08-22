@@ -1,11 +1,11 @@
-function theta = computePhase(Xa,Xb,piezoSign,varargin)
-%COMPUTEPHASE Reconstruct phase from smoothed cross-correlation data
-%
-% Input Arguments:
-%   ys = smoothCrossCorr(Xa,Xb,varargin)
+function [theta, ys] = computePhase(Xa,Xb,piezoSign,varargin)
+%COMPUTEPHASE Reconstruct phase between Xa and Xb which can be obtained with
+% prepare3ChData.
 %
 % Output Arguments:
 %   theta - Reconstructed phase values
+%   ys - smoothed crosscorrelation between Xa and Xb. This is needed for
+%   segmentValidation.
 
 %% Constants
 % For peak detection it is important to know how many wavelengths are
@@ -21,8 +21,13 @@ optArgs(1:nVarargin) = varargin;
 
 %% Reconstruct the phase for each piezo segment
 ys = smoothCrossCorr(Xa,Xb);
-periodLength = length(ys)*periodsPerSeg;
 [nPoints,nSegments] = size(ys);
+
+[ys,~] = nanmoving_average(reshape(ys,[nPoints*nSegments,1]),2500,1); 
+%smoothing a second time for uniformly distributed phase
+ys = reshape(ys,[nPoints,nSegments]);
+
+periodLength = length(ys)*periodsPerSeg;
 theta = zeros(nPoints,nSegments);
 for iSeg = 1:nSegments
     y = ys(:,iSeg);
@@ -47,8 +52,9 @@ for iSeg = 1:nSegments
     if strcmp(plotArg,'plot')
         findpeaks(y,peakOpts,'Annotate','extents'); hold on;
         findpeaks(-y,peakOpts,'Annotate','extents'); hold off;
+        title({'Mousebutton: Reject','Keyboard: Accept'});
         key = waitforbuttonpress;
-        if key == 0
+        if key == 0 %mouse
             theta(:,iSeg) = NaN(nPoints,1);
             continue
         end
@@ -66,29 +72,34 @@ for iSeg = 1:nSegments
     pks = [maxpks;minpks];
     pks = pks(I);
     
+    
     %% Account for wrongly detected peaks close to the boundaries
     % An extremum very close to the boundary could be the result of local
     % fluctuations instead of the piezo modulation. If such an extremum is
     % closer to the boundary than 2% of a period, then it is rejected, if
     % its value is lower than 95% of the corresponding second extremum.
-    % 
+    % These tests work only if there are at least three peaks.
+    %
     % Left boundary:
-    if locs(1)<0.02*periodLength
-        if (pks(1)>0 && (pks(3)-pks(1))/abs(pks(3))>0.05) || ...
-                (pks(1)<0 && (pks(1)-pks(3))/abs(pks(3))>0.05)
-            locs = locs(2:end);
-            pks = pks(2:end);
+    if length(pks)>= 3
+        if locs(1)<0.02*periodLength
+            if (pks(1)>0 && (pks(3)-pks(1))/abs(pks(3))>0.05) || ...
+                    (pks(1)<0 && (pks(1)-pks(3))/abs(pks(3))>0.05)
+                locs = locs(2:end);
+                pks = pks(2:end);
+            end
         end
     end
     % Right boundary:
-    if (length(y)-locs(end))<0.02*periodLength
-        if (pks(end)>0 && (pks(end-2)-pks(end))/abs(pks(end-2))>0.05) ||...
-                (pks(end)<0 && (pks(end)-pks(end-2))/abs(pks(end-2))>0.05)
-            locs = locs(1:end-1);
-            pks = pks(1:end-1);
+    if length(pks)>= 3
+        if (length(y)-locs(end))<0.02*periodLength
+            if (pks(end)>0 && (pks(end-2)-pks(end))/abs(pks(end-2))>0.05) ||...
+                    (pks(end)<0 && (pks(end)-pks(end-2))/abs(pks(end-2))>0.05)
+                locs = locs(1:end-1);
+                pks = pks(1:end-1);
+            end
         end
-    end
-    
+    end    
     nTurningPoints = length(locs);
     assert(nTurningPoints>1, 'Not enough turning points encountered!');
     
