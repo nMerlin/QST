@@ -25,8 +25,8 @@ outputFiletype1 = '-djpeg';
 
 xMin = 0;
 xMax = 60;
-yMin = -0.5;
-yMax = 0.5;
+yMin = -1;
+yMax = 1;
 
 %%% Create data overview
 dispstat('','init',quiet);
@@ -64,8 +64,10 @@ end
 cd('..');
     
 axis([xMin xMax yMin yMax]);
-xlabel('time [ns]');
-ylabel('HD output voltage [V]');
+%xlabel('time [ns]');
+%ylabel('HD output voltage [V]');
+xlabel('Zeit (ns)');
+ylabel('Signal (V)');
 legend('Location','northeast');
 hold off;
 % Saving figure
