@@ -18,32 +18,60 @@ switch config.SpectrumCard.Channel00.Range_I32
         INT8_TO_VOLTAGE = 2.5/128;
 end
 
-% Identify integration centers
-[locs,~] = pointwiseVariance(data8bit);
+%% Loop over all channels and compute quadratures
+[nRows, nColumns, nChannels] = size(data8bit);
 
-% Eliminate locations whose corresponding window would be outside the range
-% of DATA (allowed are even windows that go exactly to the edge boundary).
-[nRows, nColumns] = size(data8bit);
-window = round(INTEGRATION_DUTY_CYCLE * mean(diff(locs)));
-if (locs(1)<=ceil(window/2))
-    locs = locs(2:end);
-end
-if ((nRows-locs(end))<ceil(window/2))
-    locs = locs(1:length(locs)-1);
-end
+for iCh = 1:nChannels
+    % Identify integration centers
+    [locs,~] = pointwiseVariance(data8bit(:,:,iCh));
 
-% Integration loop
-start = locs-ceil(window/2);
-stop = locs+ceil(window/2);
-windowTime = (stop-start+1) * 1 / SAMPLERATE;
+    % Eliminate locations whose corresponding window would be outside the range
+    % of DATA (allowed are even windows that go exactly to the edge boundary).
+    window = round(INTEGRATION_DUTY_CYCLE * mean(diff(locs)));
+    if (locs(1)<=ceil(window/2))
+        locs = locs(2:end);
+    end
+    if ((nRows-locs(end))<ceil(window/2))
+        locs = locs(1:length(locs)-1);
+    end
 
-nWindows = length(locs);
-X = zeros(nWindows, nColumns);
+    %% Account for small timing errors between channels
+    if iCh == 1
+        commonLocs = locs;
+        X = zeros(length(locs), nColumns, nChannels);
+    elseif length(commonLocs) > length(locs)
+        if abs(commonLocs(1)-locs(1))>abs(commonLocs(end)-locs(end))
+            % First entry in commonLocs needs to be deleted
+            X = X(2:end,:,:);
+        else
+            % Last entry in commonLocs needs to be deleted
+            X = X(1:end-1,:,:);
+        end
+        commonLocs = locs;
+    elseif length(commonLocs) < length(locs)
+        if abs(commonLocs(1)-locs(1))>abs(commonLocs(end)-locs(end))
+            % First entry in locs needs to be deleted
+            locs = locs(2:end);
+        else
+            % Last entry in locs needs to be deleted
+            locs = locs(1:end-1);
+        end
+    end
+    
+    %% Integration loop
+    start = locs-ceil(window/2);
+    stop = locs+ceil(window/2);
+    windowTime = (stop-start+1) * 1 / SAMPLERATE;
+
+    nWindows = length(locs);
     for iWindow = 1 : nWindows
         % Integration and calibration step
-        X(iWindow, :) = sum(data8bit(start(iWindow):stop(iWindow), :)) * ...
-             windowTime(iWindow) ;
+        X(iWindow, :, iCh) = sum(data8bit(start(iWindow):stop(iWindow), ...
+            :,iCh))*windowTime(iWindow);
     end % iWindow
-X = X * INT8_TO_VOLTAGE * amperePerVolt / ELEMENTARY_CHARGE;
+    X(:,:,iCh) = X(:,:,iCh) * INT8_TO_VOLTAGE * ...
+        amperePerVolt / ELEMENTARY_CHARGE;
+end % iCh
+
 end
 
