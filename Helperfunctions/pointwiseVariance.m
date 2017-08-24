@@ -28,12 +28,23 @@ end
 
 %% Subtract DC offset and calculate pointwise variance
 assert(ismatrix(data),'DATA is not a matrix!');
-[~,columns] = size(data);
+[rows,columns] = size(data);
 
 for column=1:columns
     data(:,column) = data(:,column) - mean(data(:,column));
 end
 
+% pvar = zeros(rows,1);
+% for row=1:rows
+%     pvar(row) = var(double(data(row,:)));
+% end
+% The following vectorized calculation needs 16 GB more memory than the
+% preceding for-loop, if the int8 input matrix 'data' has a size of 1 GB.
+% This is because the type-casting 'double(data)' creates a new matrix with
+% size 8GB (int8->double) and the 'var' command needs to make a copy of
+% this matrix. However, the for loop is significantly slower than the
+% vectorized calculation ('prepare3ChData' takes 1min 44s in the vectorized
+% version vs. 3min 17 with the for-loop.
 pvar = var(double(data),0,2);
 
 %% Find peaks
