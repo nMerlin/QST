@@ -20,11 +20,11 @@ Norm = 1/sqrt(2);
 %% Validate and parse input arguments
 p = inputParser;
 % How many bins will be used to examine the distribution of phase values?
-defaultPhaseBins = 1000;
+defaultPhaseBins = 180;
 % How many bins will be used to examine the variance in quadrature values?
 % If VarBins is too high, there are bins without or with only a few X
 % Values, which results in a high variance of the X variance.
-defaultVarBins = 180;
+defaultVarBins = defaultPhaseBins;
 addParameter(p,'PhaseBins',defaultPhaseBins,@isnumeric);
 addParameter(p,'VarBins',defaultVarBins,@isnumeric);
 parse(p,varargin{:});
@@ -37,9 +37,7 @@ theta = theta(~isnan(theta));
 
 %% Create and plot histogram of phase 
 % The number of bins is 1000 by default.
-xHist = linspace(0,2*pi,phaseBins);
-disc = min(diff(xHist));
-histEdges = (0-disc/2):disc:(2*pi+disc/2);
+histEdges = linspace(0,2*pi,phaseBins+1);
 
 h = histogram(theta,histEdges,'Normalization','pdf');
 % Normalization 'pdf' means 'Probability density function estimate'
@@ -59,7 +57,7 @@ text('Units','Normalized','Position',[0.6,0.9],'String', ...
 
 
 %% Sorting of Quadrature Values into Phase Bins 
-[N,~,bin] = histcounts(theta,varBins);
+[N,varEdges,bin] = histcounts(theta,varBins);
 [~,I] = sort(bin);
 X = X(I);
 
@@ -78,12 +76,15 @@ varXvar = var(varXBinned, 'omitnan');
 %waitforbuttonpress;
 %clf();
 figure
-plot(1:varBins,meanXBinned,'b-',1:varBins,varXBinned,'r-');
 hold on;
-plot(1:varBins,Norm^2*ones(varBins),'k-','lineWidth',0.5);
+xAxis = varEdges(1:end-1)+min(diff(varEdges))/2;
+xHist = histEdges(1:end-1)+min(diff(histEdges))/2;
+plot(xAxis,meanXBinned,'b.',xAxis,varXBinned,'r-o');
+plot(xAxis,Norm^2*ones(varBins),'k.','lineWidth',0.5);
+plot(xHist,h.Values*10,'g-o');
 legend('Mean of phase-binned X','Variance of phase-binned X', ...
     'Variance for coherent state');
-xlabel('Number of Bin');
+xlabel('\theta');
 text('Units','Normalized','Position',[0.3,0.1],'String', ...
     ['Variance of Variance = ' num2str(varXvar)],'EdgeColor','k');
 title('Phase-Binned Quadrature Values');
