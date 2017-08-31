@@ -27,9 +27,9 @@ lSegments = int32(max(diff(gapStarts)));
 % For phase reconstruction, the direction of the first segment is important
 gaps = t(gapStarts);
 if gaps(1)<0.5*(max(gaps)+min(gaps))
-    piezoSign = 1;
+    piezoSign = 1; % Piezo moves in the first segment from 0 to 2 um
 else
-    piezoSign = -1;
+    piezoSign = -1; % Piezo moves in the first segment from 2 to 0 um
 end
     
 if nRows>1 % 2D input arrays
