@@ -31,8 +31,8 @@ switch type
         w = position(2); % outer radius = r+w
         iSelect = find(sqrt(O1.^2+O2.^2)>r & sqrt(O1.^2+O2.^2)<r+w & O2>0);
     case 'fullcircle'
-        r = position(1); % innter radius
-        w = position(2); % outer radius = r+w
+        r = position(1); % central radius
+        w = position(2); % circle thickness
         iSelect = find(sqrt(O1.^2+O2.^2)>r-w/2 & sqrt(O1.^2+O2.^2)<r+w/2);
     case 'Qline'
         Q = position(1); % innter radius
