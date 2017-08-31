@@ -50,8 +50,8 @@ O2 = piezoSign*O2;
 %% Visualize the selection process for two piezo segments
 if strcmp(plotArg,'plot')
     [nPoints,~] = size(ys);
-    x = 1:2*nPoints;
-    iOrth = iOrth(iOrth<2*nPoints);
+    x = 1:5*nPoints;
+    iOrth = iOrth(iOrth<5*nPoints);
     ys = ys(x);
     plot(x,ys); hold on;
     plot(x(iOrth),ys(iOrth),'.'); hold off;
