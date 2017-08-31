@@ -5,6 +5,10 @@ function [X1, X2, X3, piezoSign] = prepare3ChData(filenameLO, filenameSIG)
 %
 %   filenameLO - filename of the LO-data used for correct normalization
 %   filenameSIG - filename of the raw 3-Channel-Data
+%
+% Output Arguments:
+%   piezoSign: +1 means piezo moves in the first segment from 0 to 2 um
+%              -1 means piezo moves in the first segment from 2 to 0 um
 
 CALIBRATION_CH1 = 4.596047840078126e-05; % Ampere per Volt
 
