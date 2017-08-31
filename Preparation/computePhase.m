@@ -1,6 +1,6 @@
 function [theta, ys] = computePhase(Xa,Xb,piezoSign,varargin)
-%COMPUTEPHASE Reconstruct phase between Xa and Xb which can be obtained with
-% prepare3ChData.
+%COMPUTEPHASE Reconstruct phase between Xa and Xb which can be obtained
+% with prepare3ChData.
 %
 % Output Arguments:
 %   theta - Reconstructed phase values
@@ -146,10 +146,10 @@ for iSeg = 1:nSegments
     end
     
     %% Loop over all visible flanks
-    % _ss_ accounts for the direction of the first visible flank and for
-    % the different directions of the piezo movement
+    % _ss_ (Starting Sign) accounts for the direction of the first visible
+    % flank and for the different directions of the piezo movement
     pksDiff = -diff(pks);
-    ss = sign(pksDiff(1))*piezoSign;
+    ss = sign(pksDiff(1))*piezoSign; % _ss_ stands for 'Starting Sign'
     s = ss;
     for iPart = 0:nTurningPoints
         % Normalize to interval [-1;1]
