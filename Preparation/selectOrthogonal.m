@@ -31,8 +31,10 @@ ys = smoothCrossCorr(X1,X2);
 %% Select triples where X1 and X2 are orthogonal
 % Find points, where the cross-correlation of X1 and X2 is in a ORTH_WIDTH
 % range around 0. When doing this, we are not distinguishing between a
-% phase of pi/2 and a phase of 3*pi/2 between X1 and X2. Therfore, it is
-% important to invert the sign of X2 values that are on negative flanks.
+% phase of pi/2 and a phase of 3*pi/2 between X1 and X2. Therefore, it is
+% important to invert the sign of some X2 values: Either of those values on
+% negative flanks or positive ones. In this case, we invert the values on
+% the negative flanks.
 globMax = max(ys(:));
 globMin = min(ys(:));
 halfWidth = ORTH_WIDTH * (globMax - globMin) / 2;
