@@ -56,7 +56,7 @@ theta = theta(iSelect);
 
 %% Show selection
 if strcmp(plotopt,'show')
-    plotHusimi(O1,O2,iSelect);
+    assessTheta(theta,X,'Husimi',{O1,O2,iSelect});
 end
 
 end
