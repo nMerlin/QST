@@ -26,12 +26,14 @@ defaultPhaseBins = 100;
 % Values, which results in a high variance of the X variance.
 defaultVarBins = 100;
 defaultHusimi = {};
+defaultOutput = 'figure';
 addParameter(p,'PhaseBins',defaultPhaseBins,@isnumeric);
 addParameter(p,'VarBins',defaultVarBins,@isnumeric);
 addParameter(p,'Husimi',defaultHusimi);
+addParameter(p,'Output',defaultOutput);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[husimi,phaseBins,varBins] = c{:};
+[husimi,output,phaseBins,varBins] = c{:};
 
 %% Strip X and theta of their NaN values
 X = X(~isnan(X));
@@ -105,8 +107,12 @@ xlabel('\theta');
 title(['Phase-Binned Quadrature Values (',num2str(varBins),' Bins)']);
 set(gca,'YLim',[min(meanXBinned) max(varXBinned)+3],'XLim', ...
     [min(xAxis) max(xAxis)]);
-fig.PaperPositionMode = 'auto';
-print(['Variance-',num2str(varBins),'-varBins-',num2str(phaseBins), ...
-    '-phaseBins','.pdf'],'-dpdf');
+
+%% Output to File
+if strcmp(output,'print')
+    fig.PaperPositionMode = 'auto';
+    print(['Variance-',num2str(varBins),'-varBins-',num2str(phaseBins), ...
+        '-phaseBins','.pdf'],'-dpdf');
+end
 
 end
