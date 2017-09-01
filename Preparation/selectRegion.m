@@ -4,18 +4,23 @@ function [X,theta,iSelect] = selectRegion(O1,O2,O3,theta,varargin)
 %   Rectangle:
 %   selectRegion(O1,O2,O3,theta,'rectangle',[x y w h]) - lower left corner
 %   at (x,y) and (width,height) = (w,h)
+%
+% Options:
+%   Output - 'print' saves plotted figure to file
 
 %% Validate and parse input arguments
 p = inputParser;
 defaultType = 'dot';
 defaultPosition = [2 2 0.25];
 defaultPlotOpt = 'hide';
+defaultOutput = 'figure';
 addParameter(p,'Type',defaultType,@isstr);
 addParameter(p,'Position',defaultPosition,@isvector);
 addParameter(p,'Plot',defaultPlotOpt,@isstr);
+addParameter(p,'Output',defaultOutput,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[plotopt,position,type] = c{:};
+[output,plotopt,position,type] = c{:};
 
 %% Selection process
 switch type
@@ -57,7 +62,7 @@ theta = theta(iSelect);
 %% Show selection
 if strcmp(plotopt,'show')
     assessTheta(theta,X,'Husimi',{O1,O2,iSelect},'VarBins', ...
-        200,'PhaseBins',200);
+        200,'PhaseBins',200,'Output',output);
 end
 
 end
