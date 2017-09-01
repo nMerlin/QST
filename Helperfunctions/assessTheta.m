@@ -41,7 +41,7 @@ theta = theta(~isnan(theta));
 % The number of bins is 1000 by default.
 histEdges = linspace(0,2*pi,phaseBins+1);
 
-fig = figure('Units','centimeters','Position',[1,1,14.8,21]);
+fig = figure('Units','centimeters','Position',[1,1,21,29.7]);
 if isempty(husimi)
     ax2 = subplot(2,1,1);
 else
