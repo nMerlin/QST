@@ -1,4 +1,4 @@
-function [X,theta] = selectRegion(O1,O2,O3,theta,varargin)
+function [X,theta,iSelect] = selectRegion(O1,O2,O3,theta,varargin)
 %SELECTREGION Return all values of O3 in the specified (O1,O2)-region
 %
 %   Rectangle:
@@ -56,7 +56,8 @@ theta = theta(iSelect);
 
 %% Show selection
 if strcmp(plotopt,'show')
-    assessTheta(theta,X,'Husimi',{O1,O2,iSelect});
+    assessTheta(theta,X,'Husimi',{O1,O2,iSelect},'VarBins', ...
+        200,'PhaseBins',200);
 end
 
 end
