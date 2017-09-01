@@ -36,7 +36,7 @@ c = struct2cell(p.Results);
 [husimi,output,phaseBins,varBins] = c{:};
 
 %% Strip X and theta of their NaN values
-X = X(~isnan(X));
+X = X(~isnan(theta));
 theta = theta(~isnan(theta));
 
 %% Create and plot histogram of phase 
