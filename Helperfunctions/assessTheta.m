@@ -25,11 +25,13 @@ defaultPhaseBins = 100;
 % If VarBins is too high, there are bins without or with only a few X
 % Values, which results in a high variance of the X variance.
 defaultVarBins = 100;
+defaultHusimi = {};
 addParameter(p,'PhaseBins',defaultPhaseBins,@isnumeric);
 addParameter(p,'VarBins',defaultVarBins,@isnumeric);
+addParameter(p,'Husimi',defaultHusimi);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[phaseBins,varBins] = c{:};
+[husimi,phaseBins,varBins] = c{:};
 
 %% Strip X and theta of their NaN values
 X = X(~isnan(X));
@@ -40,8 +42,14 @@ theta = theta(~isnan(theta));
 histEdges = linspace(0,2*pi,phaseBins+1);
 
 fig = figure('Units','centimeters','Position',[1,1,14.8,21]);
-ax1 = subplot(2,1,1);
-h = histogram(ax1,theta,histEdges); % 'Normalization','pdf');
+if isempty(husimi)
+    ax2 = subplot(2,1,1);
+else
+    ax1 = subplot(3,1,1);
+    plotHusimi(husimi{1},husimi{2},husimi{3}); % husimi=[O1,O2,iSelect]
+    ax2 = subplot(3,1,2);
+end
+h = histogram(ax2,theta,histEdges); % 'Normalization','pdf');
 % Normalization 'pdf' means 'Probability density function estimate'
 
 %variance of observations of phase per bin --> Shows if phase is equally 
@@ -81,7 +89,11 @@ varXvar = var(varXBinned, 'omitnan');
 %clf();
 %figure
 %hold on;
-ax2 = subplot(2,1,2);
+if isempty(husimi)
+    ax3 = subplot(2,1,2);
+else
+    ax3 = subplot(3,1,3);
+end
 hold on;
 xAxis = varEdges(1:end-1)+min(diff(varEdges))/2;
 plot(xAxis,meanXBinned,'b.',xAxis,varXBinned,'r-o');
