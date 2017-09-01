@@ -3,7 +3,8 @@ function ys = smoothCrossCorr(Xa,Xb,varargin)
 %
 %   Xa and Xb are quadrature measurements and assumed to be already shaped
 %   into piezo-segments (e.g. by prepare3ChData)
-%   The smoothing method can be chosen by the name-value-pair 'Type','chosen Type'.
+%   The smoothing method can be chosen by the name-value-pair
+%   'Type','chosen Type'.
 
 %% Validate and parse input arguments
 p = inputParser;
@@ -23,17 +24,16 @@ XProd = Xa.*Xb;
 
 switch type
     case 'moving'
-        y = reshape(XProd,[nPulses*nPieces*nSegments 1]);
-        [ys,~] = moving_average(y,param,1); %smoothing with moving average...
-        %by Carlos Vargas.
+        y = reshape(XProd,[nPulses*nPieces nSegments]);
+        [ys,~] = moving_average(y,param,1);
+        %moving_average by Carlos Vargas.
         %param gives the semilength of the smoothing window, ...
         %i.e. the window has the length 2*param +1. 
-
-        ys(1:0.5*param)=NaN(0.5*param,1);%corrects for boundarys
-        ys(end-0.5*param+1:end)=NaN(0.5*param,1);
         
-        ys = reshape(ys,[nPulses*nPieces nSegments]);
-        
+        % Eliminate boundaries which are averaged over less than 2*param+1
+        % points
+        ys(1:round(0.5*param),:)=NaN(round(0.5*param),nSegments);
+        ys(end-round(0.5*param)+1:end,:)=NaN(round(0.5*param),nSegments);
     case 'spline'
         x = 1:(nPulses*nPieces);
         y = reshape(XProd,[nPulses*nPieces nSegments]);
