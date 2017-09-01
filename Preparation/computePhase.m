@@ -7,25 +7,28 @@ function [theta, ys] = computePhase(Xa,Xb,piezoSign,varargin)
 %   ys - smoothed crosscorrelation between Xa and Xb. This is needed for
 %   segmentValidation.
 
-%% Constants
+%% Validate and parse input arguments
+p = inputParser;
 % For peak detection it is important to know how many wavelengths are
 % located in one measured piezo segment. Optional: Implement automatic
 % computation from config.
-periodsPerSeg = 1.2;
-
-%% Handle optional input arguments
-nVarargin = length(varargin);
-optArgs = {'noplot'};
-optArgs(1:nVarargin) = varargin;
-[plotArg] = optArgs{:};
+defaultPeriod = 1.2;
+% Choose 'plot' for a graphical output
+defaultPlot = 'noplot';
+addParameter(p,'Period',defaultPeriod,@isnumeric);
+addParameter(p,'Plot',defaultPlot);
+parse(p,varargin{:});
+c = struct2cell(p.Results);
+[periodsPerSeg,plotArg] = c{:};
 
 %% Reconstruct the phase for each piezo segment
-ys = smoothCrossCorr(Xa,Xb);
+ys = smoothCrossCorr(Xa,Xb,'Type','spline','Param',10e-10);
+%ys = smoothCrossCorr(Xa,Xb);
 [nPoints,nSegments] = size(ys);
 
-[ys,~] = nanmoving_average(reshape(ys,[nPoints*nSegments,1]),2500,1); 
+%[ys,~] = nanmoving_average(reshape(ys,[nPoints*nSegments,1]),2500,1); 
 %smoothing a second time for uniformly distributed phase
-ys = reshape(ys,[nPoints,nSegments]);
+%ys = reshape(ys,[nPoints,nSegments]);
 
 periodLength = length(ys)*periodsPerSeg;
 theta = zeros(nPoints,nSegments);
@@ -93,8 +96,9 @@ for iSeg = 1:nSegments
     % Right boundary:
     if length(pks)>= 3
         if (length(y)-locs(end))<0.02*periodLength
-            if (pks(end)>0 && (pks(end-2)-pks(end))/abs(pks(end-2))>0.05) ||...
-                    (pks(end)<0 && (pks(end)-pks(end-2))/abs(pks(end-2))>0.05)
+            if (pks(end)>0 && ...
+                (pks(end-2)-pks(end))/abs(pks(end-2))>0.05) || ...
+                (pks(end)<0 && (pks(end)-pks(end-2))/abs(pks(end-2))>0.05)
                 locs = locs(1:end-1);
                 pks = pks(1:end-1);
             end
