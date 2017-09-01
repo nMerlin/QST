@@ -47,7 +47,7 @@ fig = figure('Units','centimeters','Position',[1,1,21,29.7]);
 if isempty(husimi)
     ax2 = subplot(2,1,1);
 else
-    ax1 = subplot(3,1,1);
+    subplot(3,1,1);
     plotHusimi(husimi{1},husimi{2},husimi{3}); % husimi=[O1,O2,iSelect]
     ax2 = subplot(3,1,2);
 end
@@ -98,14 +98,15 @@ else
 end
 hold on;
 xAxis = varEdges(1:end-1)+min(diff(varEdges))/2;
-plot(xAxis,meanXBinned,'b.',xAxis,varXBinned,'r-o');
-plot(xAxis,Norm^2*ones(varBins),'k.','lineWidth',0.5);
+plot(ax3,xAxis,meanXBinned,'b.',xAxis,varXBinned,'r-o');
+plot(ax3,xAxis,Norm^2*ones(varBins),'k.','lineWidth',0.5);
 legend('Mean of phase-binned X values', ...
     ['mean(Var(X)) = ',num2str(meanVarX),', Var(Var(X)) = ',num2str(varXvar)], ...
     ['Var(Coherent State ) = ',num2str(Norm^2)]);
 xlabel('\theta');
 title(['Phase-Binned Quadrature Values (',num2str(varBins),' Bins)']);
-set(gca,'YLim',[min(meanXBinned) max(varXBinned)+3],'XLim', ...
+set(gca,'YLim',[min(min(meanXBinned),min(varXBinned)), ...
+    max(max(varXBinned)+3,max(meanXBinned))],'XLim', ...
     [min(xAxis) max(xAxis)]);
 
 %% Output to File
