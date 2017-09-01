@@ -56,9 +56,7 @@ theta = theta(iSelect);
 
 %% Show selection
 if strcmp(plotopt,'show')
-    [H, binsO1, binsO2] = histogram2D(O1,O2);
-    imagesc(binsO1,binsO2,H); axis on; colormap hot; hold on;
-    plot(O1(iSelect),O2(iSelect),'.'); hold off;
+    plotHusimi(O1,O2,iSelect);
 end
 
 end
