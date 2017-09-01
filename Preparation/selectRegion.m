@@ -7,8 +7,8 @@ function [X,theta] = selectRegion(O1,O2,O3,theta,varargin)
 
 %% Validate and parse input arguments
 p = inputParser;
-defaultType = 'rectangle';
-defaultPosition = [2 2 0.5 0.5];
+defaultType = 'dot';
+defaultPosition = [2 2 0.25];
 defaultPlotOpt = 'hide';
 addParameter(p,'Type',defaultType,@isstr);
 addParameter(p,'Position',defaultPosition,@isvector);
@@ -34,6 +34,11 @@ switch type
         r = position(1); % central radius
         w = position(2); % circle thickness
         iSelect = find(sqrt(O1.^2+O2.^2)>r-w/2 & sqrt(O1.^2+O2.^2)<r+w/2);
+    case 'dot'
+        x = position(1);
+        y = position(2);
+        r = position(3);
+        iSelect = find(((O1-x).^2+(O2-y).^2) <= r^2);
     case 'Qline'
         Q = position(1); % line center
         w = position(2); % line width
