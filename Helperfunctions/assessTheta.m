@@ -48,14 +48,14 @@ h = histogram(ax1,theta,histEdges); % 'Normalization','pdf');
 % distributed
 phaseVariance = var(h.Values);
 Nbar = length(theta)/phaseBins;
-theoVar = sqrt(Nbar);
 
 h.EdgeColor = 'b';
 axis([0 2*pi 0 max(h.Values)+0.05]);
 xlabel('\theta');
 ylabel('N(\theta)');
 title(['Distribution of Phase Values (',num2str(phaseBins),' Bins)']);
-legend(['mean(N(\theta)) = ',num2str(Nbar),'; Var(N(\theta))) = ',num2str(phaseVariance)]);
+legend(['mean(N(\theta)) = ',num2str(Nbar),'; Var(N(\theta))) = ', ...
+    num2str(phaseVariance)]);
 %text('Units','Normalized','Position',[0.6,0.9],'String', ...
 %    ['Variance = ' num2str(phaseVariance)],'EdgeColor','k');
 
@@ -73,6 +73,7 @@ end
 % Compute mean and variance of Quadrature Values for each phase bin
 meanXBinned = mean(XOut, 'omitnan');
 varXBinned = var(XOut, 'omitnan');
+meanVarX = mean(varXBinned);
 % Measure how constant the variance is
 varXvar = var(varXBinned, 'omitnan');
 
@@ -86,7 +87,7 @@ xAxis = varEdges(1:end-1)+min(diff(varEdges))/2;
 plot(xAxis,meanXBinned,'b.',xAxis,varXBinned,'r-o');
 plot(xAxis,Norm^2*ones(varBins),'k.','lineWidth',0.5);
 legend('Mean of phase-binned X values', ...
-    ['Var(X), Var(Var(X)) = ',num2str(varXvar)], ...
+    ['mean(Var(X)) = ',num2str(meanVarX),', Var(Var(X)) = ',num2str(varXvar)], ...
     ['Var(Coherent State ) = ',num2str(Norm^2)]);
 xlabel('\theta');
 title(['Phase-Binned Quadrature Values (',num2str(varBins),' Bins)']);
