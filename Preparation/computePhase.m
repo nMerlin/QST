@@ -22,8 +22,8 @@ c = struct2cell(p.Results);
 [periodsPerSeg,plotArg] = c{:};
 
 %% Reconstruct the phase for each piezo segment
-ys = smoothCrossCorr(Xa,Xb,'Type','spline','Param',10e-10);
-%ys = smoothCrossCorr(Xa,Xb);
+%ys = smoothCrossCorr(Xa,Xb,'Type','spline','Param',10e-10);
+ys = smoothCrossCorr(Xa,Xb);
 [nPoints,nSegments] = size(ys);
 
 %[ys,~] = nanmoving_average(reshape(ys,[nPoints*nSegments,1]),2500,1); 
