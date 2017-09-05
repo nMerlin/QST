@@ -3,13 +3,16 @@ function ys = smoothCrossCorr(Xa,Xb,varargin)
 %
 %   Xa and Xb are quadrature measurements and assumed to be already shaped
 %   into piezo-segments (e.g. by prepare3ChData)
-%   The smoothing method can be chosen by the name-value-pair
-%   'Type','chosen Type'.
+%
+% Optional Arguments:
+%   'Type': You can use a moving average with 'moving' or a cubic smoothing
+%   spline with 'spline'. Spline leaves you with more points afterwards,
+%   moving average is faster to calculate.
 
 %% Validate and parse input arguments
 p = inputParser;
-defaultType = 'moving';
-defaultParam = 5000;
+defaultType = 'spline';
+defaultParam = 1e-15;
 addParameter(p,'Type',defaultType,@isstr);
 addParameter(p,'Param',defaultParam,@isvector);
 parse(p,varargin{:});
@@ -23,6 +26,14 @@ XProd = Xa.*Xb;
 [nPulses,nPieces,nSegments] = size(XProd);
 
 switch type
+    % spline is superior, because it doesn't lose points on the boundaries
+    case 'spline'
+        x = 1:(nPulses*nPieces);
+        y = reshape(XProd,[nPulses*nPieces nSegments]);
+        ys = transpose(csaps(x,y',param,x)); %Approximate each piezo-segment ..
+        %with a cubic smoothing spline, smoothing parameter given by param
+        %should be between 1e-10 and 1e-14. 1e-10 was used previously, 1e-13
+        %yields good results.
     case 'moving'
         y = reshape(XProd,[nPulses*nPieces nSegments]);
         [ys,~] = moving_average(y,param,1);
@@ -32,15 +43,8 @@ switch type
         
         % Eliminate boundaries which are averaged over less than 2*param+1
         % points
-        ys(1:round(0.5*param),:)=NaN(round(0.5*param),nSegments);
-        ys(end-round(0.5*param)+1:end,:)=NaN(round(0.5*param),nSegments);
-    case 'spline'
-        x = 1:(nPulses*nPieces);
-        y = reshape(XProd,[nPulses*nPieces nSegments]);
-        ys = transpose(csaps(x,y',param,x)); %Approximate each piezo-segment ..
-        %with a cubic smoothing spline, smoothing parameter given by param
-        %should be between 1e-10 and 1e-14. 1e-10 was used previously, 1e-13
-        %yields good results.
+        ys(1:param,:)=NaN(param,nSegments);
+        ys(end-param+1:end,:)=NaN(param,nSegments);
 end
 
 end
