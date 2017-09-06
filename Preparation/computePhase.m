@@ -15,20 +15,17 @@ p = inputParser;
 defaultPeriod = 1.2;
 % Choose 'plot' for a graphical output
 defaultPlot = 'noplot';
+defaultDebug = 0;
 addParameter(p,'Period',defaultPeriod,@isnumeric);
 addParameter(p,'Plot',defaultPlot);
+addParameter(p,'Debug',defaultDebug);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[periodsPerSeg,plotArg] = c{:};
+[debug,periodsPerSeg,plotArg] = c{:};
 
 %% Reconstruct the phase for each piezo segment
-%ys = smoothCrossCorr(Xa,Xb,'Type','spline','Param',10e-10);
-ys = smoothCrossCorr(Xa,Xb);
+ys = smoothCrossCorr(Xa,Xb,'Type','spline','Param',1e-15);
 [nPoints,nSegments] = size(ys);
-
-%[ys,~] = nanmoving_average(reshape(ys,[nPoints*nSegments,1]),2500,1); 
-%smoothing a second time for uniformly distributed phase
-%ys = reshape(ys,[nPoints,nSegments]);
 
 periodLength = length(ys)*periodsPerSeg;
 theta = zeros(nPoints,nSegments);
@@ -52,7 +49,7 @@ for iSeg = 1:nSegments
     % _MinPeakHeight_ mitigates the effects of too long periods.
     
     %% Find peaks for flank recognition
-    if strcmp(plotArg,'plot')
+    if strcmp(plotArg,'plot') || iSeg == debug
         findpeaks(y,peakOpts,'Annotate','extents'); hold on;
         findpeaks(-y,peakOpts,'Annotate','extents'); hold off;
         title({'Mousebutton: Reject','Keyboard: Accept'});
@@ -105,7 +102,9 @@ for iSeg = 1:nSegments
         end
     end    
     nTurningPoints = length(locs);
-    assert(nTurningPoints>1, 'Not enough turning points encountered!');
+    assert(nTurningPoints>1, ...
+        ['Not enough turning points encountered in Segment ', ...
+        num2str(iSeg),'!']);
     
     %% Account for extrema lying directly on a boundary (1)
     % If an extremal point is the first or last point in the data set, then
@@ -155,6 +154,7 @@ for iSeg = 1:nSegments
     pksDiff = -diff(pks);
     ss = sign(pksDiff(1))*piezoSign; % _ss_ stands for 'Starting Sign'
     s = ss;
+    nTurningPoints = length(locs);
     for iPart = 0:nTurningPoints
         % Normalize to interval [-1;1]
         if iPart == 0
