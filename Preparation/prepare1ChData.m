@@ -1,4 +1,4 @@
-function [X, piezoSign] = prepare1ChData(filenameLO, filenameSIG)
+function [X, piezoSign] = prepare1ChData(filenameLO, filenameSIG, varargin)
 %PREPARE1CHDATA Returns quadratures of a 1-Channel-Measurement
 %
 % The quadrature matrices are already cut into piezo segments.
@@ -9,6 +9,14 @@ function [X, piezoSign] = prepare1ChData(filenameLO, filenameSIG)
 % Output Arguments:
 %   piezoSign: +1 means piezo moves in the first segment from 0 to 2 um
 %              -1 means piezo moves in the first segment from 2 to 0 um
+
+%% Validate and parse input arguments
+p = inputParser;
+defaultChannel = 1;
+addParameter(p,'Channel',defaultChannel,@isnumeric);
+parse(p,varargin{:});
+c = struct2cell(p.Results);
+[channel] = c{:};
 
 CALIBRATION_CH1 = 4.596047840078126e-05; % Ampere per Volt
 
@@ -27,7 +35,7 @@ dispstat('Loading Signal data ...','timestamp','keepthis',0);
 % Compute number of LO photons
 dispstat('Computing number of LO photons ...', ...
     'timestamp','keepthis',0);
-XLO = computeQuadratures(data8bitLO, configLO, ...
+XLO = computeQuadratures(data8bitLO(:,:,channel), configLO, ...
     CALIBRATION_CH1);
 
 % Calculate the variance piece-wise to compensate slow drifts (e.g.
@@ -37,7 +45,7 @@ NLO = mean(var(XLO));
 % Compute quadratures for target quantum state
 dispstat('Computing target quadratures ...', ...
     'timestamp','keepthis',0);
-X = computeQuadratures(data8bitSIG, configSIG, ...
+X = computeQuadratures(data8bitSIG(:,:,channel), configSIG, ...
     CALIBRATION_CH1);
 
 % Calibration of quadratures to vacuum state
