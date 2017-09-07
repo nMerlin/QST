@@ -28,12 +28,12 @@ XProd = Xa.*Xb;
 switch type
     % spline is superior, because it doesn't lose points on the boundaries
     case 'spline'
+        % Approximate each piezo-segment with a cubic smoothing spline,
+        % smoothing parameter given by param should be between 1e-10 and
+        % 1e-14. 1e-10 was used previously, 1e-13 yields good results.
         x = 1:(nPulses*nPieces);
         y = reshape(XProd,[nPulses*nPieces nSegments]);
-        ys = transpose(csaps(x,y',param,x)); %Approximate each piezo-segment ..
-        %with a cubic smoothing spline, smoothing parameter given by param
-        %should be between 1e-10 and 1e-14. 1e-10 was used previously, 1e-13
-        %yields good results.
+        ys = transpose(csaps(x,y',param,x));
     case 'moving'
         y = reshape(XProd,[nPulses*nPieces nSegments]);
         [ys,~] = moving_average(y,param,1);
