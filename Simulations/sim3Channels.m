@@ -3,9 +3,9 @@ function [X1,X2,X3] = sim3Channels()
 
 %% Constants
 % Number of Photons
-nPhot1 = 10;
-nPhot2 = 10;
-nPhot3 = 10;
+meanN1 = 10;
+meanN2 = 10;
+meanN3 = 1;
 noiseampl = 1/sqrt(2);
 
 % Modulation frequencies in Hz
@@ -14,7 +14,7 @@ freq2 = 25;
 freq3 = 0.5;
 
 % Buffers for trigger
-nPeriodsPerSeg = 2.0;
+nPeriodsPerSeg = 1.6;
 upBuf = 0.2;
 lowBuf = 0.25;
 
@@ -62,10 +62,18 @@ Ns1 = reshape(randn(N,1)*noiseampl,[nPulses,nPieces,nSegments]);
 Ns2 = reshape(randn(N,1)*noiseampl,[nPulses,nPieces,nSegments]);
 Ns3 = reshape(randn(N,1)*noiseampl,[nPulses,nPieces,nSegments]);
 
-% Compute Quadratures from Noise and Phase
-X1 = Ns1 + sqrt(nPhot1) * sin(phase1);
-X2 = Ns2 + sqrt(nPhot2) * sin(phase2);
-X3 = Ns3 + sqrt(nPhot3) * sin(phase3);
+% Amplitude Noise according to Bose-Einstein distribution
+thermN = reshape(inverseBoseEinstein(rand(N,1)/(meanN1+1),meanN1), ...
+    [nPulses,nPieces,nSegments]);
 
+% Compute Quadratures from Noise and Phase
+X1 = Ns1 + sqrt(thermN) .* sin(phase1);
+X2 = Ns2 + sqrt(thermN*meanN2/meanN1) .* sin(phase2);
+X3 = Ns3 + sqrt(thermN*meanN3/meanN1) .* sin(phase3);
+
+end
+
+function N = inverseBoseEinstein(y,meanN)
+    N = (log(y)-log(1/(meanN+1)))/log(meanN/(meanN+1));
 end
 
