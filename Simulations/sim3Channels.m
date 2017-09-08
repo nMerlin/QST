@@ -2,10 +2,16 @@ function [X1,X2,X3] = sim3Channels()
 %SIMCROSSCORR Simulates a 3-Channel thermal state measurement.
 
 %% Constants
-% Number of Photons
-meanN1 = 10;
-meanN2 = 10;
-meanN3 = 1;
+% Original Number of Signal Photons
+meanN = 30;
+
+% Beamsplitter coefficients
+t1 = sqrt(1/30); % transmitted beam goes to channel 3
+r1 = sqrt(1-t1^2); % reflected beam gets split again for channels 1 and 2
+t2 = 1/sqrt(2);
+r2 = sqrt(1-t2^2);
+
+% Amplitude of vacuum noise
 noiseampl = 1/sqrt(2);
 
 % Modulation frequencies in Hz
@@ -57,19 +63,23 @@ phase2 = phase2 + randPhase;
 phase3 = phase3 + randPhase;
 
 %% Compute Quadratures
-% Gaussian Noise to simulate vacuum
+% Gaussian Noise to simulate vacuum in each homodyne channel
 Ns1 = reshape(randn(N,1)*noiseampl,[nPulses,nPieces,nSegments]);
 Ns2 = reshape(randn(N,1)*noiseampl,[nPulses,nPieces,nSegments]);
 Ns3 = reshape(randn(N,1)*noiseampl,[nPulses,nPieces,nSegments]);
 
-% Amplitude Noise according to Bose-Einstein distribution
-thermN = reshape(inverseBoseEinstein(rand(N,1)/(meanN1+1),meanN1), ...
+% Gaussian Noise to simulate vacuum mixed at beamsplitters for copying
+avac1 = reshape(randn(N,1)*noiseampl,[nPulses,nPieces,nSegments]);
+avac2 = reshape(randn(N,1)*noiseampl,[nPulses,nPieces,nSegments]);
+
+% Amplitude Noise according to Bose-Einstein distribution (thermal state)
+thermN = reshape(inverseBoseEinstein(rand(N,1)/(meanN+1),meanN), ...
     [nPulses,nPieces,nSegments]);
 
 % Compute Quadratures from Noise and Phase
-X1 = Ns1 + sqrt(thermN) .* sin(phase1);
-X2 = Ns2 + sqrt(thermN*meanN2/meanN1) .* sin(phase2);
-X3 = Ns3 + sqrt(thermN*meanN3/meanN1) .* sin(phase3);
+X1 = Ns1 + r1*t2*sqrt(thermN) .* sin(phase1) - t1*t2*avac1 + r2*avac2;
+X2 = Ns2 + r1*r2*sqrt(thermN) .* sin(phase2) - t1*r2*avac1 - t2*avac2;
+X3 = Ns3 + t1*sqrt(thermN) .* sin(phase3) + r1*avac1;
 
 end
 
