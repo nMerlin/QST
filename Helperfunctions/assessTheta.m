@@ -3,9 +3,13 @@ function [phaseVariance, varXvar] = assessTheta(theta, X, varargin)
 %distribution of the computed phase and the variance of the distribution.
 %It also sorts the X values into phase bins.
 
-%Input parameters:
-% theta, X - selected phase and quadrature values obtained with
-% selectRegion. 
+% Input parameters:
+%   theta, X - selected phase and quadrature values obtained with
+%       selectRegion.
+% 
+% Optional Input Parameters ('Name','Value'):
+%   'Zoom' - Use 'var' to scale the plot of mean quadratures and variance
+%       according to the computed variance values. Default: 'none'.
 %
 %Output parameters:
 %- phaseVariance: variance of the histogram values of the phase, i. e. of
@@ -27,13 +31,15 @@ defaultPhaseBins = 100;
 defaultVarBins = 100;
 defaultHusimi = {};
 defaultOutput = 'figure';
+defaultZoom = 'none';
 addParameter(p,'PhaseBins',defaultPhaseBins,@isnumeric);
 addParameter(p,'VarBins',defaultVarBins,@isnumeric);
 addParameter(p,'Husimi',defaultHusimi);
 addParameter(p,'Output',defaultOutput);
+addParameter(p,'Zoom',defaultZoom,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[husimi,output,phaseBins,varBins] = c{:};
+[husimi,output,phaseBins,varBins,zoom] = c{:};
 
 %% Strip X and theta of their NaN values
 X = X(~isnan(theta));
@@ -101,13 +107,18 @@ xAxis = varEdges(1:end-1)+min(diff(varEdges))/2;
 plot(ax3,xAxis,meanXBinned,'b.',xAxis,varXBinned,'r-o');
 plot(ax3,xAxis,Norm^2*ones(varBins),'k.','lineWidth',0.5);
 legend('Mean of phase-binned X values', ...
-    ['mean(Var(X)) = ',num2str(meanVarX),', Var(Var(X)) = ',num2str(varXvar)], ...
+    ['Var(X); <Var(X)>=',num2str(meanVarX),', Var(Var(X))=',num2str(varXvar)], ...
     ['Var(Coherent State ) = ',num2str(Norm^2)]);
 xlabel('\theta');
 title(['Phase-Binned Quadrature Values (',num2str(varBins),' Bins)']);
-set(gca,'YLim',[min(min(meanXBinned),min(varXBinned)), ...
-    max(max(varXBinned)+3,max(meanXBinned))],'XLim', ...
-    [min(xAxis) max(xAxis)]);
+set(gca,'XLim',[min(xAxis) max(xAxis)]);
+if strcmp(zoom,'none')
+    set(gca,'YLim',[min(min(meanXBinned),min(varXBinned)), ...
+        max(max(varXBinned)+3,max(meanXBinned))]);
+elseif strcmp(zoom,'var')
+    set(gca,'YLim',[min(varXBinned) max(varXBinned)]);
+    %set(gca,'YLim',[0.46 0.54]);
+end
 
 %% Output to File
 if strcmp(output,'print')
