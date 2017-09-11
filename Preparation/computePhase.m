@@ -16,12 +16,14 @@ defaultPeriod = 1.2;
 % Choose 'plot' for a graphical output
 defaultPlot = 'noplot';
 defaultDebug = 0;
+defaultIgnore = [];
 addParameter(p,'Period',defaultPeriod,@isnumeric);
 addParameter(p,'Plot',defaultPlot);
 addParameter(p,'Debug',defaultDebug);
+addParameter(p,'Ignore',defaultIgnore);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[debug,periodsPerSeg,plotArg] = c{:};
+[debug,ignore,periodsPerSeg,plotArg] = c{:};
 
 %% Reconstruct the phase for each piezo segment
 ys = smoothCrossCorr(Xa,Xb,'Type','spline','Param',1e-15);
@@ -31,6 +33,13 @@ periodLength = length(ys)*periodsPerSeg;
 theta = zeros(nPoints,nSegments);
 for iSeg = 1:nSegments
     y = ys(:,iSeg);
+    
+    %% Ignore segments listed in _ignore_
+    if sum(ignore==iSeg)>0
+        theta(:,iSeg) = NaN(nPoints,1);
+        continue
+    end
+    
     %% Parameters for the function _findpeaks_
     % To reconstruct the phase, the algorithm has to identify maxima and
     % minima in the data. This is done by the function _findpeaks_.
