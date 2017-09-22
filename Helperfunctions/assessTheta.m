@@ -24,11 +24,11 @@ Norm = 1/sqrt(2);
 %% Validate and parse input arguments
 p = inputParser;
 % How many bins will be used to examine the distribution of phase values?
-defaultPhaseBins = 100;
+defaultPhaseBins = 200;
 % How many bins will be used to examine the variance in quadrature values?
 % If VarBins is too high, there are bins without or with only a few X
 % Values, which results in a high variance of the X variance.
-defaultVarBins = 100;
+defaultVarBins = 200;
 defaultHusimi = {};
 defaultOutput = 'figure';
 defaultZoom = 'none';
