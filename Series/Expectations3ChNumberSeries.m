@@ -1,3 +1,6 @@
+function [] = Expectations3ChNumberSeries()
+
+
 %This script writes the expectation values for a photon number series of 
 %3 Channels into an excelsheet. The data X1,X2,X3, theta and piezoSign
 %should be stored in files like '2017-09-20-validated-04-5mW-LOwithDL.mat'.
@@ -5,7 +8,7 @@
 date = '2017-09-20';
 
 %% iteration over data files
-number = 4:2:54; %number of data file
+number = 56:2:90; %number of data file
 [nX1, nX2, nX3, meanVarX, q1, q21, p1, p21, qmax,q2max,varQ,varP] = deal(zeros(length(number),1));
 
 for i = 1:length(number)
@@ -28,12 +31,13 @@ for i = 1:length(number)
     [O1,O2,O3,oTheta] = selectOrthogonal(X1,X2,X3,theta,piezoSign);
     filename = [date '-' numberName];
     [selX,selTheta, ~, mVarX] = selectRegion(O1,O2,O3,oTheta,'Type','fullcircle',...
-        'Position',[1.5 0.5],'Plot','show','Output','print','Filename',filename);
+        'Position',[2.5 0.5],'Plot','show','Output','print','Filename',filename);
+    close all;
     meanVarX(i) = mVarX;
     
     % descretization and expectation values
     [selX,selTheta]=discretizeTheta(selX,selTheta,100);
-    [expQ,expP,expQ2,expP2,delQ,delP,meanUnc,~,~,~] = ...
+    [expQ,expP,expQ2,expP2,delQ,delP,~,~,~,~] = ...
         computeExpectations2(selX,selTheta,'bla','Plot','hide');
     q1(i) = expQ(1);
     q21(i) = expQ2(1);
@@ -49,3 +53,5 @@ end
 %% write results in excel sheet
 M = [number' nX1 nX2 nX3 meanVarX q1 q21 p1 p21 qmax q2max varQ varP];
 xlswrite('test',M);
+
+end
