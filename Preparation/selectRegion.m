@@ -1,4 +1,4 @@
-function [X,theta,iSelect] = selectRegion(O1,O2,O3,theta,varargin)
+function [X,theta,iSelect, meanVarX] = selectRegion(O1,O2,O3,theta,varargin)
 %SELECTREGION Return all values of O3 in the specified (O1,O2)-region
 %
 %   Rectangle:
@@ -14,13 +14,15 @@ defaultType = 'dot';
 defaultPosition = [2 2 0.25];
 defaultPlotOpt = 'hide';
 defaultOutput = 'figure';
+defaultFilename = '';
 addParameter(p,'Type',defaultType,@isstr);
 addParameter(p,'Position',defaultPosition,@isvector);
 addParameter(p,'Plot',defaultPlotOpt,@isstr);
 addParameter(p,'Output',defaultOutput,@isstr);
+addParameter(p,'Filename',defaultFilename,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[output,plotopt,position,type] = c{:};
+[filename,output,plotopt,position,type] = c{:};
 
 %% Selection process
 switch type
@@ -61,8 +63,10 @@ theta = theta(iSelect);
 
 %% Show selection
 if strcmp(plotopt,'show')
-    assessTheta(theta,X,'Husimi',{O1,O2,iSelect},'VarBins', ...
-        200,'PhaseBins',200,'Output',output);
+    [~,~,meanVarX] = assessTheta(theta,X,'Husimi',{O1,O2,iSelect},'VarBins', ...
+        200,'PhaseBins',200,'Output',output,'Filename',filename);
+else
+    meanVarX = {};
 end
 
 end

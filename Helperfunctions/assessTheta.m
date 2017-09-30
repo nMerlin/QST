@@ -1,4 +1,4 @@
-function [phaseVariance, varXvar] = assessTheta(theta, X, varargin)
+function [phaseVariance, varXvar, meanVarX] = assessTheta(theta, X, varargin)
 %This function assesses the final result of X3 and theta. It plots the
 %distribution of the computed phase and the variance of the distribution.
 %It also sorts the X values into phase bins.
@@ -15,6 +15,7 @@ function [phaseVariance, varXvar] = assessTheta(theta, X, varargin)
 %- phaseVariance: variance of the histogram values of the phase, i. e. of
 % the probability density.
 %- varXvar: The variance of the variance of the X values in each phase bin. 
+%- meanVarX: The mean of the variance of the X values 
 Norm = 1/sqrt(2);
 %Norm ist the factor in the relation between the quadratures and the ladder
 %operators: q = Norm*(a^{+} + a), p = Norm*i*(a^{+} - a)
@@ -32,14 +33,16 @@ defaultVarBins = 200;
 defaultHusimi = {};
 defaultOutput = 'figure';
 defaultZoom = 'none';
+defaultFilename = '';
 addParameter(p,'PhaseBins',defaultPhaseBins,@isnumeric);
 addParameter(p,'VarBins',defaultVarBins,@isnumeric);
 addParameter(p,'Husimi',defaultHusimi);
 addParameter(p,'Output',defaultOutput);
 addParameter(p,'Zoom',defaultZoom,@isstr);
+addParameter(p,'Filename',defaultFilename,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[husimi,output,phaseBins,varBins,zoom] = c{:};
+[filename,husimi,output,phaseBins,varBins,zoom] = c{:};
 
 %% Strip X and theta of their NaN values
 X = X(~isnan(theta));
@@ -123,7 +126,7 @@ end
 %% Output to File
 if strcmp(output,'print')
     fig.PaperPositionMode = 'auto';
-    print(['Variance-',num2str(varBins),'-varBins-',num2str(phaseBins), ...
+    print([filename '-Variance-',num2str(varBins),'-varBins-',num2str(phaseBins), ...
         '-phaseBins','.pdf'],'-dpdf');
 end
 
