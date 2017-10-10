@@ -1,4 +1,4 @@
-function [phaseVariance, varXvar, meanVarX] = assessTheta(theta, X, varargin)
+function [phaseVariance, varXvar, meanVarX, varTable] = assessTheta(theta, X, varargin)
 %This function assesses the final result of X3 and theta. It plots the
 %distribution of the computed phase and the variance of the distribution.
 %It also sorts the X values into phase bins.
@@ -129,5 +129,11 @@ if strcmp(output,'print')
     print([filename '-Variance-',num2str(varBins),'-varBins-',num2str(phaseBins), ...
         '-phaseBins','.pdf'],'-dpdf');
 end
+
+%% Create output table
+Phase = xAxis';
+meanX = meanXBinned';
+varX = varXBinned';
+varTable = table(Phase,meanX,varX);
 
 end
