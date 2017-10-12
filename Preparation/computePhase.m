@@ -12,7 +12,7 @@ p = inputParser;
 % For peak detection it is important to know how many wavelengths are
 % located in one measured piezo segment. Optional: Implement automatic
 % computation from config.
-defaultPeriod = 1.2;
+defaultPeriod = 2;  %1.2
 % Choose 'plot' for a graphical output
 defaultPlot = 'noplot';
 defaultDebug = 0;
@@ -44,13 +44,15 @@ for iSeg = 1:nSegments
     % To reconstruct the phase, the algorithm has to identify maxima and
     % minima in the data. This is done by the function _findpeaks_.
     % However, the parameters have to be chosen carefully.
-    peakOpts.MinPeakDistance = 0.6 * length(y)/periodsPerSeg;
+    peakOptsMax.MinPeakDistance = 0.6 * length(y)/periodsPerSeg;
+    peakOptsMin.MinPeakDistance = 0.6 * length(y)/periodsPerSeg;
     % _MinPeakDistance_ is by far the most important parameter. It
     % determines how far away of each other the found peaks must be. In our
     % case, the data should exhibit a certain periodicity and we want to
     % know where the maximum and minimum in each period is. Therefore, a
     % _MinPeakDistance_ of roughly 50% of the period should do the trick.
-    peakOpts.MinPeakHeight = 0.5 * max(y);
+    peakOptsMax.MinPeakHeight = 0.5 * max(y);
+    peakOptsMin.MinPeakHeight = 0.5 * max(-y);
     % Because of different noise sources and instabilities, the distance
     % between maxima and minima in _y_ is uncertain to some degree.
     % _MinPeakHeight_ ensures, that only peaks above a certain threshold
@@ -59,8 +61,8 @@ for iSeg = 1:nSegments
     
     %% Find peaks for flank recognition
     if strcmp(plotArg,'plot') || iSeg == debug
-        findpeaks(y,peakOpts,'Annotate','extents'); hold on;
-        findpeaks(-y,peakOpts,'Annotate','extents'); hold off;
+        findpeaks(y,peakOptsMax,'Annotate','extents'); hold on;
+        findpeaks(-y,peakOptsMin,'Annotate','extents'); hold off;
         title({'Mousebutton: Reject','Keyboard: Accept'});
         key = waitforbuttonpress;
         if key == 0 %mouse
@@ -68,8 +70,8 @@ for iSeg = 1:nSegments
             continue
         end
     end
-    [~,maxlocs] = findpeaks(y,peakOpts);
-    [~,minlocs] = findpeaks(-y,peakOpts);
+    [~,maxlocs] = findpeaks(y,peakOptsMax);
+    [~,minlocs] = findpeaks(-y,peakOptsMin);
     maxpks = y(maxlocs);
     minpks = y(minlocs);
     assert(abs(length(maxpks)-length(minpks))<2,...
