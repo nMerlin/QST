@@ -4,6 +4,9 @@ function [O1,O2,O3,oTheta] = selectOrthogonal(X1,X2,X3,theta,piezoSign,varargin)
 % Input Arguments:
 %   (X1,X2,X3) is a 3-Channel dataset, prepared by PREPARE3CHDATA (i.e.
 %   reshaped into piezo-segments with offset already removed)
+%   X1 is the channel that is used for orthogonal selection as well as for 
+%   the relative phase computation between X1 and X3. 
+%   X2 is only used for orthogonal selection.
 %   theta - reconstructed phase for X3, prepared with COMPUTEPHASE
 %   piezoSign - starting sign of the piezo movement
 %
