@@ -48,7 +48,14 @@ channelnumber = config.SpectrumCard.Channel00.Enable_BOOL + ...
     config.SpectrumCard.Channel02.Enable_BOOL + ...
     config.SpectrumCard.Channel03.Enable_BOOL;
 segmentsize = config.SpectrumCard.ModeSetup.Segmentsize_I32;
-memsize = config.SpectrumCard.ModeSetup.Memory_DBL;
+
+%get memsize; The field could be called "Memory_I32" or "Memory_DBL" 
+names = fieldnames(config.SpectrumCard.ModeSetup);
+Index = find(not(cellfun('isempty', strfind(names, 'Memory'))));
+memsize = getfield(config.SpectrumCard.ModeSetup, cell2mat(names(Index)));
+%assure its an integer
+memsize = round(memsize);
+
 number_of_recordings = memsize/segmentsize;
 
 data = fread(datafileID,[segmentsize*channelnumber number_of_recordings], 'int8=>int8');
