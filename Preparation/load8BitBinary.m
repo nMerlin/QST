@@ -48,7 +48,7 @@ channelnumber = config.SpectrumCard.Channel00.Enable_BOOL + ...
     config.SpectrumCard.Channel02.Enable_BOOL + ...
     config.SpectrumCard.Channel03.Enable_BOOL;
 segmentsize = config.SpectrumCard.ModeSetup.Segmentsize_I32;
-memsize = config.SpectrumCard.ModeSetup.Memory_I32;
+memsize = config.SpectrumCard.ModeSetup.Memory_DBL;
 number_of_recordings = memsize/segmentsize;
 
 data = fread(datafileID,[segmentsize*channelnumber number_of_recordings], 'int8=>int8');
