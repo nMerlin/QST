@@ -13,7 +13,7 @@ function [  ] = plotPointwiseVariance( data, filename )
 %   See also: POINTWISEVARIANCE
 
 %% Plot pointwise variance
-pointwiseVariance(data, 'showplot');
+pointwiseVariance(data,'Plot','show');
 
 %% Handle saving of the plot
 switch nargin
