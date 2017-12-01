@@ -1,7 +1,17 @@
-function [ X ] = computeQuadratures( data8bit, config, amperePerVolt )
+function [ X ] = computeQuadratures( data8bit, config, amperePerVolt, varargin )
 %COMPUTEQUADRATURES Compute quadrature values in number of photons
 %
 % CALIBRATION is given in A/V
+
+%% Validate and parse input arguments
+p = inputParser;
+defaultLocationOffset = 0;
+defaultIntegrationWindow = 0;
+addParameter(p,'LocationOffset',defaultLocationOffset,@isnumeric);
+addParameter(p,'IntegrationWindow',defaultIntegrationWindow,@isnumeric);
+parse(p,varargin{:});
+c = struct2cell(p.Results);
+[locationOffset,integrationWindow] = c{:};
 
 INTEGRATION_DUTY_CYCLE = 1/3;
 SAMPLERATE = config.SpectrumCard.Clock.SamplingRate0x28MHz0x29_DBL * 10e6;
@@ -22,12 +32,17 @@ end
 [nRows, nColumns, nChannels] = size(data8bit);
 
 for iCh = 1:nChannels
-    % Identify integration centers
+    % Identify integration centers and add offset if necessary
     [locs,~] = pointwiseVariance(data8bit(:,:,iCh));
+    locs = locs + locationOffset;
 
     % Eliminate locations whose corresponding window would be outside the range
     % of DATA (allowed are even windows that go exactly to the edge boundary).
-    window = round(INTEGRATION_DUTY_CYCLE * mean(diff(locs)));
+    if integrationWindow == 0
+        window = round(INTEGRATION_DUTY_CYCLE * mean(diff(locs)));
+    else
+        window = integrationWindow;
+    end
     if (locs(1)<=ceil(window/2))
         locs = locs(2:end);
     end
