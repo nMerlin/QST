@@ -13,18 +13,15 @@ function [ locs, pvar ] = pointwiseVariance( data, varargin )
 %   [___] = POINTWISEVARIANCE(___,'showplot') additionally plots the signal
 %   and overlays the peak values
 
-%% Handle optional input arguments
-verbose = 0;
-showplot = 0;
-quiet = 'notquiet';
-if nargin > 1
-    for i = 1:nargin-1
-        eval([varargin{i} '=1;']);
-    end
-end
-if verbose == 0
-    quiet = 'quiet';
-end
+%% Validate and parse input arguments
+p = inputParser;
+defaultPlot = 'hide'; % other option is 'show'
+defaultMinPeakDistance = 10;
+addParameter(p,'Plot',defaultPlot,@isstr);
+addParameter(p,'MinPeakDistance',defaultMinPeakDistance,@isnumeric);
+parse(p,varargin{:});
+c = struct2cell(p.Results);
+[minPeakDist,plotOpt] = c{:};
 
 %% Subtract DC offset and calculate pointwise variance
 assert(ismatrix(data),'DATA is not a matrix!');
@@ -49,9 +46,9 @@ end
 
 %% Find peaks
 options.MinPeakHeight = mean(pvar);
-options.MinPeakDistance = 10;
+options.MinPeakDistance = minPeakDist;
 [~,locs] = findpeaks(pvar,options);
-if showplot == 1
+if strcmp(plotOpt,'show')
     findpeaks(pvar,options);
 end
 assert(not(isempty(locs)),'No maxima found in the pointwise variance!');
