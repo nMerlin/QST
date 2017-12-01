@@ -13,10 +13,12 @@ function [X, piezoSign] = prepare1ChData(filenameLO, filenameSIG, varargin)
 %% Validate and parse input arguments
 p = inputParser;
 defaultChannel = 1;
+defaultPickingFactor = 1;
 addParameter(p,'Channel',defaultChannel,@isnumeric);
+addParameter(p,'PickingFactor',defaultPickingFactor,@isnumeric);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[channel] = c{:};
+[channel,pickingFactor] = c{:};
 
 CALIBRATION_CH1 = 4.596047840078126e-05; % Ampere per Volt
 
@@ -35,8 +37,14 @@ dispstat('Loading Signal data ...','timestamp','keepthis',0);
 % Compute number of LO photons
 dispstat('Computing number of LO photons ...', ...
     'timestamp','keepthis',0);
-XLO = computeQuadratures(data8bitLO(:,:,channel), configLO, ...
+if pickingFactor == 20
+    XLO = computeQuadratures(data8bitLO(:,:,channel), configLO, ...
+        CALIBRATION_CH1,'LocationOffset',40,'IntegrationWindow',96, ...
+        'MinPeakDistance',300);
+else
+    XLO = computeQuadratures(data8bitLO(:,:,channel), configLO, ...
     CALIBRATION_CH1);
+end
 
 % Calculate the variance piece-wise to compensate slow drifts (e.g.
 % piezos)
@@ -45,8 +53,14 @@ NLO = mean(var(XLO));
 % Compute quadratures for target quantum state
 dispstat('Computing target quadratures ...', ...
     'timestamp','keepthis',0);
-X = computeQuadratures(data8bitSIG(:,:,channel), configSIG, ...
+if pickingFactor == 20
+    X = computeQuadratures(data8bitSIG(:,:,channel), configSIG, ...
+        CALIBRATION_CH1,'LocationOffset',40,'IntegrationWindow',96, ...
+        'MinPeakDistance',300);
+else
+    X = computeQuadratures(data8bitSIG(:,:,channel), configSIG, ...
     CALIBRATION_CH1);
+end
 
 % Calibration of quadratures to vacuum state
 X = Norm * X / sqrt(NLO);
