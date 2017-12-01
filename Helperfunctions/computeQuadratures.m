@@ -7,11 +7,13 @@ function [ X ] = computeQuadratures( data8bit, config, amperePerVolt, varargin )
 p = inputParser;
 defaultLocationOffset = 0;
 defaultIntegrationWindow = 0;
+defaultMinPeakDistance = 10;
 addParameter(p,'LocationOffset',defaultLocationOffset,@isnumeric);
 addParameter(p,'IntegrationWindow',defaultIntegrationWindow,@isnumeric);
+addParameter(p,'MinPeakDistance',defaultMinPeakDistance,@isnumeric);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[locationOffset,integrationWindow] = c{:};
+[integrationWindow,locationOffset,minPeakDistance] = c{:};
 
 INTEGRATION_DUTY_CYCLE = 1/3;
 SAMPLERATE = config.SpectrumCard.Clock.SamplingRate0x28MHz0x29_DBL * 10e6;
@@ -33,7 +35,8 @@ end
 
 for iCh = 1:nChannels
     % Identify integration centers and add offset if necessary
-    [locs,~] = pointwiseVariance(data8bit(:,:,iCh));
+    [locs,~] = pointwiseVariance(data8bit(:,:,iCh), ...
+        'MinPeakDistance',minPeakDistance);
     locs = locs + locationOffset;
 
     % Eliminate locations whose corresponding window would be outside the range
