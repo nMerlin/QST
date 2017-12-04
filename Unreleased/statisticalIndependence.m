@@ -1,4 +1,4 @@
-function [correlations, delayArray] = statisticalIndependence(filename, varargin)
+function [correlations, delayArray] = statisticalIndependence(filename, varargin) 
 %This function computes and plots the correlation between data from
 %FILENAME and the data shifted about a delay that is varied. 
 %PULSES is the maximum number of pulses about which the data should be
@@ -17,7 +17,7 @@ p = inputParser;
 defaultPulses = 20;  %1.2
 % Choose 'plot' for a graphical output
 defaultPlot = 'plot';
-defaultType = 'Quadratures';
+defaultType = 'quadratures';
 addParameter(p,'Pulses',defaultPulses,@isnumeric);
 addParameter(p,'Plot',defaultPlot);
 addParameter(p,'Type',defaultType);
