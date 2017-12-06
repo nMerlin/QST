@@ -1,4 +1,4 @@
-function [X1, X2, X3, piezoSign] = prepare3ChData(filenameLO, filenameSIG)
+function [X1, X2, X3, piezoSign] = prepare3ChData(filenameLO, filenameSIG, varargin)
 %PREPARE3CHDATA Returns quadratures of a 3-Channel-Measurement
 %
 % The quadrature matrices are already cut into piezo segments.
@@ -9,6 +9,14 @@ function [X1, X2, X3, piezoSign] = prepare3ChData(filenameLO, filenameSIG)
 % Output Arguments:
 %   piezoSign: +1 means piezo moves in the first segment from 0 to 2 um
 %              -1 means piezo moves in the first segment from 2 to 0 um
+
+%% Validate and parse input arguments
+p = inputParser;
+defaultPickingFactor = 1;
+addParameter(p,'PickingFactor',defaultPickingFactor,@isnumeric);
+parse(p,varargin{:});
+c = struct2cell(p.Results);
+[pickingFactor] = c{:};
 
 CALIBRATION_CH1 = 4.596047840078126e-05; % Ampere per Volt
 
@@ -27,8 +35,14 @@ dispstat('Load Signal data','timestamp','keepthis',0);
 % Compute number of LO photons
 dispstat('Computing number of LO photons for Channels 1 to 3.', ...
     'timestamp','keepthis',0);
-XLO = computeQuadratures(data8bitLO(:,:,1:3), configLO, ...
+if pickingFactor == 20
+    XLO = computeQuadratures(data8bitLO(:,:,1:3),configLO, ...
+        CALIBRATION_CH1,'LocationOffset',8, ...
+        'IntegrationWindow',30,'MinPeakDistance',75);
+else
+    XLO = computeQuadratures(data8bitLO(:,:,1:3),configLO, ...
     CALIBRATION_CH1);
+end
 
 % Calculate the variance piece-wise to compensate slow drifts (e.g.
 % piezos)
@@ -37,8 +51,14 @@ NLO = mean(var(XLO));
 % Compute quadratures for target quantum state
 dispstat('Computing target quadratures for Channels 1 to 3', ...
     'timestamp','keepthis',0);
-X = computeQuadratures(data8bitSIG(:,:,1:3), configSIG, ...
-    CALIBRATION_CH1);
+if pickingFactor == 20
+    X = computeQuadratures(data8bitSIG(:,:,1:3),configSIG, ...
+        CALIBRATION_CH1,'LocationOffset',8, ...
+        'IntegrationWindow',30,'MinPeakDistance',75);
+else
+    X = computeQuadratures(data8bitSIG(:,:,1:3),configSIG, ...
+        CALIBRATION_CH1);
+end
 
 for iCh = 1:3
     % Calibration of quadratures to vacuum state
