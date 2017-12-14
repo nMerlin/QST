@@ -6,6 +6,9 @@ function [X1, X2, X3, piezoSign] = prepare3ChData(filenameLO, filenameSIG, varar
 %   filenameLO - filename of the LO-data used for correct normalization
 %   filenameSIG - filename of the raw 3-Channel-Data
 %
+% With 'CorrRemove','yes', you can have the correlations of quadratures
+% with precedent quadratures removed. This may take a few minutes.
+%
 % Output Arguments:
 %   piezoSign: +1 means piezo moves in the first segment from 0 to 2 um
 %              -1 means piezo moves in the first segment from 2 to 0 um
@@ -14,9 +17,13 @@ function [X1, X2, X3, piezoSign] = prepare3ChData(filenameLO, filenameSIG, varar
 p = inputParser;
 defaultPickingFactor = 1;
 addParameter(p,'PickingFactor',defaultPickingFactor,@isnumeric);
+defaultCorrRemove = 'no';
+addParameter(p,'CorrRemove',defaultCorrRemove);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[pickingFactor] = c{:};
+[corrRemove, pickingFactor] = c{:};
+
+%%
 
 CALIBRATION_CH1 = 4.596047840078126e-05; % Ampere per Volt
 
@@ -68,6 +75,13 @@ for iCh = 1:3
     dispstat(['Removing piecewise offset from channel ',num2str(iCh), ...
         ' ...'],'timestamp','keepthis',0);
     X(:,:,iCh) = bsxfun(@minus, X(:,:,iCh), mean(X(:,:,iCh)));
+    
+    if strcmp(corrRemove,'yes')
+        %Removing correlations with precedent pulses
+        dispstat(['Removing correlations from channel ',num2str(iCh), ...
+            ' ...'],'timestamp','keepthis',0);
+        X(:,:,iCh) = correlationCompensation(X(:,:,iCh));
+    end
     
     % Cut the raw data into segments of equal length according to piezo
     % modulation
