@@ -1,14 +1,12 @@
-function [ QF ] = thermHusimi(q,p,nPhotons)
+function [ QF ] = thermHusimi(q,p,nPhotons,disc)
 %THERMHUSIMI Returns Q(q,p) for a thermal state with NPHOTONS.
 %   Detailed explanation goes here
 
-disc = min(diff(q));
 QF = zeros(length(q),length(p));
 for iP = 1:length(p)
-    QF(:,iP)=2*disc^2/pi*1/(nPhotons+1)* ...
-        exp(-1/2*(q.^2+p(iP).^2)/(nPhotons+1));
+    QF(:,iP)=disc^2*1/(pi*(nPhotons+1))*exp(-(q.^2+p(iP).^2)/(nPhotons+1));
 end
-%HF = HF./sum(sum(HF)); % Renorm (necessary due to discretization)
+%HF = HF./sum(sum(HF)); % Usually not necessary
 
 end
 
