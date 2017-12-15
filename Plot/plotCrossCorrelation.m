@@ -23,9 +23,9 @@ ys23 = smoothCrossCorr(X2,X3);
 %% Plot
 [nPoints,~] = size(ys12);
 hold on;
-plot(ys12(1:nPoints*N_SEGMENTS));
-plot(ys13(1:nPoints*N_SEGMENTS));
-plot(ys23(1:nPoints*N_SEGMENTS));
+plot(ys12(1:nPoints*N_SEGMENTS),'linewidth',3);
+plot(ys13(1:nPoints*N_SEGMENTS),'linewidth',3);
+plot(ys23(1:nPoints*N_SEGMENTS),'linewidth',3);
 hold off;
 %set(gca,'XLim',[min(x) max(x)]);
 title('Smoothed Cross-Correlations');
