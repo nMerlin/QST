@@ -21,8 +21,10 @@ if verbose == 0
 end
 
 % Parameters & Variables
-windowSize = 40; %Integrationwindow
-fitThreshold = 250; %fitting a*sqrt(x) only for powers >= fitThreshold
+intOpts.IntegrationWindow = 230; % Options for 'computeQuadratures'
+intOpts.LocationOffset = 90;
+amperePerVolt = 1e-09;
+fitThreshold = 50; %fitting a*sqrt(x) only for powers >= fitThreshold
 wavelength = 800e-9;
 repetitionRate = 75.4e6;
 planck = 6.626070040e-34;
@@ -63,15 +65,14 @@ powerLO = cell2mat({dataStruct.powerLO});
 % Calculate deltaQ=sqrt(var(Q)) of the quadrature values;  Get positions for integration from each LO-power
 dispstat('Calculating deltaQ ...','timestamp','keepthis',quiet);
 %Use locations of max power for all integrations
-[data8bitMax,~,~] = load8BitBinary(dataStruct(end).filename,'dontsave');  
-[locs,~] = pointwiseVariance(data8bitMax,'MinPeakDistance',300);
-[~,X]=correlation(0,data8bitMax,locs);
+[data8bitMax,config,~]=load8BitBinary(dataStruct(end).filename,'dontsave');  
+[intOpts.Locations,~] = pointwiseVariance(data8bitMax,'MinPeakDistance',300);
+X = computeQuadratures(data8bitMax,config,amperePerVolt,intOpts);
 dataStruct(end).deltaQ = sqrt(var(X(:)));
 
 parfor number=1:(size(dataStruct,2)-1)
-    [data8bit,~,~] = load8BitBinary(dataStruct(number).filename,'dontsave');  
-    %[locs,~] = pointwiseVariance(data8bit,'MinPeakDistance',300);
-    [~,X]=correlation(0,data8bit,locs);
+    [data8bit,~,~] = load8BitBinary(dataStruct(number).filename,'dontsave');
+    X = computeQuadratures(data8bit,config,amperePerVolt,intOpts);
     dataStruct(number).deltaQ = sqrt(var(X(:)));
 end
 
