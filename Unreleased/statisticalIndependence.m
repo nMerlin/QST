@@ -1,23 +1,30 @@
 function [correlations, delayArray] = statisticalIndependence(data, varargin) 
-%This function computes and plots the correlation between data.
-%DATA can either be raw data (data8bit) or already computed quadratures.
-%PULSES is the maximum number of pulses about which the data should be
-%shifted.
-%TYPE is the kind of data you want to use. You can either choose the
-%raw data with 'rawdata' or the quadratures (integration of raw data) with
-% 'quadratures'. When choosing rawdata, the computation may take long.
-
-%Output arguments:
-%CORRELATIONS contains the correlation for all the delays and all three
-%channels.
-%DELAYARRAY contains the delays.
+% This function computes and plots the autocorrelation of the given data.
+%
+% Input Arguments:
+%   DATA: 1D,2D or 3D matrix; the autocorrelation will be calculated along
+%       the first dimension.
+%
+% Output Arguments:
+%   CORRELATIONS: Contains the correlation for all the delays and all three
+%       channels.
+%   DELAYARRAY: Is a vector with all employed delays.
+%
+% Optional Input Arguments ('Name',Value):
+%   'Pulses',N: The autocorrelation will be computed for the shifts
+%       1,2,...,N. Default: N=20.
+%   'Plot','Val': A plot of the resulting correlation values can be shown,
+%       if 'Val'='show'. Default: 'Val'='show'.
+%   'Type','Val': Specifies the type of the input data matrix. Default is
+%       'Val'='preformatted', not modifying the DATA matrix. When using a
+%       raw data DATA-matrix, employ the option 'rawdata'.
+%   'Method','Val': 
 
 %% Validate and parse input arguments
 p = inputParser;
-defaultPulses = 20;  %1.2
-% Choose 'plot' for a graphical output
-defaultPlot = 'plot';
-defaultType = 'quadratures';
+defaultPulses = 20;
+defaultPlot = 'show';
+defaultType = 'preformatted';
 defaultMethod = 'matrix';
 addParameter(p,'Pulses',defaultPulses,@isnumeric);
 addParameter(p,'Plot',defaultPlot);
@@ -43,7 +50,11 @@ if strcmp(type,'rawdata')  %use rawdata
     start = locs(1);
 end
 
-if strcmp(type,'quadratures')  %use quadratures
+if strcmp(type,'preformatted')  %use quadratures
+    % Workaround for single-channel data arrays:
+    if size(data,3)==1
+        data = repmat(data,1,1,3);
+    end
     X1 = data(:,:,1);
     X2 = data(:,:,2);
     X3 = data(:,:,3);
@@ -73,7 +84,7 @@ end
 toc;
 
 %% plot
-if strcmp(plotArg,'plot')
+if strcmp(plotArg,'show')
     plot(delayArray, correlations(1,:),'o','MarkerEdgeColor','b','MarkerFaceColor','b',...
         'MarkerSize',13);
     hold on;
@@ -83,7 +94,7 @@ if strcmp(plotArg,'plot')
         'MarkerSize',13);
     legend('Channel 1', 'Channel 2','Channel 3','location','best');
     ylabel('correlation coefficient');
-    if strcmp(type,'quadratures')
+    if strcmp(type,'preformatted')
         title('Correlation Coefficient of Pulses');
         xlabel('Pulse distance');
     end
@@ -97,7 +108,6 @@ if strcmp(plotArg,'plot')
 end
 
 end
-
 
 function corr = delayCorr(X, delay)
     A = X(1:end-delay);
