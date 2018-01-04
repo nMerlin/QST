@@ -18,7 +18,9 @@ function [correlations, delayArray] = statisticalIndependence(data, varargin)
 %   'Type','Val': Specifies the type of the input data matrix. Default is
 %       'Val'='preformatted', not modifying the DATA matrix. When using a
 %       raw data DATA-matrix, employ the option 'rawdata'.
-%   'Method','Val': 
+%   'Method','Val': When choosing 'Val'='matrix', the first two dimensions
+%       of DATA are considered as one. By using the default 'Val'='vector',
+%       Each column will be considered as a separate measurement.
 
 %% Validate and parse input arguments
 p = inputParser;
@@ -35,7 +37,8 @@ c = struct2cell(p.Results);
 [method, plotArg, pulses,type] = c{:};
 
 %% get data to be used
- 
+dims = ndims(data);
+
 if strcmp(type,'rawdata')  %use rawdata
     X1 = data(:,:,1);
     X2 = data(:,:,2);
@@ -52,7 +55,7 @@ end
 
 if strcmp(type,'preformatted')  %use quadratures
     % Workaround for single-channel data arrays:
-    if size(data,3)==1
+    if dims == 2
         data = repmat(data,1,1,3);
     end
     X1 = data(:,:,1);
@@ -85,14 +88,18 @@ toc;
 
 %% plot
 if strcmp(plotArg,'show')
-    plot(delayArray, correlations(1,:),'o','MarkerEdgeColor','b','MarkerFaceColor','b',...
-        'MarkerSize',13);
-    hold on;
-    plot(delayArray, correlations(2,:),'d','MarkerEdgeColor','r','MarkerFaceColor','r',...
-        'MarkerSize',13);
-    plot(delayArray, correlations(3,:),'s','MarkerEdgeColor','k','MarkerFaceColor','k',...
-        'MarkerSize',13);
-    legend('Channel 1', 'Channel 2','Channel 3','location','best');
+    plot(delayArray, correlations(1,:),'o','MarkerEdgeColor','b', ...
+        'MarkerFaceColor','b','MarkerSize',13);
+    if dims>2
+        hold on;
+        plot(delayArray, correlations(2,:),'d','MarkerEdgeColor','r', ...
+            'MarkerFaceColor','r','MarkerSize',13);
+        plot(delayArray, correlations(3,:),'s','MarkerEdgeColor','k', ...
+            'MarkerFaceColor','k','MarkerSize',13);
+        legend('Channel 1', 'Channel 2','Channel 3','location','best');
+    else
+        legend('Channel 1', 'location','best');
+    end
     ylabel('correlation coefficient');
     if strcmp(type,'preformatted')
         title('Correlation Coefficient of Pulses');
@@ -100,7 +107,8 @@ if strcmp(plotArg,'show')
     end
     
     if strcmp(type,'rawdata')
-        plot(locs(1:pulses)-start,0*ones(pulses),'v','MarkerEdgeColor','r','MarkerFaceColor','r','MarkerSize',9);
+        plot(locs(1:pulses)-start,0*ones(pulses),'v','MarkerEdgeColor', ...
+            'r','MarkerFaceColor','r','MarkerSize',9);
        title('Correlation Coefficient of Samples');
         xlabel('Sample distance');
     end
@@ -117,8 +125,8 @@ function corr = delayCorr(X, delay)
 end
 
 function corr = delayCorrVectorwise(X, delay, start)
-    A = X(start,:);
-    B = X(start+delay,:);
+    A = X(start+2,:);
+    B = X(start+2+delay,:);
     corr = corrcoef(A,B);
     corr = corr(1,2);
 
