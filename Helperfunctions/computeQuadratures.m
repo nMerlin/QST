@@ -13,9 +13,12 @@ defaultIntegrationWindow = 0;
 addParameter(p,'IntegrationWindow',defaultIntegrationWindow,@isnumeric);
 defaultMinPeakDistance = 10;
 addParameter(p,'MinPeakDistance',defaultMinPeakDistance,@isnumeric);
+defaultShowIntegration = false;
+addParameter(p,'ShowIntegration',defaultShowIntegration,@islogical);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[integrationWindow,locationOffset,locs,minPeakDistance] = c{:};
+[integrationWindow,locationOffset,locs,minPeakDistance, ...
+    showIntegration] = c{:};
 
 INTEGRATION_DUTY_CYCLE = 1/3;
 SAMPLERATE = config.SpectrumCard.Clock.SamplingRate0x28MHz0x29_DBL * 10e6;
@@ -84,6 +87,15 @@ for iCh = 1:nChannels
     start = locs-ceil(window/2);
     stop = locs+ceil(window/2);
     windowTime = (stop-start+1) * 1 / SAMPLERATE;
+    
+    % Visualize integration windows
+    if showIntegration == true && iCh == 1
+        plot(data8bit(:,1,iCh));
+        hold on;
+        plot(start,zeros(size(start)),'*');
+        plot(stop,zeros(size(stop)),'o');
+        hold off;
+    end
 
     nWindows = length(locs);
     for iWindow = 1 : nWindows
