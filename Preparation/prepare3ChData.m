@@ -51,6 +51,13 @@ else
     CALIBRATION_CH1);
 end
 
+if strcmp(corrRemove,'yes')
+        %Removing correlations with precedent pulses
+        XLO(:,:,1:3) = bsxfun(@minus, XLO(:,:,1:3), mean(XLO(:,:,1:3)));
+        dispstat('Removing correlations from LO... ','timestamp','keepthis',0);
+        XLO = correlationCompensation(XLO);
+end
+
 % Calculate the variance piece-wise to compensate slow drifts (e.g.
 % piezos)
 NLO = mean(var(XLO));
