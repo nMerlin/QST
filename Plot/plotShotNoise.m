@@ -7,6 +7,9 @@ function [ deltaQ, powerLO ] = plotShotNoise( varargin )
 %   The filename-convention is '03-0.1mW-*.raw'.
 %
 %   See also LOAD8BITBINARY.
+%
+%   Optional Input Arguments:
+%     'Verbose': Option 'quiet' mutes the command line output.
 
 %% Validate and parse input arguments
 p = inputParser;
@@ -16,7 +19,7 @@ parse(p,varargin{:});
 c = struct2cell(p.Results);
 [quiet] = c{:};
 
-% Parameters & Variables
+%% Constants
 windowSize = 40; %Integrationwindow
 fitThreshold = 5; %fitting a*sqrt(x) only for powers >= fitThreshold
 wavelength = 800e-9;
@@ -30,14 +33,15 @@ outputFiletype = '-djpeg';
 
 dataStruct = struct('filename',{},'powerLO',{},'NLO',{},'deltaQ',{});
 
-%%% Create data overview
+%% Create data overview
 dispstat('','init',quiet);
 dispstat('Checking filenames ...','timestamp','keepthis',quiet);
 rawDataContents = dir('raw-data');
 for name = {rawDataContents.name}
     % Loop only over *.raw files
     filename = cell2mat(name);
-    if not(isempty(regexpi(filename,'.raw.','match'))) || isempty(regexpi(filename,'.raw','match'))
+    if not(isempty(regexpi(filename,'.raw.','match'))) || ...
+            isempty(regexpi(filename,'.raw','match'))
         continue
     end
     
@@ -51,14 +55,13 @@ for name = {rawDataContents.name}
     dataStruct(number).powerLO = str2double(cell2mat(powerToken{1}));
     dataStruct(number).NLO = dataStruct(number).powerLO*powerConversion;
 end
-
-
 powerLO = cell2mat({dataStruct.powerLO});
 [maxPowerLO,~] = max(powerLO);
 
-% Calculate deltaQ=sqrt(var(Q)) of the quadrature values;  Get positions for integration from each LO-power
+% Calculate deltaQ=sqrt(var(Q)) of the quadrature values and get positions
+% for integration from each LO-power
 dispstat('Calculating deltaQ ...','timestamp','keepthis',quiet);
-%For 0mW, the locations of 0.1 mW are used.
+% For 0mW, the locations of 0.1 mW are used.
 [data8bit0,~,~] = load8BitBinary(dataStruct(1).filename,'dontsave');  
 [data8bit1,~,~] = load8BitBinary(dataStruct(2).filename,'dontsave');
 [locs,~] = pointwiseVariance(data8bit1);
@@ -72,7 +75,7 @@ parfor number=2:size(dataStruct,2)
     dataStruct(number).deltaQ = sqrt(var(X(:)));
 end
 
-%%% Create shot noise plot
+%% Create shot noise plot
 % Process data
 plotX = 0.1:0.1:maxPowerLO;
 deltaQ = cell2mat({dataStruct.deltaQ});
