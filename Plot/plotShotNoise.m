@@ -26,9 +26,10 @@ wavelength = 800e-9;
 repetitionRate = 75.4e6;
 planck = 6.626070040e-34;
 lightSpeed = 299792458;
+amperePerVolt = 1e-09;
 powerConversion = wavelength/(planck*lightSpeed*repetitionRate)...
     /1000; %from mW to #LO photons per pulse
-outputFilename = 'shot-noise-plot2.jpg';
+outputFilename = 'shot-noise-plot.jpg';
 outputFiletype = '-djpeg';
 
 dataStruct = struct('filename',{},'powerLO',{},'NLO',{},'deltaQ',{});
@@ -61,17 +62,15 @@ powerLO = cell2mat({dataStruct.powerLO});
 % Calculate deltaQ=sqrt(var(Q)) of the quadrature values and get positions
 % for integration from each LO-power
 dispstat('Calculating deltaQ ...','timestamp','keepthis',quiet);
-% For 0mW, the locations of 0.1 mW are used.
-[data8bit0,~,~] = load8BitBinary(dataStruct(1).filename,'dontsave');  
-[data8bit1,~,~] = load8BitBinary(dataStruct(2).filename,'dontsave');
-[locs,~] = pointwiseVariance(data8bit1);
-[~,X]=correlation(0,data8bit0,locs);
-dataStruct(1).deltaQ = sqrt(var(X(:)));
+% Use locations of max power for all integrations
+[data8bitMax,config,~]=load8BitBinary(dataStruct(end).filename,'dontsave');
+[intOpts.Locations,~]=pointwiseVariance(data8bitMax,'MinPeakDistance',10);
+X = computeQuadratures(data8bitMax,config,amperePerVolt,intOpts);
+dataStruct(end).deltaQ = sqrt(var(X(:)));
 
-parfor number=2:size(dataStruct,2)
-    [data8bit,~,~] = load8BitBinary(dataStruct(number).filename,'dontsave');  
-    [locs,~] = pointwiseVariance(data8bit);
-    [~,X]=correlation(0,data8bit,locs);
+parfor number=1:(size(dataStruct,2)-1)
+    [data8bit,~,~]=load8BitBinary(dataStruct(number).filename,'dontsave');
+    X = computeQuadratures(data8bit,config,amperePerVolt,intOpts);
     dataStruct(number).deltaQ = sqrt(var(X(:)));
 end
 
