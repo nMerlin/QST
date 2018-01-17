@@ -15,12 +15,13 @@ defaultMinPeakDistance = 10;
 addParameter(p,'MinPeakDistance',defaultMinPeakDistance,@isnumeric);
 defaultShowIntegration = false;
 addParameter(p,'ShowIntegration',defaultShowIntegration,@islogical);
+defaultDutyCycle = 1/3; % Integration duty cycle
+addParameter(p,'DutyCycle',defaultDutyCycle,@isnumeric);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[integrationWindow,locationOffset,locs,minPeakDistance, ...
+[dutycycle,integrationWindow,locationOffset,locs,minPeakDistance, ...
     showIntegration] = c{:};
 
-INTEGRATION_DUTY_CYCLE = 1/3;
 SAMPLERATE = config.SpectrumCard.Clock.SamplingRate0x28MHz0x29_DBL * 10e6;
 ELEMENTARY_CHARGE = 1.6021766208e-19;
 
@@ -49,7 +50,7 @@ for iCh = 1:nChannels
     % Eliminate locations whose corresponding window would be outside the range
     % of DATA (allowed are even windows that go exactly to the edge boundary).
     if integrationWindow == 0
-        window = round(INTEGRATION_DUTY_CYCLE * mean(diff(locs)));
+        window = round(dutycycle * mean(diff(locs)));
     else
         window = integrationWindow;
     end
