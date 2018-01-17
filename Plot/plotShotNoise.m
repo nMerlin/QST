@@ -8,17 +8,13 @@ function [ deltaQ, powerLO ] = plotShotNoise( varargin )
 %
 %   See also LOAD8BITBINARY.
 
-% Optional input arguments
-verbose = 0;
-quiet = 'notquiet';
-if nargin > 0
-    for i = 1:nargin
-        eval([varargin{i} '=1;']);
-    end
-end
-if verbose == 0
-    quiet = 'quiet';
-end
+%% Validate and parse input arguments
+p = inputParser;
+defaultQuiet = 'notquiet';
+addParameter(p,'Verbose',defaultQuiet,@isstr);
+parse(p,varargin{:});
+c = struct2cell(p.Results);
+[quiet] = c{:};
 
 % Parameters & Variables
 windowSize = 40; %Integrationwindow
@@ -29,7 +25,7 @@ planck = 6.626070040e-34;
 lightSpeed = 299792458;
 powerConversion = wavelength/(planck*lightSpeed*repetitionRate)...
     /1000; %from mW to #LO photons per pulse
-outputFilename = 'shot-noise-plot.jpg';
+outputFilename = 'shot-noise-plot2.jpg';
 outputFiletype = '-djpeg';
 
 dataStruct = struct('filename',{},'powerLO',{},'NLO',{},'deltaQ',{});
