@@ -20,7 +20,9 @@ function [correlations, delayArray] = statisticalIndependence(data, varargin)
 %       raw data DATA-matrix, employ the option 'rawdata'.
 %   'Method','Val': When choosing 'Val'='matrix', the first two dimensions
 %       of DATA are considered as one. By using the default 'Val'='vector',
-%       Each column will be considered as a separate measurement.
+%       Each column will be considered as a separate measurement. By using
+%       'Val' = 'vectorAverage', the correlations of all vectors with the
+%       same delay will be averaged.
 
 %% Validate and parse input arguments
 p = inputParser;
@@ -71,7 +73,7 @@ correlations = zeros(3,length(delayArray));
 tic;
 for i = 1:length(delayArray)
     
-    if strcmp(method,'matrix')  %use matrixwise computation of correlation
+    if strcmp(method,'matrix')  
         correlations(1,i) = delayCorr(X1,delayArray(i));
         correlations(2,i) = delayCorr(X2,delayArray(i));
         correlations(3,i) = delayCorr(X3,delayArray(i));
@@ -81,6 +83,12 @@ for i = 1:length(delayArray)
         correlations(1,i) = delayCorrVectorwise(X1,delayArray(i),start);
         correlations(2,i) = delayCorrVectorwise(X2,delayArray(i),start);
         correlations(3,i) = delayCorrVectorwise(X3,delayArray(i),start);
+    end
+    
+    if strcmp(method,'vectorAverage')
+        correlations(1,i) = delayCorrVectorwiseAverage(X1,delayArray(i),start);
+        correlations(2,i) = delayCorrVectorwiseAverage(X2,delayArray(i),start);
+        correlations(3,i) = delayCorrVectorwiseAverage(X3,delayArray(i),start);
     end
     
 end
@@ -129,14 +137,16 @@ function corr = delayCorrVectorwise(X, delay, start)
     B = X(start+2+delay,:);
     corr = corrcoef(A,B);
     corr = corr(1,2);
+end
 
+function corr = delayCorrVectorwiseAverage(X, delay, start)
 %     Averaging over several vectors.
-%     corrVector = zeros(length(start:size(X,1)-delay),1);
-%     for s = start:size(X,1)-delay
-%         A = X(s,:);
-%         B = X(s+delay,:);
-%         corrMatrix = corrcoef(A,B);
-%         corrVector(s-start+1) = corrMatrix(1,2);
-%     end
-%     corr = mean(corrVector);
+    corrVector = zeros(length(start:size(X,1)-delay),1);
+    for s = start:size(X,1)-delay
+        A = X(s,:);
+        B = X(s+delay,:);
+        corrMatrix = corrcoef(A,B);
+        corrVector(s-start+1) = corrMatrix(1,2);
+    end
+    corr = mean(corrVector);
 end
