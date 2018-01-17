@@ -35,7 +35,7 @@ rawDataContents = dir('raw-data');
 for name = {rawDataContents.name}
     % Loop only over *-FFT.txt files & get filename
     filename = cell2mat(name);
-    if isempty(regexpi(filename,'FFT.txt','match'))
+    if isempty(regexpi(filename,'FFT','match'))
         continue
     end
     
@@ -114,8 +114,8 @@ clearance = responseAverage - electronicNoiseAverage;
 % Calculate the CMRR
 cmrrStart = find(frequencyAxis > 75*1000000,1);
 cmrrStop = find(frequencyAxis > 76*1000000,1);
-[peakTwoDiodes,~]=findpeaks(cmrrTwoDiodes(cmrrStart:cmrrStop,2));
-[peakOneDiode,~]=findpeaks(cmrrOneDiode(cmrrStart:cmrrStop,2));
+[peakTwoDiodes,~]=max(findpeaks(cmrrTwoDiodes(cmrrStart:cmrrStop,2)));
+[peakOneDiode,~]=max(findpeaks(cmrrOneDiode(cmrrStart:cmrrStop,2)));
 
 dispstat('Plotting ...','timestamp','keepthis',quiet);
 %%% Plotting
@@ -135,7 +135,7 @@ legend(strcat('Response (',num2str(maxPower,4),' mW)'), ...
     'Location','northeast');
 
 % Plot shot noise clearance
-middleIndex = (startIndex + stopIndex)/2;
+middleIndex = round((startIndex + stopIndex)/2);
 xMid = frequencyAxis(middleIndex)/1000000;
 h = annotation('doublearrow');
 set(h,'parent',gca, ...
