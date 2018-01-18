@@ -19,9 +19,11 @@ defaultPickingFactor = 1;
 addParameter(p,'PickingFactor',defaultPickingFactor,@isnumeric);
 defaultCorrRemove = 'no';
 addParameter(p,'CorrRemove',defaultCorrRemove);
+defaultDutyCycle = 1/3; % Integration Duty Cycle
+addParameter(p,'DutyCycle',defaultDutyCycle,@isnumeric);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[corrRemove, pickingFactor] = c{:};
+[corrRemove,dutycycle,pickingFactor] = c{:};
 
 %%
 
@@ -45,10 +47,10 @@ dispstat('Computing number of LO photons for Channels 1 to 3.', ...
 if pickingFactor == 20
     XLO = computeQuadratures(data8bitLO(:,:,1:3),configLO, ...
         CALIBRATION_CH1,'LocationOffset',8, ...
-        'IntegrationWindow',30,'MinPeakDistance',75);
+        'IntegrationWindow',30,'MinPeakDistance',75,'DutyCycle',dutycycle);
 else
     XLO = computeQuadratures(data8bitLO(:,:,1:3),configLO, ...
-    CALIBRATION_CH1);
+    CALIBRATION_CH1,'DutyCycle',dutycycle);
 end
 
 if strcmp(corrRemove,'yes')
@@ -68,10 +70,10 @@ dispstat('Computing target quadratures for Channels 1 to 3', ...
 if pickingFactor == 20
     X = computeQuadratures(data8bitSIG(:,:,1:3),configSIG, ...
         CALIBRATION_CH1,'LocationOffset',8, ...
-        'IntegrationWindow',30,'MinPeakDistance',75);
+        'IntegrationWindow',30,'MinPeakDistance',75,'DutyCycle',dutycycle);
 else
     X = computeQuadratures(data8bitSIG(:,:,1:3),configSIG, ...
-        CALIBRATION_CH1);
+        CALIBRATION_CH1,'DutyCycle',dutycycle);
 end
 
 for iCh = 1:3
