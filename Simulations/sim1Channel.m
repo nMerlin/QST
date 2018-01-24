@@ -6,6 +6,8 @@ function [X] = sim1Channel(nSamples,varargin)
 
 %% Validate and parse input arguments
 p = inputParser;
+defaultFunction = @cohWigner;
+addParameter(p,'Function',defaultFunction);
 defaultMaxQuadrature = 20;
 addParameter(p,'MaxQuadrature',defaultMaxQuadrature,@isnumeric);
 defaultNPhotons = 10;
@@ -16,7 +18,7 @@ defaultQuadsDisc = 1/2^3;
 addParameter(p,'QuadsDisc',defaultQuadsDisc,@isnumeric);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[maxquadrature,nPhotons,phasedisc,quadsdisc] = c{:};
+[wignerFun,maxquadrature,nPhotons,phasedisc,quadsdisc] = c{:};
 
 %% Step 1: Discretize Wigner function and Phase Vector
 [q,p] = deal(-maxquadrature:quadsdisc:maxquadrature);
@@ -25,7 +27,7 @@ PH = 0:phasedisc:(360-phasedisc);
 %% Step 2: Cumulative distribution functions of integral projections
 CDF = zeros(length(q),length(PH));
 for iPhase=1:length(PH)
-    WF = cohWigner(q,p,nPhotons,'Theta',PH(iPhase));
+    WF = wignerFun(q,p,nPhotons,'Theta',PH(iPhase));
     IP = sum(WF); % Integral Projection
     CDF(:,iPhase) = cumsum(IP); % Cumulative distribution function
 end
