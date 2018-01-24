@@ -1,4 +1,4 @@
-function [X] = simVacX(nSamples,varargin)
+function [X] = sim1Channel(nSamples,varargin)
 %SIMVACX Outputs the simulated quadratures of a vacuum state
 %
 %   Input Arguments:
