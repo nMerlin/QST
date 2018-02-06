@@ -12,9 +12,9 @@ c = struct2cell(p.Results);
 
 %% Compute coherent cumulative distribution function or inverse
 if inverse
-    out = sqrt(2*nAv)*cosd(theta)+erfinv(-1+2*in);
+    out = sqrt(2*nAv).*cosd(theta)+erfinv(-1+2*in);
 else
-    out = 1/2*(1 + erf(in-sqrt(2*nAv)*cosd(theta)));
+    out = 1/2*(1 + erf(in-sqrt(2*nAv).*cosd(theta)));
 end
 
 end
