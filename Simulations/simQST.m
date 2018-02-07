@@ -1,44 +1,85 @@
-function X = simQST(nSamples,varargin)
-%SIMVACX Outputs the simulated quadratures of a vacuum state
+function [X1,X2,X3,fastPhases] = simQST(nPulses,nPieces,nSegments,varargin)
+%SIMQST Outputs the simulated quadratures of a quantum state tomography
+%experiment
 %
 %   Input Arguments:
 %       nSamples: Number of quadratures to generate.
 
 %% Validate and parse input arguments
 p = inputParser;
+defaultChannels = 1;
+addParameter(p,'Channels',defaultChannels,@isnumeric);
 defaultNPhotons = 10;
 addParameter(p,'NPhotons',defaultNPhotons,@isnumeric);
 defaultPhasePeriods = 1;
 addParameter(p,'PhasePeriods',defaultPhasePeriods,@isnumeric);
+defaultR1 = 1/sqrt(3);
+addParameter(p,'R1',defaultR1,@isnumeric);
+defaultR2 = 1/sqrt(2);
+addParameter(p,'R2',defaultR2,@isnumeric);
 defaultType = 'Thermal';
 addParameter(p,'Type',defaultType,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[nPhotons,phaseperiods,type] = c{:};
+[channels,nPhotons,phaseperiods,r1,r2,type] = c{:};
 
-%% Step 1: Draw phases
+%% Step 1: Draw phases (source)
+nSamples = nPulses * nPieces;
 if strcmp(type,'Thermal')
     % Draw uniformly distributed phases
-    Phases = rand(nSamples,1)*360;
+    Phases1 = rand(nSamples,nSegments)*360;
 elseif strcmp(type,'Coherent')
     % Pre-defined phases (e.g. by piezo modulation)
-    Phases = mod(linspace(0,phaseperiods*360,nSamples),360)';
+    Phases1 = mod(linspace(0,phaseperiods*360,nSamples),360)';
+    Phases1 = repmat(Phases1,1,nSegments);
 end
 
-%% Step 2: Draw average photon numbers
+%% Step 2: Draw average photon numbers (source)
 if strcmp(type,'Thermal')
     % Draw average photon numbers from simple exponential distribution
-    r = rand(nSamples,1);
-    Photons = exponentialCDF(r,nPhotons,'Inverse',true);
+    r = rand(nSamples,nSegments);
+    Photons1 = exponentialCDF(r,nPhotons,'Inverse',true);
 elseif strcmp(type,'Coherent')
     % Constant average photon number
-    Photons = ones(nSamples,1)*nPhotons;
+    Photons1 = ones(nSamples,nSegments)*nPhotons;
 end
 
-%% Step 3: Draw quadratures
+%% Step 3: Model beamsplitter effects
+if channels > 1
+    Photons2 = Photons1 * (1-r2^2);
+    Photons1 = Photons1 * r2^2;
+    deltaPhases = repmat(linspace(0,phaseperiods*360,nSamples)', ...
+        1,nSegments);
+    Phases2 = Phases1 + deltaPhases;
+end
+if channels > 2
+    Photons3 = Photons1 * (1-r1^2) * (1-r2^2);
+    Photons2 = Photons1 * (1-r1^2) * r2^2;
+    Photons1 = Photons1 * r1^2;
+    fastPhases = repmat(linspace(0,phaseperiods*360,nSamples)', ...
+        1,nSegments);
+    Phases2 = Phases1 + fastPhases; 
+    slowPhases = reshape(linspace(0,360*phaseperiods/100*nSegments, ...
+        nSamples*nSegments),[nSamples,nSegments]);
+    Phases3 = Phases1 + slowPhases;
+end
+
+%% Step 4: Draw quadratures
 % Draw uniformly distributed probabilities to get quadratures from CDF
-r = rand(nSamples,1);
-X = cohCDF(r,Phases,Photons,'Inverse',true);
+[X2,X3] = deal([]);
+X1 = cohCDF(rand(nSamples,nSegments),Phases1, ...
+    Photons1,'Inverse',true);
+X1 = reshape(X1,[nPulses,nPieces,nSegments]);
+if channels > 1
+    X2 = cohCDF(rand(nSamples,nSegments),Phases2, ...
+        Photons2,'Inverse',true);
+    X2 = reshape(X2,[nPulses,nPieces,nSegments]);
+end
+if channels > 2
+    X3 = cohCDF(rand(nSamples,nSegments),Phases3, ...
+        Photons3,'Inverse',true);
+    X3 = reshape(X3,[nPulses,nPieces,nSegments]);
+end
 
 end
 
