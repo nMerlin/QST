@@ -9,6 +9,8 @@ function [X1,X2,X3,fastPhases] = simQST(nPulses,nPieces,nSegments,varargin)
 p = inputParser;
 defaultChannels = 1;
 addParameter(p,'Channels',defaultChannels,@isnumeric);
+defaultFrequencies = [0.5 50 0];
+addParameter(p,'Frequencies',defaultFrequencies,@isvector);
 defaultNPhotons = 10;
 addParameter(p,'NPhotons',defaultNPhotons,@isnumeric);
 defaultPhasePeriods = 1;
@@ -21,7 +23,7 @@ defaultType = 'Thermal';
 addParameter(p,'Type',defaultType,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[channels,nPhotons,phaseperiods,r1,r2,type] = c{:};
+[channels,frequencies,nPhotons,phaseperiods,r1,r2,type] = c{:};
 
 %% Step 1: Draw phases (source)
 nSamples = nPulses * nPieces;
@@ -45,23 +47,35 @@ elseif strcmp(type,'Coherent')
 end
 
 %% Step 3: Model beamsplitter effects
-if channels > 1
-    Photons2 = Photons1 * (1-r2^2);
-    Photons1 = Photons1 * r2^2;
-    deltaPhases = repmat(linspace(0,phaseperiods*360,nSamples)', ...
-        1,nSegments);
-    Phases2 = Phases1 + deltaPhases;
-end
-if channels > 2
-    Photons3 = Photons1 * (1-r1^2) * (1-r2^2);
-    Photons2 = Photons1 * (1-r1^2) * r2^2;
-    Photons1 = Photons1 * r1^2;
-    fastPhases = repmat(linspace(0,phaseperiods*360,nSamples)', ...
-        1,nSegments);
-    Phases2 = Phases1 + fastPhases; 
-    slowPhases = reshape(linspace(0,360*phaseperiods/100*nSegments, ...
-        nSamples*nSegments),[nSamples,nSegments]);
-    Phases3 = Phases1 + slowPhases;
+switch channels
+    case 2
+        Photons2 = Photons1 * (1-r2^2);
+        Photons1 = Photons1 * r2^2;
+        deltaPhases = repmat(linspace(0,phaseperiods*360,nSamples)', ...
+            1,nSegments);
+        Phases2 = Phases1 + deltaPhases;
+    case 3
+        Photons3 = Photons1 * (1-r1^2) * (1-r2^2);
+        Photons2 = Photons1 * (1-r1^2) * r2^2;
+        Photons1 = Photons1 * r1^2;
+        % Index channels according to sorted frequencies
+        [~,ind] = sort(frequencies);
+        factor1 = frequencies(ind(end))/frequencies(ind(end-1));
+        factor2 = frequencies(ind(end))/frequencies(ind(end-2));
+        % Compute phase shifts
+        Phases = zeros(nSamples,nSegments,3);
+        Phases(:,:,3) = repmat(linspace(0,phaseperiods*360,nSamples)', ...
+            1,nSegments); % fastest modulation
+        Phases(:,:,2) = reshape(linspace(0, ...
+            360*phaseperiods/factor1*nSegments,nSamples*nSegments), ...
+            [nSamples,nSegments]); % second fastest
+        Phases(:,:,1) = reshape(linspace(0, ...
+            360*phaseperiods/factor2*nSegments,nSamples*nSegments), ...
+            [nSamples,nSegments]); % third fastest
+        % Add phaseshifts to corresponding channels
+        Phases3 = Phases1 + Phases(:,:,ind==3);
+        Phases2 = Phases1 + Phases(:,:,ind==2);
+        Phases1 = Phases1 + Phases(:,:,ind==1);
 end
 
 %% Step 4: Draw quadratures
