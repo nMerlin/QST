@@ -9,6 +9,9 @@ function out = exponentialCDF(in,exp,varargin)
 %   Optional Input Arguments:
 %       'Inverse': Boolean value indicating whether to use the inverse CDF
 %         or the CDF itself. Default is false (not inverting CDF).
+%
+%   Output Arguments:
+%       out: Output value or vector after applying CDF or inverse CDF.
 
 %% Validate and parse input arguments
 p = inputParser;
