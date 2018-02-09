@@ -35,7 +35,10 @@ function [X1,X2,X3,piezoSign] = simQST(nPulses,nPieces,nSegments,varargin)
 %         r1=1/sqrt(3) and r2=1/sqrt(2).
 %       'Type': You can specify the type of the measured quantum state.
 %         Currently only supports 'Coherent' (experimental) and 'Thermal'.
-%         Default is 'Thermal'.
+%         Default is 'Thermal'. For a thermal state measurement, a
+%         different coherent state is sampled for each quadrature. These
+%         states are drawn with a uniformly distributed random phase and an
+%         exponentially distributed average photon number.
 
 %% Validate and parse input arguments
 p = inputParser;
