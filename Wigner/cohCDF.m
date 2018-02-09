@@ -1,6 +1,18 @@
 function out = cohCDF(in,theta,nAv,varargin)
 %COHCDF Cumulative distribution function of integral projections from
-%arbitrary coherent Wigner functions
+%arbitrary coherent Wigner function.
+%
+%   Input Arguments:
+%       in: Input value or vector to apply the function on.
+%       theta: Phase-space angle to the projection axis in degrees.
+%       nAv: Average number of photons in the coherent state.
+%
+%   Optional Input Arguments:
+%       'Inverse': Boolean value indicating whether to use the inverse CDF
+%         or the CDF itself. Default is false (not inverting CDF).
+%
+%   Output Arguments:
+%       out: Output value or vector after applying CDF or inverse CDF.
 
 %% Validate and parse input arguments
 p = inputParser;
