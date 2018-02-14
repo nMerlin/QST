@@ -20,9 +20,8 @@ ys13 = smoothCrossCorr(X1(:,:,1:N_SEGMENTS),X3(:,:,1:N_SEGMENTS));
 ys23 = smoothCrossCorr(X2(:,:,1:N_SEGMENTS),X3(:,:,1:N_SEGMENTS));
 
 %% Plot
-%[nPoints,~] = size(ys12);
-hold on;
 plot(ys12(:),'linewidth',3);
+hold on;
 plot(ys13(:),'linewidth',3);
 plot(ys23(:),'linewidth',3);
 hold off;
