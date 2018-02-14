@@ -1,4 +1,3 @@
-
 function plotCrossCorrelation(X1, X2, X3, varargin)
 %PLOTCROSSCORRELATION Plot all three possible crosscorrelations
 %
@@ -16,16 +15,16 @@ optArgs(1:nVarargin) = varargin;
 [N_SEGMENTS] = optArgs{:};
 
 %% Compute smoothed cross-correlations
-ys12 = smoothCrossCorr(X1,X2);
-ys13 = smoothCrossCorr(X1,X3);
-ys23 = smoothCrossCorr(X2,X3);
+ys12 = smoothCrossCorr(X1(:,:,1:N_SEGMENTS),X2(:,:,1:N_SEGMENTS));
+ys13 = smoothCrossCorr(X1(:,:,1:N_SEGMENTS),X3(:,:,1:N_SEGMENTS));
+ys23 = smoothCrossCorr(X2(:,:,1:N_SEGMENTS),X3(:,:,1:N_SEGMENTS));
 
 %% Plot
-[nPoints,~] = size(ys12);
+%[nPoints,~] = size(ys12);
 hold on;
-plot(ys12(1:nPoints*N_SEGMENTS),'linewidth',3);
-plot(ys13(1:nPoints*N_SEGMENTS),'linewidth',3);
-plot(ys23(1:nPoints*N_SEGMENTS),'linewidth',3);
+plot(ys12(:),'linewidth',3);
+plot(ys13(:),'linewidth',3);
+plot(ys23(:),'linewidth',3);
 hold off;
 %set(gca,'XLim',[min(x) max(x)]);
 title('Smoothed Cross-Correlations');
