@@ -1,4 +1,4 @@
-function [X1, X2, X3, piezoSign] = prepare3ChData(filenameLO, filenameSIG, varargin)
+function [X1, X2, X3, piezoSign, configSIG] = prepare3ChData(filenameLO, filenameSIG, varargin)
 %PREPARE3CHDATA Returns quadratures of a 3-Channel-Measurement
 %
 % The quadrature matrices are already cut into piezo segments.
