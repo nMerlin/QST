@@ -28,9 +28,9 @@ for iPath = 1:nPaths % iterate through different root paths
     nMeas = length(vMeas);
     for iMeas = 1:nMeas % iterate over measurements
         fLO = regexp(files, ...
-            ['\d',num2str(vLos(iMeas)),'.*?.raw'],'match','once');
+            ['\d?',num2str(vLos(iMeas)),'.*?.raw'],'match','once');
         fMeas = regexp(files, ...
-            ['\d',num2str(vMeas(iMeas)),'.*?.raw'],'match','once');
+            ['\d?',num2str(vMeas(iMeas)),'.*?.raw'],'match','once');
         [X1,X2,X3,~,config] = prepare3ChData(fLO,fMeas,prepopts);
         [A12,A13,A23] = plotCrossCorrelation(X1,X2,X3);
         % Add additional information to the plot
