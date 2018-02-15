@@ -44,9 +44,9 @@ if strcmp(type,'rawdata')  %use rawdata
 end
 
 if strcmp(type,'quadratures')  %use quadratures
-    X1 = X(:,:,1);
-    X2 = X(:,:,2);
-    X3 = X(:,:,3);
+    X1 = data(:,:,1);
+    X2 = data(:,:,2);
+    X3 = data(:,:,3);
     maxDelay = pulses;
     delayArray = 1:maxDelay;
     start = 1;
