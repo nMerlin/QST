@@ -1,23 +1,34 @@
 function [correlations, delayArray] = statisticalIndependence(data, varargin) 
-%This function computes and plots the correlation between data.
-%DATA can either be raw data (data8bit) or already computed quadratures.
-%PULSES is the maximum number of pulses about which the data should be
-%shifted.
-%TYPE is the kind of data you want to use. You can either choose the
-%raw data with 'rawdata' or the quadratures (integration of raw data) with
-% 'quadratures'. When choosing rawdata, the computation may take long.
-
-%Output arguments:
-%CORRELATIONS contains the correlation for all the delays and all three
-%channels.
-%DELAYARRAY contains the delays.
+% This function computes and plots the autocorrelation of the given data.
+%
+% Input Arguments:
+%   DATA: 1D,2D or 3D matrix; the autocorrelation will be calculated along
+%       the first dimension.
+%
+% Output Arguments:
+%   CORRELATIONS: Contains the correlation for all the delays and all three
+%       channels.
+%   DELAYARRAY: Is a vector with all employed delays.
+%
+% Optional Input Arguments ('Name',Value):
+%   'Pulses',N: The autocorrelation will be computed for the shifts
+%       1,2,...,N. Default: N=20.
+%   'Plot','Val': A plot of the resulting correlation values can be shown,
+%       if 'Val'='show'. Default: 'Val'='show'.
+%   'Type','Val': Specifies the type of the input data matrix. Default is
+%       'Val'='preformatted', not modifying the DATA matrix. When using a
+%       raw data DATA-matrix, employ the option 'rawdata'.
+%   'Method','Val': When choosing 'Val'='matrix', the first two dimensions
+%       of DATA are considered as one. By using the default 'Val'='vector',
+%       Each column will be considered as a separate measurement. By using
+%       'Val' = 'vectorAverage', the correlations of all vectors with the
+%       same delay will be averaged.
 
 %% Validate and parse input arguments
 p = inputParser;
-defaultPulses = 20;  %1.2
-% Choose 'plot' for a graphical output
-defaultPlot = 'plot';
-defaultType = 'quadratures';
+defaultPulses = 20;
+defaultPlot = 'show';
+defaultType = 'preformatted';
 defaultMethod = 'matrix';
 addParameter(p,'Pulses',defaultPulses,@isnumeric);
 addParameter(p,'Plot',defaultPlot);
@@ -28,7 +39,8 @@ c = struct2cell(p.Results);
 [method, plotArg, pulses,type] = c{:};
 
 %% get data to be used
- 
+dims = ndims(data);
+
 if strcmp(type,'rawdata')  %use rawdata
     X1 = data(:,:,1);
     X2 = data(:,:,2);
@@ -43,7 +55,11 @@ if strcmp(type,'rawdata')  %use rawdata
     start = locs(1);
 end
 
-if strcmp(type,'quadratures')  %use quadratures
+if strcmp(type,'preformatted')  %use quadratures
+    % Workaround for single-channel data arrays:
+    if dims == 2
+        data = repmat(data,1,1,3);
+    end
     X1 = data(:,:,1);
     X2 = data(:,:,2);
     X3 = data(:,:,3);
@@ -57,7 +73,7 @@ correlations = zeros(3,length(delayArray));
 tic;
 for i = 1:length(delayArray)
     
-    if strcmp(method,'matrix')  %use matrixwise computation of correlation
+    if strcmp(method,'matrix')  
         correlations(1,i) = delayCorr(X1,delayArray(i));
         correlations(2,i) = delayCorr(X2,delayArray(i));
         correlations(3,i) = delayCorr(X3,delayArray(i));
@@ -69,27 +85,38 @@ for i = 1:length(delayArray)
         correlations(3,i) = delayCorrVectorwise(X3,delayArray(i),start);
     end
     
+    if strcmp(method,'vectorAverage')
+        correlations(1,i) = delayCorrVectorwiseAverage(X1,delayArray(i),start);
+        correlations(2,i) = delayCorrVectorwiseAverage(X2,delayArray(i),start);
+        correlations(3,i) = delayCorrVectorwiseAverage(X3,delayArray(i),start);
+    end
+    
 end
 toc;
 
 %% plot
-if strcmp(plotArg,'plot')
-    plot(delayArray, correlations(1,:),'o','MarkerEdgeColor','b','MarkerFaceColor','b',...
-        'MarkerSize',13);
-    hold on;
-    plot(delayArray, correlations(2,:),'d','MarkerEdgeColor','r','MarkerFaceColor','r',...
-        'MarkerSize',13);
-    plot(delayArray, correlations(3,:),'s','MarkerEdgeColor','k','MarkerFaceColor','k',...
-        'MarkerSize',13);
-    legend('Channel 1', 'Channel 2','Channel 3','location','best');
+if strcmp(plotArg,'show')
+    plot(delayArray, correlations(1,:),'o','MarkerEdgeColor','b', ...
+        'MarkerFaceColor','b','MarkerSize',13);
+    if dims>2
+        hold on;
+        plot(delayArray, correlations(2,:),'d','MarkerEdgeColor','r', ...
+            'MarkerFaceColor','r','MarkerSize',13);
+        plot(delayArray, correlations(3,:),'s','MarkerEdgeColor','k', ...
+            'MarkerFaceColor','k','MarkerSize',13);
+        legend('Channel 1', 'Channel 2','Channel 3','location','best');
+    else
+        legend('Channel 1', 'location','best');
+    end
     ylabel('correlation coefficient');
-    if strcmp(type,'quadratures')
+    if strcmp(type,'preformatted')
         title('Correlation Coefficient of Pulses');
         xlabel('Pulse distance');
     end
     
     if strcmp(type,'rawdata')
-        plot(locs(1:pulses)-start,0*ones(pulses),'v','MarkerEdgeColor','r','MarkerFaceColor','r','MarkerSize',9);
+        plot(locs(1:pulses)-start,0*ones(pulses),'v','MarkerEdgeColor', ...
+            'r','MarkerFaceColor','r','MarkerSize',9);
        title('Correlation Coefficient of Samples');
         xlabel('Sample distance');
     end
@@ -97,7 +124,6 @@ if strcmp(plotArg,'plot')
 end
 
 end
-
 
 function corr = delayCorr(X, delay)
     A = X(1:end-delay);
@@ -107,18 +133,20 @@ function corr = delayCorr(X, delay)
 end
 
 function corr = delayCorrVectorwise(X, delay, start)
-    A = X(start,:);
-    B = X(start+delay,:);
+    A = X(start+2,:);
+    B = X(start+2+delay,:);
     corr = corrcoef(A,B);
     corr = corr(1,2);
+end
 
+function corr = delayCorrVectorwiseAverage(X, delay, start)
 %     Averaging over several vectors.
-%     corrVector = zeros(length(start:size(X,1)-delay),1);
-%     for s = start:size(X,1)-delay
-%         A = X(s,:);
-%         B = X(s+delay,:);
-%         corrMatrix = corrcoef(A,B);
-%         corrVector(s-start+1) = corrMatrix(1,2);
-%     end
-%     corr = mean(corrVector);
+    corrVector = zeros(length(start:size(X,1)-delay),1);
+    for s = start:size(X,1)-delay
+        A = X(s,:);
+        B = X(s+delay,:);
+        corrMatrix = corrcoef(A,B);
+        corrVector(s-start+1) = corrMatrix(1,2);
+    end
+    corr = mean(corrVector);
 end

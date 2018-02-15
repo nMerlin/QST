@@ -5,17 +5,23 @@ function [ X ] = computeQuadratures( data8bit, config, amperePerVolt, varargin )
 
 %% Validate and parse input arguments
 p = inputParser;
+defaultLocations = [];
+addParameter(p,'Locations',defaultLocations,@isvector);
 defaultLocationOffset = 0;
-defaultIntegrationWindow = 0;
-defaultMinPeakDistance = 10;
 addParameter(p,'LocationOffset',defaultLocationOffset,@isnumeric);
+defaultIntegrationWindow = 0;
 addParameter(p,'IntegrationWindow',defaultIntegrationWindow,@isnumeric);
+defaultMinPeakDistance = 10;
 addParameter(p,'MinPeakDistance',defaultMinPeakDistance,@isnumeric);
+defaultShowIntegration = false;
+addParameter(p,'ShowIntegration',defaultShowIntegration,@islogical);
+defaultDutyCycle = 1/3; % Integration duty cycle
+addParameter(p,'DutyCycle',defaultDutyCycle,@isnumeric);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[integrationWindow,locationOffset,minPeakDistance] = c{:};
+[dutycycle,integrationWindow,locationOffset,locs,minPeakDistance, ...
+    showIntegration] = c{:};
 
-INTEGRATION_DUTY_CYCLE = 1/3;
 SAMPLERATE = config.SpectrumCard.Clock.SamplingRate0x28MHz0x29_DBL * 10e6;
 ELEMENTARY_CHARGE = 1.6021766208e-19;
 
@@ -35,14 +41,16 @@ end
 
 for iCh = 1:nChannels
     % Identify integration centers and add offset if necessary
-    [locs,~] = pointwiseVariance(data8bit(:,:,iCh), ...
-        'MinPeakDistance',minPeakDistance);
+    if isempty(locs)
+        [locs,~] = pointwiseVariance(data8bit(:,:,iCh), ...
+            'MinPeakDistance',minPeakDistance);
+    end
     locs = locs + locationOffset;
 
     % Eliminate locations whose corresponding window would be outside the range
     % of DATA (allowed are even windows that go exactly to the edge boundary).
     if integrationWindow == 0
-        window = round(INTEGRATION_DUTY_CYCLE * mean(diff(locs)));
+        window = round(dutycycle * mean(diff(locs)));
     else
         window = integrationWindow;
     end
@@ -80,6 +88,15 @@ for iCh = 1:nChannels
     start = locs-ceil(window/2);
     stop = locs+ceil(window/2);
     windowTime = (stop-start+1) * 1 / SAMPLERATE;
+    
+    % Visualize integration windows
+    if showIntegration == true && iCh == 1
+        plot(data8bit(:,1,iCh));
+        hold on;
+        plot(start,zeros(size(start)),'*');
+        plot(stop,zeros(size(stop)),'o');
+        hold off;
+    end
 
     nWindows = length(locs);
     for iWindow = 1 : nWindows

@@ -1,4 +1,4 @@
-function [ deltaQ, powerLO ] = plotShotNoise( varargin )
+function [ deltaQ, powerLO ] = plotShotNoisePicked( varargin )
 %PLOTSHOTNOISE analyses the quadrature data of a detector standard test.
 %   PLOTSHOTNOISE('verbose'): Shows log output.
 %   POWERLO: Processed LO powers.
@@ -7,42 +7,43 @@ function [ deltaQ, powerLO ] = plotShotNoise( varargin )
 %   The filename-convention is '03-0.1mW-*.raw'.
 %
 %   See also LOAD8BITBINARY.
-%
-%   Optional Input Arguments:
-%     'Verbose': Option 'quiet' mutes the command line output.
 
-%% Validate and parse input arguments
-p = inputParser;
-defaultQuiet = 'notquiet';
-addParameter(p,'Verbose',defaultQuiet,@isstr);
-parse(p,varargin{:});
-c = struct2cell(p.Results);
-[quiet] = c{:};
+% Optional input arguments
+verbose = 0;
+quiet = 'notquiet';
+if nargin > 0
+    for i = 1:nargin
+        eval([varargin{i} '=1;']);
+    end
+end
+if verbose == 0
+    quiet = 'quiet';
+end
 
-%% Constants
-windowSize = 40; %Integrationwindow
-fitThreshold = 5; %fitting a*sqrt(x) only for powers >= fitThreshold
+% Parameters & Variables
+intOpts.IntegrationWindow = 230; % Options for 'computeQuadratures'
+intOpts.LocationOffset = 90;
+amperePerVolt = 1e-09;
+fitThreshold = 50; %fitting a*sqrt(x) only for powers >= fitThreshold
 wavelength = 800e-9;
 repetitionRate = 75.4e6;
 planck = 6.626070040e-34;
 lightSpeed = 299792458;
-amperePerVolt = 1e-09;
 powerConversion = wavelength/(planck*lightSpeed*repetitionRate)...
-    /1000; %from mW to #LO photons per pulse
+    /1000000; %from mW to #LO photons per pulse
 outputFilename = 'shot-noise-plot.jpg';
 outputFiletype = '-djpeg';
 
 dataStruct = struct('filename',{},'powerLO',{},'NLO',{},'deltaQ',{});
 
-%% Create data overview
+%%% Create data overview
 dispstat('','init',quiet);
 dispstat('Checking filenames ...','timestamp','keepthis',quiet);
 rawDataContents = dir('raw-data');
 for name = {rawDataContents.name}
     % Loop only over *.raw files
     filename = cell2mat(name);
-    if not(isempty(regexpi(filename,'.raw.','match'))) || ...
-            isempty(regexpi(filename,'.raw','match'))
+    if not(isempty(regexpi(filename,'.raw.','match'))) || isempty(regexpi(filename,'.raw','match'))
         continue
     end
     
@@ -52,29 +53,30 @@ for name = {rawDataContents.name}
     dataStruct(number).filename = filename;
     
     % Get LO power
-    powerToken = regexpi(filename,'-([0123456789.]*)mW','tokens');
+    powerToken = regexpi(filename,'-([0123456789.]*).W','tokens');
     dataStruct(number).powerLO = str2double(cell2mat(powerToken{1}));
     dataStruct(number).NLO = dataStruct(number).powerLO*powerConversion;
 end
+
+
 powerLO = cell2mat({dataStruct.powerLO});
 [maxPowerLO,~] = max(powerLO);
 
-% Calculate deltaQ=sqrt(var(Q)) of the quadrature values and get positions
-% for integration from each LO-power
+% Calculate deltaQ=sqrt(var(Q)) of the quadrature values;  Get positions for integration from each LO-power
 dispstat('Calculating deltaQ ...','timestamp','keepthis',quiet);
-% Use locations of max power for all integrations
-[data8bitMax,config,~]=load8BitBinary(dataStruct(end).filename,'dontsave');
-[intOpts.Locations,~]=pointwiseVariance(data8bitMax,'MinPeakDistance',10);
+%Use locations of max power for all integrations
+[data8bitMax,config,~]=load8BitBinary(dataStruct(end).filename,'dontsave');  
+[intOpts.Locations,~] = pointwiseVariance(data8bitMax,'MinPeakDistance',300);
 X = computeQuadratures(data8bitMax,config,amperePerVolt,intOpts);
 dataStruct(end).deltaQ = sqrt(var(X(:)));
 
 parfor number=1:(size(dataStruct,2)-1)
-    [data8bit,~,~]=load8BitBinary(dataStruct(number).filename,'dontsave');
+    [data8bit,~,~] = load8BitBinary(dataStruct(number).filename,'dontsave');
     X = computeQuadratures(data8bit,config,amperePerVolt,intOpts);
     dataStruct(number).deltaQ = sqrt(var(X(:)));
 end
 
-%% Create shot noise plot
+%%% Create shot noise plot
 % Process data
 plotX = 0.1:0.1:maxPowerLO;
 deltaQ = cell2mat({dataStruct.deltaQ});
@@ -100,11 +102,11 @@ hold off;
 axis tight;
 set(0,'DefaultLegendInterpreter','latex');
 set(0,'DefaultTextInterpreter','latex');
-xlabel('P_{LO} [mW]');
+xlabel('P_{LO} [\muW]');
 ylabel('\Delta Q [a. u.]')
 legend('Experimental $\Delta Q$ Data: $\sqrt{Var(Q)}$',...
-    strcat('Fit Result ($P_{LO} \geq ',num2str(fitThreshold),...
-    '$ mW): $',num2str(sqrtFit.a),'*\sqrt{P_{LO}}$'),...
+    strcat('Fit Result ($P_{LO} \geq $ ',num2str(fitThreshold),...
+    ' $\mu$W): ',num2str(sqrtFit.a),'*$\sqrt{P_{LO}}$'),...
     'Electronic Noise: $\Delta Q(0$ mW$)$','Location','northwest');
 ax1 = gca; % current axes
 ax1Pos = ax1.Position;

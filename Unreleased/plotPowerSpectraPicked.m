@@ -1,4 +1,4 @@
-function [  ] = plotPowerSpectra( varargin )
+function [  ] = plotPowerSpectraPicked(varargin)
 %PLOTPOWERSPECTRA Summary of this function goes here
 %   Detailed explanation goes here
 %   Assumes the datafiles in the directory 'raw-data'. The filenames should
@@ -35,7 +35,7 @@ rawDataContents = dir('raw-data');
 for name = {rawDataContents.name}
     % Loop only over *-FFT.txt files & get filename
     filename = cell2mat(name);
-    if isempty(regexpi(filename,'FFT','match'))
+    if isempty(regexpi(filename,'FFT.txt','match'))
         continue
     end
     
@@ -43,7 +43,7 @@ for name = {rawDataContents.name}
     dataStruct(fcount).filename = filename;
     
     % Get LO power
-    powerToken = regexpi(filename,'-([0123456789.]*)mW','tokens');
+    powerToken = regexpi(filename,'-([0123456789.]*).W','tokens');
     dataStruct(fcount).powerLO = str2double(cell2mat(powerToken{1}));
     
     % Pure or filtered?
@@ -91,11 +91,11 @@ for k=1:size(dataStruct,2)
     elseif dataStruct(k).powerLO == minPower && dataStruct(k).filtered == 0
         electronicNoise = dlmread(dataStruct(k).filename,' ',12,0);
         electronicNoise(:,1) = frequencyAxis;
-    elseif dataStruct(k).powerLO == 0.1 && dataStruct(k).filtered == 0 ...
+    elseif dataStruct(k).powerLO == 5 && dataStruct(k).filtered == 0 ...
             && dataStruct(k).singlediode == 0
         cmrrTwoDiodes = dlmread(dataStruct(k).filename,' ',12,0);
         cmrrTwoDiodes(:,1) = frequencyAxis;
-    elseif dataStruct(k).powerLO == 0.1 && dataStruct(k).filtered == 0 ...
+    elseif dataStruct(k).powerLO == 5 && dataStruct(k).filtered == 0 ...
             && dataStruct(k).singlediode == 1
         cmrrOneDiode = dlmread(dataStruct(k).filename,' ',12,0);
         cmrrOneDiode(:,1) = frequencyAxis;
@@ -107,15 +107,15 @@ cd('..');
 dispstat('Calculate shot noise clearance ...','timestamp','keepthis',quiet);
 startIndex = find(frequencyAxis > clearanceAveragingLimits(1)*1000000,1);
 stopIndex = find(frequencyAxis > clearanceAveragingLimits(2)*1000000,1);
-responseAverage = mean(response(startIndex:stopIndex,2));
+responseAverage = min(response(startIndex:stopIndex,2));
 electronicNoiseAverage = mean(electronicNoise(startIndex:stopIndex,2));
 clearance = responseAverage - electronicNoiseAverage;
 
 % Calculate the CMRR
 cmrrStart = find(frequencyAxis > 75*1000000,1);
 cmrrStop = find(frequencyAxis > 76*1000000,1);
-[peakTwoDiodes,~]=max(findpeaks(cmrrTwoDiodes(cmrrStart:cmrrStop,2)));
-[peakOneDiode,~]=max(findpeaks(cmrrOneDiode(cmrrStart:cmrrStop,2)));
+[peakTwoDiodes,~]=findpeaks(cmrrTwoDiodes(cmrrStart:cmrrStop,2));
+[peakOneDiode,~]=findpeaks(cmrrOneDiode(cmrrStart:cmrrStop,2));
 
 dispstat('Plotting ...','timestamp','keepthis',quiet);
 %%% Plotting
@@ -126,16 +126,15 @@ axis([xMin xMax yMin yMax]);
 xlabel('Frequency [MHz]');
 ylabel('HD output power [dBm]');
 hold on;
-plot(filteredResponse(:,1)/1000000,filteredResponse(:,2));
+% plot(filteredResponse(:,1)/1000000,filteredResponse(:,2));
 plot(electronicNoise(:,1)/1000000,electronicNoise(:,2));
 hold off;
-legend(strcat('Response (',num2str(maxPower,4),' mW)'), ...
-    strcat('Filtered Response (',num2str(maxPower,4),' mW)'), ...
-    strcat('Response (',num2str(minPower),' mW)'), ...
+legend(strcat('Response (',num2str(maxPower,4),' $\mu$W)'), ...
+    strcat('Response (',num2str(minPower),' $\mu$W)'), ...
     'Location','northeast');
 
 % Plot shot noise clearance
-middleIndex = round((startIndex + stopIndex)/2);
+middleIndex = (startIndex + stopIndex)/2;
 xMid = frequencyAxis(middleIndex)/1000000;
 h = annotation('doublearrow');
 set(h,'parent',gca, ...
@@ -165,4 +164,3 @@ print(outputFilename,outputFiletype);
 dispstat('Finished!','timestamp',quiet);
 
 end
-
