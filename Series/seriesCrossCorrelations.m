@@ -7,22 +7,30 @@ defaultPaths = '.';
 addParameter(p,'Paths',defaultPaths,@isvector);
 defaultPrepOpts = struct;
 addParameter(p,'PrepOpts',defaultPrepOpts,@isstruct);
-defaultLOs = measurements-1;
+defaultLOs = measurements;
+for iLOs=1:length(defaultLOs)
+    defaultLOs{iLOs} = defaultLOs{iLOs} - 1;
+end
 addParameter(p,'LOs',defaultLOs,@isvector);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
 [los,paths,prepopts] = c{:};
 
 %% Create Cross-Correlation plots
-for iPath = 1:length(paths) % iterate through different root paths
-    cd(paths(iPath));
+dispstat('','init');
+nPaths = length(paths);
+for iPath = 1:nPaths % iterate through different root paths
+    cd(paths{iPath});
     listing = dir('raw-data');
     files = strjoin({listing.name}); % string containing all filenames
-    for iMeas = 1:size(measurements,1) % iterate over measurements
+    vMeas = measurements{iPath};
+    vLos = los{iPath};
+    nMeas = length(vMeas);
+    for iMeas = 1:nMeas % iterate over measurements
         fLO = regexp(files, ...
-            ['\d',num2str(los(iMeas)),'.*?.raw'],'match','once');
+            ['\d',num2str(vLos(iMeas)),'.*?.raw'],'match','once');
         fMeas = regexp(files, ...
-            ['\d',num2str(measurements(iMeas)),'.*?.raw'],'match','once');
+            ['\d',num2str(vMeas(iMeas)),'.*?.raw'],'match','once');
         [X1,X2,X3,~,config] = prepare3ChData(fLO,fMeas,prepopts);
         [A12,A13,A23] = plotCrossCorrelation(X1,X2,X3);
         % Add additional information to the plot
@@ -42,6 +50,9 @@ for iPath = 1:length(paths) % iterate through different root paths
         fig.PaperPosition = [0 0 29.7 21];
         fig.PaperPositionMode = 'manual';
         print(fOut,'-dpng');
+        dispstat(['Path ',num2str(iPath),' of ',num2str(nPaths), ...
+            ' and measurement ',num2str(iMeas),' of ', ...
+            num2str(nMeas),'.'],'keepthis');
     end
 end
 
