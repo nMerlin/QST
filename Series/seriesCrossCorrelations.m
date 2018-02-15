@@ -28,15 +28,15 @@ for iPath = 1:nPaths % iterate through different root paths
     nMeas = length(vMeas);
     for iMeas = 1:nMeas % iterate over measurements
         fLO = regexp(files, ...
-            ['\d?',num2str(vLos(iMeas)),'.*?.raw'],'match','once');
+            ['\d?',num2str(vLos(iMeas)),'-.*?.raw'],'match','once');
         fMeas = regexp(files, ...
-            ['\d?',num2str(vMeas(iMeas)),'.*?.raw'],'match','once');
+            ['\d?',num2str(vMeas(iMeas)),'-.*?.raw'],'match','once');
         [X1,X2,X3,~,config] = prepare3ChData(fLO,fMeas,prepopts);
         [A12,A13,A23] = plotCrossCorrelation(X1,X2,X3);
         % Add additional information to the plot
-        n1 = var(X1(:)); f1 = config.E725.Piezo1.Frequency_DBL;
-        n2 = var(X2(:)); f2 = config.E725.Piezo2.Frequency_DBL;
-        n3 = var(X3(:)); f3 = config.E725.Piezo3.Frequency_DBL;
+        n1 = var(X1(:))-0.5; f1 = config.E725.Piezo1.Frequency_DBL;
+        n2 = var(X2(:))-0.5; f2 = config.E725.Piezo2.Frequency_DBL;
+        n3 = var(X3(:))-0.5; f3 = config.E725.Piezo3.Frequency_DBL;
         title({['Smoothed Cross-Correlations for f1=',num2str(f1), ...
             ', f2=',num2str(f2),', f3=',num2str(f3),'Hz']; ...
             ['Photon numbers n1=',num2str(n1,3),', n2=',num2str(n2,3), ...
