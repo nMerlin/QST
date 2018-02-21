@@ -1,4 +1,4 @@
-function g2 = g2( X, nResolution )
+function [g2, ada] = g2( X, nResolution )
 %G2 Creates a plot showing the g2(0) behavior over time
 %
 % Input Parameters:
