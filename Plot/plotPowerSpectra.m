@@ -112,7 +112,7 @@ electronicNoiseAverage = mean(electronicNoise(startIndex:stopIndex,2));
 clearance = responseAverage - electronicNoiseAverage;
 
 % Calculate the CMRR
-cmrrStart = find(frequencyAxis > 75*1000000,1);
+cmrrStart = find(frequencyAxis > 74*1000000,1);
 cmrrStop = find(frequencyAxis > 76*1000000,1);
 [peakTwoDiodes,~]=max(findpeaks(cmrrTwoDiodes(cmrrStart:cmrrStop,2)));
 [peakOneDiode,~]=max(findpeaks(cmrrOneDiode(cmrrStart:cmrrStop,2)));
