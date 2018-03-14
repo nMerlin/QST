@@ -6,19 +6,18 @@ function [g2, ada] = g2( X, nResolution )
 %       spacing between all points)
 %   NRESOLUTION - Number of Quadratures used to create a single data point
 %           (time resolution)
-%   FILENAME - Output filename for the resulting plot
 
-%%% Reshaping X according to NRESOLUTION
+%% Reshaping X according to NRESOLUTION
 X = X(:);
 nSegments = floor(length(X)/nResolution);
 X = X(1:nSegments*nResolution);
 X = reshape(X,[nResolution nSegments]); % Consecutive values in columns
 
-%%% Piecewise photon number <a^+ a>
+%% Piecewise photon number <a^+ a>
 X = X - mean(mean(X));
 ada = mean(X.^2)-0.5;
 
-%%% Piecewise <a^+ a^+ a a>, in the following adadaa, and g2(t,t)
+%% Piecewise <a^+ a^+ a a>, in the following adadaa, and g2(t,t)
 adadaa = 2/3*mean(X.^4)-2*ada-0.5;
 g2 = adadaa./ada.^2;
 g2 = g2';
