@@ -10,7 +10,6 @@ axis tight
 set(gca,'YLim',[0 65000]);
 ylabel('Counts');
 xlabel('Wavelength (nm)');
-title('Spectrum');
 
 end
 
