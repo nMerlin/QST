@@ -25,9 +25,12 @@ end
 filestruct = dir('raw-data/*.raw');
 filestring = strjoin({filestruct.name});
 fLO = regexpi(filestring,'[^ ]*LOonly[^ ]*','match');
-nLO = cellfun(@str2num,regexpi(strjoin(fLO),'\<\d*','match'));
+tokLO = regexpi(strjoin(fLO),'\<(\d*)-','tokens');
+nLO = cellfun(@str2num,[tokLO{:}]);
 fSig = regexpi(filestring,'[^ ]*-(?!LOonly)[^ ]*','match');
-nSig = cellfun(@str2num,regexpi(strjoin(fSig),'\<\d*','match'));
+fSig = {fSig{~ismember(fSig,fLO)}}; % remove false positives
+tokSig = regexpi(strjoin(fSig),'\<(\d*)-','tokens');
+nSig = cellfun(@str2num,[tokSig{:}]);
 
 %% Compute quadratures and save them
 for i=1:length(fSig)
