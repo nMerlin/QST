@@ -7,7 +7,8 @@ function [ data8bit, config, timestamps ] = load8BitBinary( filename, varargin )
 %   channels, DATA8BIT is a 2D- or 3D- array with dimensions [columns,
 %   rows, channels] that contains a single measured segment of one channel
 %   in a column. To extract the number of channels, a configuration file
-%   filename.cfg is necessary.
+%   filename.cfg is necessary. The file 'filename' has to be located in the
+%   folder 'raw-data'.
 %
 %   [DATA8BIT, CONFIG, TIMESTAMPS] = LOAD8BITBINARY(filename) Additionally
 %   to the previously discussed array DATA8BIT, the structure CONFIG
@@ -24,8 +25,8 @@ else
     end
 end
 
-cd('raw-data');
 % Open the raw-data file, the configuration file and the timestamps file
+filename = ['raw-data/',filename];
 assert(exist(filename,'file')==2,['The given file "' filename '" does not exist!']);
 datafileID = fopen(filename);
 
@@ -93,7 +94,6 @@ if exist_timestamps
     fclose(timestampsfileID);
 end
 
-cd('..');
 if dontsave == 0
     save('data8bit.mat','-v7.3','data8bit');
 end
