@@ -35,13 +35,12 @@ nSig = cellfun(@str2num,[tokSig{:}]);
 %% Compute quadratures and save them
 for i=1:length(fSig)
     % find index of corresponding LO (lower number)
-    iSig = nSig(i);
-    [~,iLO] = max(nLO(nLO<iSig));
-    X = preparePhAvData(fLO{iLO},fSig{iSig},prepopts);
-    cd('mat-data');
-    filename = strsplit(fSig{iSig});
-    save([datestr(date,'yyyy-mm-dd'),'-',filename{1},'.mat'],'X');
-    cd('..');
+    [~,iLO] = max(nLO(nLO<nSig(i)));
+    filename = strsplit(fSig{i});
+    dispstat(['Working on File ',filename{1}],'timestamp','keepthis',0);
+    X = preparePhAvData(fLO{iLO},fSig{i},prepopts);
+    parsave('mat-data', ...
+        [datestr(date,'yyyy-mm-dd'),'-',filename{1},'.mat'],X);
 end
 
 % Leave a note about how the files were created
