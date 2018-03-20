@@ -1,6 +1,17 @@
-function [ X ] = preparePhAvData( filenameLO, filenameSIG )
+function X = preparePhAvData(filenameLO,filenameSIG,varargin)
 %PREPAREPHAVDATA Process data from phase-averaged 1-channel measurements
-%   Detailed explanation goes here
+%
+% Optional Input Arguments:
+%   'CorrRemove': When 'yes', correlations from preceding pulses will be
+%     removed.
+
+%% Validate and parse input arguments
+p = inputParser;
+defaultCorrRemove = 'no';
+addParameter(p,'CorrRemove',defaultCorrRemove);
+parse(p,varargin{:});
+c = struct2cell(p.Results);
+[corrRemove] = c{:};
 
 CALIBRATION_CH1 = 4.596047840078126e-05; % Ampere per Volt
 
@@ -14,6 +25,13 @@ dispstat('Computing number of LO photons ...','timestamp','keepthis',0);
 [data8bit,config,~]=load8BitBinary(filenameLO,'dontsave');
 XLO = computeQuadratures(data8bit, config, CALIBRATION_CH1);
 
+if strcmp(corrRemove,'yes')
+    %Removing correlations with preceding pulses
+    XLO = bsxfun(@minus, XLO, mean(XLO));
+    dispstat('Removing correlations from LO ...','timestamp','keepthis',0);
+    XLO = correlationCompensation(XLO);
+end
+
 % Calculate the variance piece-wise to compensate slow drifts (e.g. piezos)
 NLO = mean(var(XLO));
 
@@ -22,6 +40,14 @@ dispstat('Computing quadratures for target quantum state ...',...
     'timestamp','keepthis',0);
 [data8bit,config,~]=load8BitBinary(filenameSIG,'dontsave');
 X = computeQuadratures(data8bit, config, CALIBRATION_CH1);
+
+if strcmp(corrRemove,'yes')
+    %Removing correlations with preceding pulses
+    X = bsxfun(@minus, X, mean(X));
+    dispstat('Removing correlations from signal ...', ...
+        'timestamp','keepthis',0);
+    X = correlationCompensation(X);
+end
 
 % Calibration of quadratures to vacuum state
 X = Norm * X / sqrt(NLO);
