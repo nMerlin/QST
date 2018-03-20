@@ -41,5 +41,10 @@ for i=1:length(fSig)
     cd('..');
 end
 
+% Leave a note about how the files were created
+cd('mat-data');
+fid = fopen('created-by-rawToMat.txt','a');
+fclose(fid);
+
 end
 
