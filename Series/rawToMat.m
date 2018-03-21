@@ -43,6 +43,8 @@ for i=1:length(fSig)
     if ~exist(filename,'file')
         X = preparePhAvData(fLO{iLO},fSig{i},prepopts);
         save(filename,'X');
+    else
+        dispstat('File already exists!','timestamp','keepthis',0);
     end
 end
 
