@@ -36,16 +36,18 @@ nSig = cellfun(@str2num,[tokSig{:}]);
 for i=1:length(fSig)
     % find index of corresponding LO (lower number)
     [~,iLO] = max(nLO(nLO<nSig(i)));
-    filename = strsplit(fSig{i});
-    dispstat(['Working on File ',filename{1}],'timestamp','keepthis',0);
-    X = preparePhAvData(fLO{iLO},fSig{i},prepopts);
-    parsave('mat-data', ...
-        [datestr(date,'yyyy-mm-dd'),'-',filename{1},'.mat'],X);
+    orgFile = strsplit(fSig{i});
+    filename = ['mat-data/',datestr(date,'yyyy-mm-dd'), ...
+        '-',orgFile{1},'.mat'];
+    dispstat(['Working on File ',orgFile{1}],'timestamp','keepthis',0);
+    if ~exist(filename,'file')
+        X = preparePhAvData(fLO{iLO},fSig{i},prepopts);
+        save(filename,'X');
+    end
 end
 
 % Leave a note about how the files were created
-cd('mat-data');
-fid = fopen('created-by-rawToMat.txt','a');
+fid = fopen('mat-data/created-by-rawToMat.txt','a');
 fclose(fid);
 
 end
