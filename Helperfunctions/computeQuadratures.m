@@ -22,7 +22,7 @@ c = struct2cell(p.Results);
 [dutycycle,integrationWindow,locationOffset,locs,minPeakDistance, ...
     showIntegration] = c{:};
 
-SAMPLERATE = config.SpectrumCard.Clock.SamplingRate0x28MHz0x29_DBL * 10e6;
+SAMPLERATE = config.SpectrumCard.Clock.SamplingRate0x28MHz0x29_DBL * 1e6;
 ELEMENTARY_CHARGE = 1.6021766208e-19;
 
 switch config.SpectrumCard.Channel00.Range_I32
