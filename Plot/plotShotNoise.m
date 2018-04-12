@@ -38,7 +38,7 @@ lightSpeed = 299792458;
 amperePerVolt = 1e-09;
 powerConversion = wavelength/(planck*lightSpeed*repetitionRate)...
     /1000; %from mW to #LO photons per pulse
-outputFilename = 'shot-noise-plot.jpg';
+outputFilename = 'shot-noise-plot';
 outputFiletype = '-djpeg';
 
 dataStruct = struct('filename',{},'powerLO',{},'NLO',{},'deltaQ',{});
@@ -148,7 +148,8 @@ ax2 = axes('Position',ax1Pos,...
 ax2.XLabel.String = 'N_{LO}';
 
 % Saving figure
-print(outputFilename,outputFiletype);
+%print([outputFilename,'.jpg'],outputFiletype);
+saveA5Landscape(outputFilename);
 
 dispstat('Finished!','timestamp',quiet);
 
