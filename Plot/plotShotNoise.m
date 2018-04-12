@@ -13,11 +13,13 @@ function [ deltaQ, powerLO ] = plotShotNoise( varargin )
 
 %% Validate and parse input arguments
 p = inputParser;
+defaultExclude = [];
+addParameter(p,'Exclude',defaultExclude,@isvector);
 defaultQuiet = 'notquiet';
 addParameter(p,'Verbose',defaultQuiet,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[quiet] = c{:};
+[exclude,quiet] = c{:};
 
 %% Constants
 windowSize = 40; %Integrationwindow
@@ -50,6 +52,9 @@ for name = {rawDataContents.name}
     numberToken = regexpi(filename,'^([0123456789]*)-','tokens');
     number = str2double(cell2mat(numberToken{1}));
     dataStruct(number).filename = filename;
+    if ismember(number,exclude)
+        continue;
+    end
     
     % Get LO power
     powerToken = regexpi(filename,'-([0123456789.]*)mW','tokens');
@@ -69,9 +74,11 @@ X = computeQuadratures(data8bitMax,config,amperePerVolt,intOpts);
 dataStruct(end).deltaQ = sqrt(var(X(:)));
 
 parfor number=1:(size(dataStruct,2)-1)
+    if ~ismember(number,exclude)
     [data8bit,~,~]=load8BitBinary(dataStruct(number).filename,'dontsave');
     X = computeQuadratures(data8bit,config,amperePerVolt,intOpts);
     dataStruct(number).deltaQ = sqrt(var(X(:)));
+    end
 end
 
 %% Create shot noise plot
