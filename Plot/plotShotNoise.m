@@ -13,16 +13,21 @@ function [ deltaQ, powerLO ] = plotShotNoise( varargin )
 
 %% Validate and parse input arguments
 p = inputParser;
+defaultDutyCycle = 0;
+addParameter(p,'DutyCycle',defaultDutyCycle,@isfloat);
 defaultExclude = [];
 addParameter(p,'Exclude',defaultExclude,@isvector);
 defaultQuiet = 'notquiet';
 addParameter(p,'Verbose',defaultQuiet,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[exclude,quiet] = c{:};
+[dutycycle,exclude,quiet] = c{:};
+
+if dutycycle>0
+    intOpts.DutyCycle = dutycycle;
+end
 
 %% Constants
-windowSize = 40; %Integrationwindow
 fitThreshold = 5; %fitting a*sqrt(x) only for powers >= fitThreshold
 wavelength = 800e-9;
 repetitionRate = 75.4e6;
