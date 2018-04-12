@@ -13,6 +13,8 @@ function [ deltaQ, powerLO ] = plotShotNoise( varargin )
 
 %% Validate and parse input arguments
 p = inputParser;
+defaultCompensate = false;
+addParameter(p,'Compensate',defaultCompensate,@islogical);
 defaultDutyCycle = 0;
 addParameter(p,'DutyCycle',defaultDutyCycle,@isfloat);
 defaultExclude = [];
@@ -21,7 +23,7 @@ defaultQuiet = 'notquiet';
 addParameter(p,'Verbose',defaultQuiet,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[dutycycle,exclude,quiet] = c{:};
+[compensate,dutycycle,exclude,quiet] = c{:};
 
 if dutycycle>0
     intOpts.DutyCycle = dutycycle;
@@ -76,6 +78,15 @@ dispstat('Calculating deltaQ ...','timestamp','keepthis',quiet);
 [data8bitMax,config,~]=load8BitBinary(dataStruct(end).filename,'dontsave');
 [intOpts.Locations,~]=pointwiseVariance(data8bitMax,'MinPeakDistance',10);
 X = computeQuadratures(data8bitMax,config,amperePerVolt,intOpts);
+
+% Optional compensation of correlations
+if compensate
+    % Remove Offset
+    X = bsxfun(@minus, X, mean(X));
+    % Compensate correlations
+    X = correlationCompensation(X);
+end
+
 dataStruct(end).deltaQ = sqrt(var(X(:)));
 
 parfor number=1:(size(dataStruct,2)-1)
