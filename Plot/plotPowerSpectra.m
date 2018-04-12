@@ -20,7 +20,7 @@ end
 % Parameters & Variables
 dataStruct = struct('filename',{},'powerLO',{},'filtered',{},'singlediode',{});
 fcount = 0;
-outputFilename = 'power-spectra.jpg';
+outputFilename = 'power-spectra';
 outputFiletype = '-djpeg';
 clearanceAveragingLimits = [20 40]; % in MHz
 xMin = 0;
@@ -160,7 +160,8 @@ ylabel('HD output power [dBm]');
 title(['CMRR = ' num2str(peakOneDiode-peakTwoDiodes,3) ' dBm']);
 
 % Saving figure
-print(outputFilename,outputFiletype);
+%print([outputFilename,'.jpg'],outputFiletype);
+saveA5Landscape(outputFilename);
 
 dispstat('Finished!','timestamp',quiet);
 
