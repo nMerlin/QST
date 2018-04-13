@@ -20,7 +20,7 @@ end
 % Parameters & Variables
 dataStruct = struct('filename',{},'powerLO',{});
 fcount = 0;
-outputFilename1 = 'Analog.jpg';
+outputFilename1 = 'Analog';
 outputFiletype1 = '-djpeg';
 
 xMin = 0;
@@ -71,7 +71,8 @@ ylabel('Signal (V)');
 legend('Location','northeast');
 hold off;
 % Saving figure
-print(outputFilename1,outputFiletype1);
+%print([outputFilename1,'.jpg'],outputFiletype1);
+saveA5Landscape(outputFilename1);
 
 dispstat('Finished!','timestamp',quiet);
 
