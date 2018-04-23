@@ -24,7 +24,11 @@ for i=1:length(fPower)
     powerHD(i) = mean(var(double(data8bit)));
 end
 
-plot(pMeas,powerHD,'+');
+plotregression(pMeas,powerHD);
+xlabel('LO power (mW)');
+ylabel('HD Output Power (arb. unit)');
+title('LO power series');
+saveA5Landscape('seriesHDPower');
 
 end
 
