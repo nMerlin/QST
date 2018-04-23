@@ -13,6 +13,8 @@ defaultIntegrationWindow = 0;
 addParameter(p,'IntegrationWindow',defaultIntegrationWindow,@isnumeric);
 defaultMinPeakDistance = 10;
 addParameter(p,'MinPeakDistance',defaultMinPeakDistance,@isnumeric);
+defaultRepetitionRate = 75.4e6; % Mira repetition rate
+addParameter(p,'RepetitionRate',defaultRepetitionRate,@isnumeric);
 defaultShowIntegration = false;
 addParameter(p,'ShowIntegration',defaultShowIntegration,@islogical);
 defaultDutyCycle = 1/3; % Integration duty cycle
@@ -20,7 +22,7 @@ addParameter(p,'DutyCycle',defaultDutyCycle,@isnumeric);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
 [dutycycle,integrationWindow,locationOffset,locs,minPeakDistance, ...
-    showIntegration] = c{:};
+    reprate,showIntegration] = c{:};
 
 SAMPLERATE = config.SpectrumCard.Clock.SamplingRate0x28MHz0x29_DBL * 1e6;
 ELEMENTARY_CHARGE = 1.6021766208e-19;
@@ -46,6 +48,14 @@ for iCh = 1:nChannels
             'MinPeakDistance',minPeakDistance);
     end
     locs = locs + locationOffset;
+    
+    % Check for significant errors in the number of detected pulses
+    samplesPerPulse = SAMPLERATE/reprate;
+    if ~(abs(nRows/samplesPerPulse-length(locs))<3)
+        warning([num2str(length(locs)), ...
+        ' integration centers detected. But ', ...
+        num2str(nRows/samplesPerPulse),' were expected!']);
+    end
 
     % Eliminate locations whose corresponding window would be outside the range
     % of DATA (allowed are even windows that go exactly to the edge boundary).
