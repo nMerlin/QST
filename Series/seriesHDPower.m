@@ -24,11 +24,17 @@ for i=1:length(fPower)
     powerHD(i) = mean(var(double(data8bit)));
 end
 
-plotregression(pMeas,powerHD);
+p = polyfit(pMeas,powerHD,1);
+f = polyval(p,pMeas);
+plot(pMeas,powerHD,'o',pMeas,f,'-');
 xlabel('LO power (mW)');
 ylabel('HD Output Power (arb. unit)');
 title('LO power series');
 saveA5Landscape('seriesHDPower');
+PowerLO = pMeas';
+OutputPowerHD = powerHD';
+T = table(PowerLO,OutputPowerHD);
+writetable(T,'seriesHDPower');
 
 end
 
