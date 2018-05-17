@@ -5,16 +5,24 @@ function rawToMat(varargin)
 % and will create a "mat-data" folder, if necessary. For each signal file
 % there should be a 'LOonly' file with a lower number.
 %
+% Optional Input Arguments:
+%   'Method': Choose the method to convert *.raw to *.mat. Default is
+%       'PhAv' and uses the function call 'preparePhAvData'.
+%       Further Options:
+%           '3Ch': Calls function 'prepare3ChData'.
+%
 % Currently, only preparation of phase averaged 1-channel measurements
 % supported.
 
 %% Validate and parse input arguments
 p = inputParser;
+defaultMethod = 'PhAv';
+addParameter(p,'Method',defaultMethod,@isstr);
 defaultPrepOpts = struct;
 addParameter(p,'PrepOpts',defaultPrepOpts,@isstruct);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[prepopts] = c{:};
+[method,prepopts] = c{:};
 
 %% Create folder 'mat-data'
 if ~exist('mat-data','dir')
@@ -41,8 +49,15 @@ for i=1:length(fSig)
         '-',orgFile{1},'.mat'];
     dispstat(['Working on File ',orgFile{1}],'timestamp','keepthis',0);
     if ~exist(filename,'file')
-        X = preparePhAvData(fLO{iLO},fSig{i},prepopts);
-        save(filename,'X');
+        switch method
+            case 'PhAv'
+                X = preparePhAvData(fLO{iLO},fSig{i},prepopts);
+                save(filename,'X');
+            case '3Ch'
+                [X1,X2,X3,piezoSign] = prepare3ChData(fLO{iLO}, ...
+                    fSig{i},prepopts);
+                save(filename,'X1','X2','X3','piezoSign');
+        end
     else
         dispstat('File already exists!','timestamp','keepthis',0);
     end
