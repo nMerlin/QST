@@ -6,7 +6,7 @@ function minVar = compute3ChLimit(nX1,nX2,nX3)
 n = nX1 + nX2 + nX3;
 nt = nX3;
 nps = nX1 + nX2;
-minVar = (1+n+nt)/(2*(1+nps));
+minVar = (1+n+nt)./(2*(1+nps));
 
 end
 
