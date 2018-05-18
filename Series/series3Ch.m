@@ -30,7 +30,7 @@ dispstat('','init','timestamp','keepthis',0);
 for i = 1:length(files)
     % Load data
     dispstat(['Processing ',files{i},' ...'],'timestamp','keepthis',0);
-    clear;
+    clear X1 X2 X3 theta piezoSign;
     load(['mat-data/',files{i}]);
     C = strsplit(files{i},'.');
     
