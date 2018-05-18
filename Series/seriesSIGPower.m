@@ -25,26 +25,26 @@ if ~strcmp(configfile,'')
 end
 
 %% Compute signal powers
-powerSIG = [];
+powerHD = [];
 for i=1:length(fPower)
     if ~strcmp(configfile,'') && ~ismember(i,conf(:,1))
         continue;
     end
     [data8bit,~,~] = load8BitBinary(fPower{i},'dontsave');
-    powerSIG(end+1,1) = mean(var(double(data8bit)));
+    powerHD(end+1,1) = mean(var(double(data8bit)));
 end
 
-p = polyfit(pMeas,powerSIG,1);
+p = polyfit(pMeas,powerHD,1);
 f = polyval(p,pMeas);
-plot(pMeas,powerSIG,'o',pMeas,f,'-');
+plot(pMeas,powerHD,'o',pMeas,f,'-');
 xlabel('SIG power (mW)');
 ylabel('HD Output Power (arb. unit)');
 title('SIG power series');
 [~,configname,~] = fileparts(configfile);
 saveA5Landscape(['seriesSIGPower',configname]);
-PowerLO = pMeas';
-OutputPowerSIG = powerSIG';
-T = table(PowerLO,OutputPowerSIG);
+PowerSIG = pMeas;
+OutputPowerHD = powerHD;
+T = table(PowerSIG,OutputPowerHD);
 writetable(T,['seriesSIGPower',configname]);
 
 end
