@@ -14,7 +14,7 @@ function [] = series3Ch(varargin)
 %% Validate and parse input arguments
 p = inputParser;
 defaultSaveTheta = false;
-addParameter(p,'SaveTheta',defaultSaveTheta,@isstruct);
+addParameter(p,'SaveTheta',defaultSaveTheta,@islogical);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
 [savetheta] = c{:};
@@ -42,7 +42,12 @@ for i = 1:length(files)
     
     % Postselect
     if ~exist('theta','var')
-        [theta,~] = computePhase(X1,X2,piezoSign);
+        try
+            [theta,~] = computePhase(X1,X2,piezoSign);
+        catch
+            warning('Problem using computePhase. Assigning random phase.');
+            theta = rand(size(X1,1)*size(X1,2),size(X1,3))*2*pi;
+        end
     end
     [O1,O2,O3,oTheta] = selectOrthogonal(X2,X3,X1,theta,piezoSign);
     [selX,selTheta,~,mVarX] = selectRegion(O1,O2,O3,oTheta,'Type', ...
@@ -70,10 +75,11 @@ for i = 1:length(files)
     varP(i) = delP^2;
 end
 
-%% Write results to an excel sheet
+%% Write results to a file
 Filename = files';
+minVar = compute3ChLimit(nX1,nX2,nX3);
 T = table(Filename,nX1,nX2,nX3,meanVarX,q1,q21,p1,p21, ...
-    qmax,q2max,varQ,varP);
+    qmax,q2max,varQ,varP,minVar);
 writetable(T,[datestr(date,'yyyy-mm-dd-'),'series3Ch']);
 
 end
