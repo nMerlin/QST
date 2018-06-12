@@ -13,9 +13,9 @@ function [fitParams,fitFunction,exitFlag] = fitSinusoidal(x,y,varargin)
 %   'RemoveLinearOffset': Default is false. If true, a linear trend is
 %       removed from the sine function.
 %   'Plot': Default is 'hide'. If 'show', a graphical output is generated.
-%   'Periods': Number of periods, default is -1 and the algorithm tries to
-%       find the number of periods according to the zero crossings it finds
-%       (experimental).
+%   'Periods': Number of periods, default is 1. When -1, the algorithm
+%       tries to find the number of periods according to the zero crossings
+%       it finds (experimental).
 %   'Phase': Phase of first datapoint (in rad), default is 0.
 %
 % Adapted from Star Strider:
@@ -24,7 +24,7 @@ function [fitParams,fitFunction,exitFlag] = fitSinusoidal(x,y,varargin)
 
 %% Validate and parse input arguments
 p = inputParser;
-defaultPeriods = -1;
+defaultPeriods = 1;
 addParameter(p,'Periods',defaultPeriods,@isnumeric);
 defaultPhase = 0;
 addParameter(p,'Phase',defaultPhase,@isnumeric);
