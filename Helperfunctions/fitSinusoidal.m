@@ -24,8 +24,8 @@ function [fitParams,fval,exitFlag] = fitSinusoidal(x,y,varargin)
 
 %% Validate and parse input arguments
 p = inputParser;
-defaultPeriod = -1;
-addParameter(p,'Periods',defaultPeriod,@isnumeric);
+defaultPeriods = -1;
+addParameter(p,'Periods',defaultPeriods,@isnumeric);
 defaultPhase = 0;
 addParameter(p,'Phase',defaultPhase,@isnumeric);
 defaultPlotOpt = 'hide';
