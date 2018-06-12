@@ -1,6 +1,9 @@
 function [g2, ada, times] = g2(X, nResolution, varargin)
 %G2 Creates a plot showing the g2(0) behavior over time
 %
+% Usage:
+%   [g2,ada,times] = g2(X,nResolution,varargin);
+%
 % Input Arguments:
 %   X - Quadratures from a continuous quantum state measurement (equal time
 %       spacing between all points)
