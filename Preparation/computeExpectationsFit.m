@@ -3,6 +3,9 @@ function [delX,varX,meanN,nSegments] = computeExpectationsFit(X,theta,varargin)
 %using a sine fit. X and THETA are computed quadratures and phase values
 %that are not discretized in THETA.
 %
+% Output Arguments:
+%   delX: 
+%
 % Optional Input Arguments:
 %   'Plot': Set it to 'show' if you want a graphical output. Default is
 %       'hide' with no graphical output.
@@ -20,21 +23,19 @@ parse(p,varargin{:});
 c = struct2cell(p.Results);
 [plotOpt] = c{:};
 
-%%
-[~, nSegments] = size(X);
-
-[meanN, varX,delX] = deal(zeros(nSegments,1));
-
+%% Loop over number of piezo segments
+[~,nSegments] = size(X);
+[meanN,varX,delX] = deal(zeros(nSegments,1));
 for iSegment = 1 : nSegments
     % Compute the Fit
-    thetaS = theta(:,iSegment);
-    XS = X(:,iSegment);
+    segmentTheta = theta(:,iSegment);
+    segmentX = X(:,iSegment);
     
-    [ fitParams, fitFunction,~,~] = fitSinus( thetaS,XS);
-    functionValues=fitFunction(fitParams,thetaS);
+    [fitParams,fitFunction,~,~] = fitSinus(segmentTheta,segmentX);
+    functionValues=fitFunction(fitParams,segmentTheta);
     X0 = fitParams(1);
     
-    deviation = abs(XS - functionValues);
+    deviation = abs(segmentX - functionValues);
     
     %compute the variance and std interval-wise
     
