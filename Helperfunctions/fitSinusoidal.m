@@ -25,16 +25,16 @@ function [fitParams,fval,exitFlag] = fitSinusoidal(x,y,varargin)
 %% Validate and parse input arguments
 p = inputParser;
 defaultPeriod = -1;
-addParameter(p,'Period',defaultPeriod,@isnumeric);
+addParameter(p,'Periods',defaultPeriod,@isnumeric);
+defaultPhase = 0;
+addParameter(p,'Phase',defaultPhase,@isnumeric);
 defaultPlotOpt = 'hide';
 addParameter(p,'Plot',defaultPlotOpt,@isstr);
 defaultRemoveLinearOffset = false;
 addParameter(p,'RemoveLinearOffset',defaultRemoveLinearOffset,@islogical);
-defaultPhase = 0;
-addParameter(p,'yPhase',defaultPhase,@isnumeric);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[period,plotOpt,rmFlag,yPhase] = c{:};
+[periods,phase,plotOpt,rmFlag] = c{:};
 
 %% Correcting input data format
 % Remove NaN-entries
@@ -58,13 +58,13 @@ yMin = min(y);
 yRange = (yMax-yMin);
 yZero = y-yMax+(yRange/2);
 yOffset = yMin + yRange/2;
-if period == -1
+if periods == -1
     % Estimate periods by finding zero crossings
     zeroIndicator = yZero.* circshift(yZero, [0 1]);
     zerosX = x([1 zeroIndicator(2:end)] <= 0);
     period = 2*mean(diff(zerosX));
 else
-    period = (x(end)-x(1))/period;
+    period = (x(end)-x(1))/periods;
 end
 
 % Function to fit
@@ -73,7 +73,7 @@ fitFunction = @(b,x)  b(1).*(sin(2*pi*x./b(2) + b(3))) + b(4);
 squaresFunction = @(b) sum((fitFunction(b,x) - y).^2);
 % Minimise Least-Squares (with lower boundaries)
 [fitParams, fval, exitFlag] = fminsearchbnd(squaresFunction, ...
-    [yRange/2; period;  yPhase;  yOffset], [0; 0; -inf; -inf]);
+    [yRange/2;period;phase;yOffset], [0;0;-inf;-inf]);
 
 % Correct for linear trend
 if rmFlag
