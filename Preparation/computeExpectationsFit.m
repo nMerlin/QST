@@ -27,24 +27,22 @@ c = struct2cell(p.Results);
 [~,nSegments] = size(X);
 [meanN,varX,delX] = deal(zeros(nSegments,1));
 for iSegment = 1 : nSegments
-    % Compute the Fit
+    
+    % Fit a sine function to model coherent offset
     segmentTheta = theta(:,iSegment);
     segmentX = X(:,iSegment);
+    [fitParams,fitFunction] = fitSinusoidal(segmentTheta,segmentX, ...
+        'Plot',plotOpt);
+    fitValues = fitFunction(fitParams,segmentTheta);
     
-    [fitParams,fitFunction,~,~] = fitSinus(segmentTheta,segmentX);
-    functionValues=fitFunction(fitParams,segmentTheta);
-    X0 = fitParams(1);
-    
-    deviation = abs(segmentX - functionValues);
-    
-    %compute the variance and std interval-wise
-    
-    %compute the total variance and std
-    varX(iSegment) = sum(deviation.^2)/(length(deviation)-1) ;
-    delX(iSegment) = sqrt(varX(iSegment));
+    % Compute variance and standard deviation
+    fluctuations = segmentX - fitValues;
+    varX(iSegment) = var(fluctuations);
+    delX(iSegment) = std(fluctuations);
 
     % Coherent state photon number
-    meanN(iSegment) = (X0^2)/2;
+    amplitude = fitParams(1);
+    meanN(iSegment) = (amplitude^2)/2;
  
 end % iSegment 
 
