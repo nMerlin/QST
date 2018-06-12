@@ -1,10 +1,11 @@
-function [delX, varX,meanN, nSegments ] = computeExpectationsFit( X, theta,varargin )
+function [delX,varX,meanN,nSegments] = computeExpectationsFit(X,theta,varargin)
 %COMPUTEEXPECTATIONSFIT Computes <Q>, <P>, <Q^2>, <P^2> and uncertainties,
-%using a sine fit.
-%plots them over theta if 'Plot','plot' is input. In case 'Plot','hide' it 
-%doesn't plot.
+%using a sine fit. X and THETA are computed quadratures and phase values
+%that are not discretized in THETA.
 %
-%   X and THETA are original data, not discretized for theta
+% Optional Input Arguments:
+%   'Plot': Set it to 'show' if you want a graphical output. Default is
+%       'hide' with no graphical output.
 
 Norm = 1/sqrt(2);
 %Norm ist the factor in the relation between the quadratures and the ladder
@@ -13,7 +14,7 @@ Norm = 1/sqrt(2);
 
 %% Validate and parse input arguments
 p = inputParser;
-defaultPlotOpt = 'show';
+defaultPlotOpt = 'hide';
 addParameter(p,'Plot',defaultPlotOpt,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
