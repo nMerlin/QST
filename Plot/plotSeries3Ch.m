@@ -1,5 +1,5 @@
 function plotSeries3Ch(T,varargin)
-%PLOTSERIES3CH Plot results from SERIES3CH table T.
+%PLOTSERIES3CH Plot results from table T created by SERIES3CH.
 
 %% Validate and parse input arguments
 p = inputParser;
