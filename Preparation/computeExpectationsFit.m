@@ -1,10 +1,14 @@
-function [delX,varX,meanN,nSegments] = computeExpectationsFit(X,theta,varargin)
-%COMPUTEEXPECTATIONSFIT Computes <Q>, <P>, <Q^2>, <P^2> and uncertainties,
-%using a sine fit. X and THETA are computed quadratures and phase values
-%that are not discretized in THETA.
+function expectations = computeExpectationsFit(X,theta,varargin)
+%COMPUTEEXPECTATIONSFIT Computes <Q>, <P>, <Q^2>, <P^2> and more
+%expectation values from a quadarature measurement. X and THETA are
+%computed quadratures and phase values that are not discretized in THETA.
 %
 % Output Arguments:
-%   delX: 
+%   expectations: Structure containing the variance 'varX' of X at a fixed
+%       phase, the coherent amplitude 'cohAmpl' and the number of photons
+%       'cohN' estimated from the coherent amplitude, together with other
+%       expectation values requested with the optional input argument
+%       'AddOutputs'.
 %
 % Optional Input Arguments:
 %   'Plot': Set it to 'show' if you want a graphical output. Default is
@@ -25,7 +29,8 @@ c = struct2cell(p.Results);
 
 %% Loop over number of piezo segments
 [~,nSegments] = size(X);
-[meanN,varX,delX] = deal(zeros(nSegments,1));
+[expectations.cohN,expectations.varX, ...
+    expectations.cohAmpl] = deal(zeros(nSegments,1));
 for iSegment = 1 : nSegments
     
     % Fit a sine function to model coherent offset
@@ -37,14 +42,14 @@ for iSegment = 1 : nSegments
     
     % Compute variance and standard deviation
     fluctuations = segmentX - fitValues;
-    varX(iSegment) = var(fluctuations);
-    delX(iSegment) = std(fluctuations);
+    expectations.varX(iSegment) = var(fluctuations);
 
     % Coherent state photon number
-    amplitude = fitParams(1);
-    meanN(iSegment) = (amplitude^2)/(4*Norm^2);
+    expectations.cohAmpl(iSegment) = fitParams(1);
+    expectations.cohN(iSegment) = ...
+        (expectations.cohAmpl(iSegment)^2)/(4*Norm^2);
  
-end % iSegment 
+end % iSegment
 
 end % computeExpectations
 
