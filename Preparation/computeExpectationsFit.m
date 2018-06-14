@@ -9,19 +9,19 @@ function [delX,varX,meanN,nSegments] = computeExpectationsFit(X,theta,varargin)
 % Optional Input Arguments:
 %   'Plot': Set it to 'show' if you want a graphical output. Default is
 %       'hide' with no graphical output.
-
-Norm = 1/sqrt(2);
-%Norm ist the factor in the relation between the quadratures and the ladder
-%operators: q = Norm*(a^{+} + a), p = Norm*i*(a^{+} - a)
-%typical values are 1/sqrt(2) or 1/2. 
+%   'Norm': It's defined by the commutator relation between the two
+%       quadrature operators: [q,p] = i*2*Norm
+%       Typical values are 1/sqrt(2), 1/2 or 1. Default is 1/sqrt(2).
 
 %% Validate and parse input arguments
 p = inputParser;
+defaultNorm = 1/sqrt(2);
+addParameter(p,'Norm',defaultNorm,@isnumeric);
 defaultPlotOpt = 'hide';
 addParameter(p,'Plot',defaultPlotOpt,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[plotOpt] = c{:};
+[Norm,plotOpt] = c{:};
 
 %% Loop over number of piezo segments
 [~,nSegments] = size(X);
@@ -42,7 +42,7 @@ for iSegment = 1 : nSegments
 
     % Coherent state photon number
     amplitude = fitParams(1);
-    meanN(iSegment) = (amplitude^2)/2;
+    meanN(iSegment) = (amplitude^2)/(4*Norm^2);
  
 end % iSegment 
 
