@@ -63,18 +63,22 @@ for i = 1:length(files)
     quantities.nX2(i) = n2;
     quantities.nX3(i) = n3;
     
+    % Compute expectation values of postselected state by fitting
+    expectations = computeExpectationsFit(selX,selTheta);
+    quantities.cohAmpl(i) = expectations.cohAmpl;
+    
     % Compute expectation values of postselected state
     [selX,selTheta]=discretizeTheta(selX,selTheta,100);
     [expQ,expP,expQ2,expP2,delQ,delP,~,~,~,~] = ...
         computeExpectations2(selX,selTheta,'bla','Plot','hide');
-    q1(i) = expQ(1);
-    q21(i) = expQ2(1);
-    p1(i) = expP(1);
-    p21(i) = expP2(1);
-    qmax(i) = max(expQ);
-    q2max(i) = max(expQ2);
-    varQ(i) = delQ^2;
-    varP(i) = delP^2;
+    quantities.q1(i) = expQ(1);
+    quantities.q21(i) = expQ2(1);
+    quantities.p1(i) = expP(1);
+    quantities.p21(i) = expP2(1);
+    quantities.qmax(i) = max(expQ);
+    quantities.q2max(i) = max(expQ2);
+    quantities.varQ(i) = delQ^2;
+    quantities.varP(i) = delP^2;
 end
 
 %% Create and write table
@@ -88,16 +92,18 @@ if ~isempty(filestruct)
     filenames = {filestruct.name}';
     T = table(filedates,filenames);
     T = sortrows(T,'filedates');
-    T = readtable(cell2mat(T.filenames(end)));
+    T = readtable(T.filenames{end});
 end
 
-% Update table with new values
+% Update table with new values by looping over 'quantities' variable
+fields = fieldnames(quantities);
+for iField = 1:numel(fields)
+    T.(fields{iField}) = makecol(quantities.(fields{iField}));
+end
 
 % Write results to a new table file
-Filename = files';
-minVar = compute3ChLimit(nX1,nX2,nX3);
-T = table(Filename,nX1,nX2,nX3,meanVarX,q1,q21,p1,p21, ...
-    qmax,q2max,varQ,varP,minVar);
+T.Filename = files';
+T.minVar = compute3ChLimit(quantities.nX1,quantities.nX2,quantities.nX3)';
 writetable(T,[datestr(date,'yyyy-mm-dd-'),'series3Ch']);
 
 end
