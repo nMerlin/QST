@@ -17,13 +17,15 @@ function [] = series3Ch(varargin)
 
 %% Validate and parse input arguments
 p = inputParser;
+defaultFittedExpectations = false;
+addParameter(p,'FittedExpectations',defaultFittedExpectations,@islogical);
 defaultSavePostselection = false;
 addParameter(p,'SavePostselection',defaultSavePostselection,@islogical);
 defaultSaveTheta = false;
 addParameter(p,'SaveTheta',defaultSaveTheta,@islogical);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[saveps,savetheta] = c{:};
+[fitexp,saveps,savetheta] = c{:};
 
 %% Discover *.mat files
 filestruct = dir('mat-data/*.mat');
@@ -68,24 +70,26 @@ for i = 1:length(files)
         [selX,selTheta] = selectRegion(O1,O2,O3,oTheta,selParams, ...
             'Plot','show','Output','print','Filename',filename);
         close all;
+        
+        % Compute photon numbers for each channel
+        [n1,n2,n3] = nPhotons(X1,X2,X3);
+        quantities.nX1(i) = n1;
+        quantities.nX2(i) = n2;
+        quantities.nX3(i) = n3;
     end
     
     %% Get quantities of interest
-    % Compute photon numbers for each channel
-    [n1,n2,n3] = nPhotons(X1,X2,X3);
-    quantities.nX1(i) = n1;
-    quantities.nX2(i) = n2;
-    quantities.nX3(i) = n3;
-    
     % Compute expectation values of postselected state by fitting
-    expectations = computeExpectationsFit(selX,selTheta);
-    quantities.cohAmpl(i) = expectations.cohAmpl;
-    quantities.meanVarX(i) = expectations.varX;
+    if fitexp
+        expectations = computeExpectationsFit(selX,selTheta);
+        quantities.cohAmpl(i) = expectations.cohAmpl;
+        quantities.meanVarX(i) = expectations.varX;
+    end
     
     % Compute expectation values of postselected state
-    [selX,selTheta]=discretizeTheta(selX,selTheta,100);
+    [disSelX,disSelTheta]=discretizeTheta(selX,selTheta,100);
     [expQ,expP,expQ2,expP2,delQ,delP,~,~,~,~] = ...
-        computeExpectations2(selX,selTheta,'bla','Plot','hide');
+        computeExpectations2(disSelX,disSelTheta,'bla','Plot','hide');
     quantities.q1(i) = expQ(1);
     quantities.q21(i) = expQ2(1);
     quantities.p1(i) = expP(1);
