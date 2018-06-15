@@ -8,16 +8,22 @@ function [] = series3Ch(varargin)
 %   variable.
 %
 % Optional Input Arguments:
-%   'SaveTheta': Default is 'true'. Chose true if you want the function to
+%   'SaveTheta': Default is 'false'. Chose true if you want the function to
 %       update the *.mat file with the computed theta vector.
+%   'SavePostselection': Default is 'false'. Choose 'true' if you want the
+%       function to save not only the raw quadratures, but also in a
+%       separate file the postselected variables 'O1', 'O2', 'O3',
+%       'oTheta', 'selX', 'selTheta' and 'selParams'.
 
 %% Validate and parse input arguments
 p = inputParser;
-defaultSaveTheta = true;
+defaultSavePostselection = false;
+addParameter(p,'SavePostselection',defaultSavePostselection,@islogical);
+defaultSaveTheta = false;
 addParameter(p,'SaveTheta',defaultSaveTheta,@islogical);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[savetheta] = c{:};
+[saveps,savetheta] = c{:};
 
 %% Discover *.mat files
 filestruct = dir('mat-data/*.mat');
@@ -45,16 +51,12 @@ for i = 1:length(files)
         end
     end
     [O1,O2,O3,oTheta] = selectOrthogonal(X2,X3,X1,theta,piezoSign);
-    [selX,selTheta,~,mVarX] = selectRegion(O1,O2,O3,oTheta,'Type', ...
-        'fullcircle','Position',[2.5 0.5],'Plot','show', ...
-        'Output','print','Filename',C{1});
+    selParams.Type = 'fullcircle';
+    selParams.Position = [2.5 0.5];
+    [selX,selTheta,~,mVarX] = selectRegion(O1,O2,O3,oTheta,selParams, ...
+        'Plot','show','Output','print','Filename',C{1});
     close all;
     meanVarX(i) = mVarX;
-    
-    % SaveTheta
-    if savetheta
-        save(['mat-data/',files{i}],'X1','X2','X3','theta','piezoSign');
-    end
     
     %% Get quantities of interest
     % Compute photon numbers for each channel
@@ -79,6 +81,19 @@ for i = 1:length(files)
     quantities.q2max(i) = max(expQ2);
     quantities.varQ(i) = delQ^2;
     quantities.varP(i) = delP^2;
+    
+    %% Save high-cost workspace variables
+    % Save Theta
+    if savetheta
+        save(['mat-data/',files{i}],'X1','X2','X3','theta','piezoSign');
+    end
+    
+    % Save postselected variables
+    if saveps
+        [~,name] = fileparts(files{i});
+        save(['mat-data/',name,'-postselection'],'O1','O2','O3', ...
+            'oTheta','selX','selTheta','selParams');
+    end
 end
 
 %% Create and write table
