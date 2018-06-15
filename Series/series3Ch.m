@@ -52,22 +52,23 @@ for i = 1:length(files)
         load(['mat-data/',files{i}]);
     end
 
-    %% Compute Phase and Postselect
-    if ~exist('theta','var')
-        try
-            [theta,~] = computePhase(X1,X2,piezoSign);
-        catch
-            warning('Problem using computePhase. Assigning random phase.');
-            theta = rand(size(X1,1)*size(X1,2),size(X1,3))*2*pi;
+    %% Compute Phase and Postselected Variables
+    if ~exist('selX','var') % run only if postselection file was not loaded
+        if ~exist('theta','var') % run only if theta is not available
+            try
+                [theta,~] = computePhase(X1,X2,piezoSign);
+            catch
+                warning('Problem using computePhase. Assigning random phase.');
+                theta = rand(size(X1,1)*size(X1,2),size(X1,3))*2*pi;
+            end
         end
+        [O1,O2,O3,oTheta] = selectOrthogonal(X2,X3,X1,theta,piezoSign);
+        selParams.Type = 'fullcircle';
+        selParams.Position = [2.5 0.5];
+        [selX,selTheta] = selectRegion(O1,O2,O3,oTheta,selParams, ...
+            'Plot','show','Output','print','Filename',filename);
+        close all;
     end
-    [O1,O2,O3,oTheta] = selectOrthogonal(X2,X3,X1,theta,piezoSign);
-    selParams.Type = 'fullcircle';
-    selParams.Position = [2.5 0.5];
-    [selX,selTheta,~,mVarX] = selectRegion(O1,O2,O3,oTheta,selParams, ...
-        'Plot','show','Output','print','Filename',filename);
-    close all;
-    meanVarX(i) = mVarX;
     
     %% Get quantities of interest
     % Compute photon numbers for each channel
@@ -79,6 +80,7 @@ for i = 1:length(files)
     % Compute expectation values of postselected state by fitting
     expectations = computeExpectationsFit(selX,selTheta);
     quantities.cohAmpl(i) = expectations.cohAmpl;
+    quantities.meanVarX(i) = expectations.varX;
     
     % Compute expectation values of postselected state
     [selX,selTheta]=discretizeTheta(selX,selTheta,100);
@@ -93,7 +95,7 @@ for i = 1:length(files)
     quantities.varQ(i) = delQ^2;
     quantities.varP(i) = delP^2;
     
-    %% Save high-cost workspace variables
+    %% Save workspace variables (because recomputing them takes time)
     % Save Theta
     if savetheta
         save(['mat-data/',files{i}],'X1','X2','X3','theta','piezoSign');
