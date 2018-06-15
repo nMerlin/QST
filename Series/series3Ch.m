@@ -8,8 +8,8 @@ function [] = series3Ch(varargin)
 %   variable.
 %
 % Optional Input Arguments:
-%   'SaveTheta': Default is 'false'. Chose true if you want the function to
-%       update the *.mat file with the computed theta vector.
+%   'SaveTheta': Default is 'false'. Choose true if you want the function
+%       to update the *.mat file with the computed theta vector.
 %   'SavePostselection': Default is 'false'. Choose 'true' if you want the
 %       function to save not only the raw quadratures, but also in a
 %       separate file the postselected variables 'O1', 'O2', 'O3',
@@ -31,17 +31,25 @@ files = {filestruct.name};
 
 %% Iterate through data files
 quantities = struct; % Structure that will contain quantities of interest
-[nX1,nX2,nX3,meanVarX,q1,q21,p1,p21,qmax,q2max, ...
-    varQ,varP]=deal(zeros(length(files),1));
 dispstat('','init','timestamp','keepthis',0);
 for i = 1:length(files)
-    % Load data
+    %% Load data
     dispstat(['Processing ',files{i},' ...'],'timestamp','keepthis',0);
-    clear X1 X2 X3 theta piezoSign;
-    load(['mat-data/',files{i}]);
-    C = strsplit(files{i},'.');
-    
-    % Postselect
+    clear X1 X2 X3 theta piezoSign O1 O2 O3 oTheta selX selTheta selParams;
+    if ~saveps
+        try
+            load(['mat-data/',name,'-postselection']);
+        catch
+            dispstat(['Could not find postselection file, ', ...
+                'loading raw quadratures ...'],'timestamp','keepthis',0);
+            load(['mat-data/',files{i}]);
+        end
+    else
+        load(['mat-data/',files{i}]);
+    end
+    [~,filename] = fileparts(files{i});
+
+    %% Compute Phase and Postselect
     if ~exist('theta','var')
         try
             [theta,~] = computePhase(X1,X2,piezoSign);
@@ -54,7 +62,7 @@ for i = 1:length(files)
     selParams.Type = 'fullcircle';
     selParams.Position = [2.5 0.5];
     [selX,selTheta,~,mVarX] = selectRegion(O1,O2,O3,oTheta,selParams, ...
-        'Plot','show','Output','print','Filename',C{1});
+        'Plot','show','Output','print','Filename',filename);
     close all;
     meanVarX(i) = mVarX;
     
