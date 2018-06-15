@@ -31,6 +31,7 @@ files = {filestruct.name};
 
 %% Iterate through data files
 quantities = struct; % Structure that will contain quantities of interest
+tempsaveps = false; % Can change postselection saving behavior per case
 dispstat('','init','timestamp','keepthis',0);
 for i = 1:length(files)
     %% Load data
@@ -43,6 +44,7 @@ for i = 1:length(files)
             dispstat(['Could not find postselection file, ', ...
                 'loading raw quadratures ...'],'timestamp','keepthis',0);
             load(['mat-data/',files{i}]);
+            tempsaveps = true;
         end
     else
         load(['mat-data/',files{i}]);
@@ -97,10 +99,11 @@ for i = 1:length(files)
     end
     
     % Save postselected variables
-    if saveps
+    if saveps || tempsaveps
         [~,name] = fileparts(files{i});
         save(['mat-data/',name,'-postselection'],'O1','O2','O3', ...
             'oTheta','selX','selTheta','selParams');
+        tempsaveps = false;
     end
 end
 
