@@ -23,7 +23,8 @@ c = struct2cell(p.Results);
 filestruct = dir('mat-data/*.mat');
 files = {filestruct.name};
 
-%% Iteration through data files
+%% Iterate through data files
+quantities = struct; % Structure that will contain quantities of interest
 [nX1,nX2,nX3,meanVarX,q1,q21,p1,p21,qmax,q2max, ...
     varQ,varP]=deal(zeros(length(files),1));
 dispstat('','init','timestamp','keepthis',0);
@@ -33,12 +34,6 @@ for i = 1:length(files)
     clear X1 X2 X3 theta piezoSign;
     load(['mat-data/',files{i}]);
     C = strsplit(files{i},'.');
-    
-    % Compute photon number in each channel
-    [n1,n2,n3] = nPhotons(X1,X2,X3);
-    nX1(i) = n1;
-    nX2(i) = n2;
-    nX3(i) = n3;
     
     % Postselect
     if ~exist('theta','var')
@@ -62,6 +57,13 @@ for i = 1:length(files)
     end
     
     %% Get quantities of interest
+    % Compute photon numbers for each channel
+    [n1,n2,n3] = nPhotons(X1,X2,X3);
+    quantities.nX1(i) = n1;
+    quantities.nX2(i) = n2;
+    quantities.nX3(i) = n3;
+    
+    % Compute expectation values of postselected state
     [selX,selTheta]=discretizeTheta(selX,selTheta,100);
     [expQ,expP,expQ2,expP2,delQ,delP,~,~,~,~] = ...
         computeExpectations2(selX,selTheta,'bla','Plot','hide');
@@ -76,18 +78,22 @@ for i = 1:length(files)
 end
 
 %% Create and write table
-% Load most recent table file 'yyyy-mm-dd-series3Ch.txt' (easier way?)
+% Load most recent table file 'yyyy-MM-dd-series3Ch.txt' (easier way?)
 filestruct = dir('*-series3CH.txt');
-filestring = strjoin({filestruct.name});
-filedates = regexp(filestring,'([^ ]*)-series3Ch.txt','tokens');
-filedates = [filedates{:}]';
-filedates = datetime(filedates,'InputFormat','yyyy-MM-dd');
-filenames = {filestruct.name}';
-T = table(filedates,filenames);
-T = sortrows(T,'filedates');
-T = readtable(cell2mat(T.filenames(end)));
+if ~isempty(filestruct)
+    filestring = strjoin({filestruct.name});
+    filedates = regexp(filestring,'([^ ]*)-series3Ch.txt','tokens');
+    filedates = [filedates{:}]';
+    filedates = datetime(filedates,'InputFormat','yyyy-MM-dd');
+    filenames = {filestruct.name}';
+    T = table(filedates,filenames);
+    T = sortrows(T,'filedates');
+    T = readtable(cell2mat(T.filenames(end)));
+end
 
-% Write results to a file
+% Update table with new values
+
+% Write results to a new table file
 Filename = files';
 minVar = compute3ChLimit(nX1,nX2,nX3);
 T = table(Filename,nX1,nX2,nX3,meanVarX,q1,q21,p1,p21, ...
