@@ -3,7 +3,7 @@ function [] = series3Ch(varargin)
 %
 % Functionality:
 %   Looks for *.mat files in the folder 'mat-data', computes multiple
-%   quantities of interest, and saves them to an excel spreadsheet. The
+%   quantities of interest, and saves them as a table. The
 %   *.mat files should contain the vectors X1,X2 and X3 and a piezoSign
 %   variable.
 %
