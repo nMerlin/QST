@@ -32,7 +32,6 @@ c = struct2cell(p.Results);
 [expectations.cohN,expectations.varX, ...
     expectations.cohAmpl] = deal(zeros(nSegments,1));
 for iSegment = 1 : nSegments
-    
     % Fit a sine function to model coherent offset
     segmentTheta = theta(:,iSegment);
     segmentX = X(:,iSegment);
