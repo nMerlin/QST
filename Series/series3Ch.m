@@ -37,9 +37,11 @@ for i = 1:length(files)
     %% Load data
     dispstat(['Processing ',files{i},' ...'],'timestamp','keepthis',0);
     clear X1 X2 X3 theta piezoSign O1 O2 O3 oTheta selX selTheta selParams;
+    C = strsplit(files{i},'.');
+    filename = C{1};
     if ~saveps
         try
-            load(['mat-data/',name,'-postselection']);
+            load(['mat-data/',filename,'-postselection.mat']);
         catch
             dispstat(['Could not find postselection file, ', ...
                 'loading raw quadratures ...'],'timestamp','keepthis',0);
@@ -49,7 +51,6 @@ for i = 1:length(files)
     else
         load(['mat-data/',files{i}]);
     end
-    [~,filename] = fileparts(files{i});
 
     %% Compute Phase and Postselect
     if ~exist('theta','var')
@@ -100,8 +101,7 @@ for i = 1:length(files)
     
     % Save postselected variables
     if saveps || tempsaveps
-        [~,name] = fileparts(files{i});
-        save(['mat-data/',name,'-postselection'],'O1','O2','O3', ...
+        save(['mat-data/',filename,'-postselection.mat'],'O1','O2','O3', ...
             'oTheta','selX','selTheta','selParams');
         tempsaveps = false;
     end
