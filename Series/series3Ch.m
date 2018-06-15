@@ -31,6 +31,11 @@ c = struct2cell(p.Results);
 filestruct = dir('mat-data/*.mat');
 files = {filestruct.name};
 
+%% Create folder 'post-data'
+if ~exist('post-data','dir')
+    mkdir('post-data')
+end
+
 %% Iterate through data files
 quantities = struct; % Structure that will contain quantities of interest
 tempsaveps = false; % Can change postselection saving behavior per case
@@ -43,7 +48,7 @@ for i = 1:length(files)
     filename = C{1};
     if ~saveps
         try
-            load(['mat-data/',filename,'-postselection.mat']);
+            load(['post-data/',filename,'-postselection.mat']);
         catch
             dispstat(['Could not find postselection file, ', ...
                 'loading raw quadratures ...'],'timestamp','keepthis',0);
@@ -107,7 +112,7 @@ for i = 1:length(files)
     
     % Save postselected variables
     if saveps || tempsaveps
-        save(['mat-data/',filename,'-postselection.mat'],'O1','O2','O3', ...
+        save(['post-data/',filename,'-postselection.mat'],'O1','O2','O3', ...
             'oTheta','selX','selTheta','selParams');
         tempsaveps = false;
     end
