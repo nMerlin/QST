@@ -8,12 +8,12 @@ function [] = series3Ch(varargin)
 %   variable.
 %
 % Optional Input Arguments:
-%   'SaveTheta': Default is false. Chose true if you want the function to
+%   'SaveTheta': Default is 'true'. Chose true if you want the function to
 %       update the *.mat file with the computed theta vector.
 
 %% Validate and parse input arguments
 p = inputParser;
-defaultSaveTheta = false;
+defaultSaveTheta = true;
 addParameter(p,'SaveTheta',defaultSaveTheta,@islogical);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
