@@ -61,7 +61,7 @@ for i = 1:length(files)
         save(['mat-data/',files{i}],'X1','X2','X3','theta','piezoSign');
     end
     
-    % Discretization and expectation values
+    %% Get quantities of interest
     [selX,selTheta]=discretizeTheta(selX,selTheta,100);
     [expQ,expP,expQ2,expP2,delQ,delP,~,~,~,~] = ...
         computeExpectations2(selX,selTheta,'bla','Plot','hide');
@@ -75,7 +75,19 @@ for i = 1:length(files)
     varP(i) = delP^2;
 end
 
-%% Write results to a file
+%% Create and write table
+% Load most recent table file 'yyyy-mm-dd-series3Ch.txt' (easier way?)
+filestruct = dir('*-series3CH.txt');
+filestring = strjoin({filestruct.name});
+filedates = regexp(filestring,'([^ ]*)-series3Ch.txt','tokens');
+filedates = [filedates{:}]';
+filedates = datetime(filedates,'InputFormat','yyyy-MM-dd');
+filenames = {filestruct.name}';
+T = table(filedates,filenames);
+T = sortrows(T,'filedates');
+T = readtable(cell2mat(T.filenames(end)));
+
+% Write results to a file
 Filename = files';
 minVar = compute3ChLimit(nX1,nX2,nX3);
 T = table(Filename,nX1,nX2,nX3,meanVarX,q1,q21,p1,p21, ...
