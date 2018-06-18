@@ -1,19 +1,27 @@
 function [  ] = plotWigner( WF, varargin )
-%PLOTWIGNER Creates a plot of the given Wigner Function
+%PLOTWIGNER Plots given Wigner Function
 %
-%   Noes:
+% Optional Input Arguments:
+%   'Image': Default is 'false'. Create an image plot of WF.
+%   'Surface': Default is 'true'. Create a surface plot of WF.
+%   'Narrow': Default is 'false'. Narrower axis limits.
+%
+% Notes:
 %   p and q have to be set manually
 
-image = 0;
-surface = 0;
-narrow = 0;
-if nargin > 1
-    for i = 2:nargin
-        eval([varargin{i-1} '=1;']);
-    end
-end
+%% Validate and parse input arguments
+p = inputParser;
+defaultImage = false;
+addParameter(p,'Image',defaultImage,@islogical);
+defaultNarrow = false;
+addParameter(p,'Narrow',defaultNarrow,@islogical);
+defaultSurface = true;
+addParameter(p,'Surface',defaultSurface,@islogical);
+parse(p,varargin{:});
+c = struct2cell(p.Results);
+[image,narrow,surface] = c{:};
 
-if narrow == 1
+if narrow
     p = -6:0.125:6;
     q = p;
     nP = length(p);
@@ -25,9 +33,9 @@ else
     q = p;
 end
 
-if image == 1
+if image
     imagesc(p,q,real(WF));
-elseif surface == 1
+elseif surface
     h = surf(p,q,real(WF));
     set(h,'LineStyle','none');
 end
