@@ -67,6 +67,8 @@ for iRho = 1:N_ITERATIONS
     % Stop when change is smaller than threshold
     if sum(sum(abs(rho-nextRho))) < threshold
         rho = nextRho;
+        dispstat(['Iteration: ',num2str(iRho),' of ', ...
+            num2str(N_ITERATIONS),'. Threshold reached!'], 'timestamp');
         break;
     end
 end
