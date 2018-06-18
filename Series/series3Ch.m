@@ -8,24 +8,31 @@ function [] = series3Ch(varargin)
 %   variable.
 %
 % Optional Input Arguments:
+%   'RhoParams': Default is empty. Structure containing optional input
+%       arguments for function 'computeDensityMatrix'.
+%   'SaveRho': Default is 'false'. Choose true if you want the function to
+%       compute the most likely density matrix of the selected data.
 %   'SaveTheta': Default is 'false'. Choose true if you want the function
 %       to update the *.mat file with the computed theta vector.
 %   'SavePostselection': Default is 'false'. Choose 'true' if you want the
-%       function to save not only the raw quadratures, but also in a
-%       separate file the postselected variables 'O1', 'O2', 'O3',
-%       'oTheta', 'selX', 'selTheta' and 'selParams'.
+%       function to save the postselected variables 'O1', 'O2', 'O3',
+%       'oTheta', 'selX', 'selTheta' and 'selParams' in a separate file.
 
 %% Validate and parse input arguments
 p = inputParser;
 defaultFittedExpectations = false;
 addParameter(p,'FittedExpectations',defaultFittedExpectations,@islogical);
+defaultRhoParams = struct;
+addParameter(p,'RhoParams',defaultRhoParams,@isstruct);
 defaultSavePostselection = false;
 addParameter(p,'SavePostselection',defaultSavePostselection,@islogical);
+defaultSaveRho = false;
+addParameter(p,'SaveRho',defaultSaveRho,@islogical);
 defaultSaveTheta = false;
 addParameter(p,'SaveTheta',defaultSaveTheta,@islogical);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[fitexp,saveps,savetheta] = c{:};
+[fitexp,rhoParams,saveps,saverho,savetheta] = c{:};
 
 %% Discover *.mat files
 filestruct = dir('mat-data/*.mat');
@@ -112,9 +119,16 @@ for i = 1:length(files)
     
     % Save postselected variables
     if saveps || tempsaveps
-        save(['post-data/',filename,'-postselection.mat'],'O1','O2','O3', ...
-            'oTheta','selX','selTheta','selParams');
+        save(['post-data/',filename,'-postselection.mat'], ...
+            'O1','O2','O3','oTheta','selX','selTheta','selParams');
         tempsaveps = false;
+    end
+    
+    %% Reconstruct the Quantum State
+    if saverho
+        rho = computeDensityMatrix(selX,selTheta,rhoParams);
+        save(['post-data/',filename,'-postselection.mat'], ...
+            'rho','rhoParams','-append');
     end
 end
 
