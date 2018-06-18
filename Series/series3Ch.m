@@ -8,10 +8,23 @@ function [] = series3Ch(varargin)
 %   variable.
 %
 % Optional Input Arguments:
+%   *** Density Matrix ***
 %   'RhoParams': Default is empty. Structure containing optional input
 %       arguments for function 'computeDensityMatrix'.
 %   'SaveRho': Default is 'false'. Choose true if you want the function to
-%       compute the most likely density matrix of the selected data.
+%       compute the most likely density matrix in the selected data. If
+%       such a matrix already exists, it's just loaded from memory.
+%   'RewriteRho': Default is 'false'. Choose 'true' if you do not want to
+%       read the density matrix from disk but want a fresh calculation.
+%
+%   *** Wigner Function ***
+%   'SaveWigner': Default is 'false'. With 'true' the Wigner function will
+%       be calculated. This also sets 'SaveRho' to 'true'.
+%   'RewriteWigner': Default is 'false'. Choose 'true' if you do not want
+%       to read the Wigner function from disk but a new calculation. This
+%       also sets 'SaveRho' to 'true'.
+%
+%   *** Other ***
 %   'SaveTheta': Default is 'false'. Choose true if you want the function
 %       to update the *.mat file with the computed theta vector.
 %   'SavePostselection': Default is 'false'. Choose 'true' if you want the
@@ -22,6 +35,10 @@ function [] = series3Ch(varargin)
 p = inputParser;
 defaultFittedExpectations = false;
 addParameter(p,'FittedExpectations',defaultFittedExpectations,@islogical);
+defaultRewriteRho = false;
+addParameter(p,'RewriteRho',defaultRewriteRho,@islogical);
+defaultRewriteWigner = false;
+addParameter(p,'RewriteWigner',defaultRewriteWigner,@islogical);
 defaultRhoParams = struct;
 addParameter(p,'RhoParams',defaultRhoParams,@isstruct);
 defaultSavePostselection = false;
@@ -30,9 +47,17 @@ defaultSaveRho = false;
 addParameter(p,'SaveRho',defaultSaveRho,@islogical);
 defaultSaveTheta = false;
 addParameter(p,'SaveTheta',defaultSaveTheta,@islogical);
+defaultSaveWigner = false;
+addParameter(p,'SaveWigner',defaultSaveWigner,@islogical);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[fitexp,rhoParams,saveps,saverho,savetheta] = c{:};
+[fitexp,rewriteRho,rewriteWigner,rhoParams,saveps,saverho, ...
+    savetheta,saveWigner] = c{:};
+
+% Dependencies among optional input arguments
+if saveWigner || rewriteWigner
+    saverho = true;
+end
 
 %% Discover *.mat files
 filestruct = dir('mat-data/*.mat');
@@ -50,7 +75,9 @@ dispstat('','init','timestamp','keepthis',0);
 for i = 1:length(files)
     %% Load data
     dispstat(['Processing ',files{i},' ...'],'timestamp','keepthis',0);
-    clear X1 X2 X3 theta piezoSign O1 O2 O3 oTheta selX selTheta selParams;
+    clear X1 X2 X3 theta piezoSign
+    clear O1 O2 O3 oTheta selX selTheta selParams;
+    clear rho WF;
     C = strsplit(files{i},'.');
     filename = C{1};
     if ~saveps
@@ -125,10 +152,18 @@ for i = 1:length(files)
     end
     
     %% Reconstruct the Quantum State
-    if saverho
+    % Compute the density matrix
+    if (saverho && (~exist('rho','var'))) || rewriteRho
         rho = computeDensityMatrix(selX,selTheta,rhoParams);
         save(['post-data/',filename,'-postselection.mat'], ...
             'rho','rhoParams','-append');
+    end
+    
+    % Compute Wigner function
+    if (saveWigner && ~exist('WF','var')) || rewriteWigner
+        WF = mainWignerFromRho(rho);
+        save(['post-data/',filename,'-postselection.mat'], ...
+            'WF','-append');
     end
 end
 
