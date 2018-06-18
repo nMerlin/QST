@@ -2,8 +2,8 @@ function plotWigner(WF,varargin)
 %PLOTWIGNER Plots given Wigner Function
 %
 % Optional Input Arguments:
-%   'Image': Default is 'false'. Create an image plot of WF.
-%   'Surface': Default is 'true'. Create a surface plot of WF.
+%   'Image': Default is 'false' (3D plot). If 'true',
+%       create a 2D plot of WF.
 %   'Narrow': Default is 'false'. Narrower axis limits.
 %   'Handle': With the default [] it creates a new plot. Axis handle to
 %       plot into. Not implemented for 'Image'.
@@ -19,11 +19,9 @@ defaultImage = false;
 addParameter(p,'Image',defaultImage,@islogical);
 defaultNarrow = false;
 addParameter(p,'Narrow',defaultNarrow,@islogical);
-defaultSurface = true;
-addParameter(p,'Surface',defaultSurface,@islogical);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[handle,image,narrow,surface] = c{:};
+[handle,image,narrow] = c{:};
 
 %% Preprocess data and axes
 if narrow
@@ -42,11 +40,10 @@ end
 if ~isempty(handle)
     set(gcf,'currentaxes',handle);
 end
+h = surf(gca,p,q,real(WF));
+set(h,'LineStyle','none');
 if image
-    imagesc(p,q,real(WF));
-elseif surface
-    h = surf(gca,p,q,real(WF));
-    set(h,'LineStyle','none');
+    view(2);
 end
 
 end
