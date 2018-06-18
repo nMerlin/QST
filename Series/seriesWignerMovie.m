@@ -24,6 +24,7 @@ for iFile = 1:length(files)
     load(['post-data/',files{iFile}]);
     if exist('WF','var')
         allWF(end+1) = {WF};
+        clear WF;
     end
 end
 
