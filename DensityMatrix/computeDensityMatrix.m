@@ -4,6 +4,11 @@ function [rho,history] = computeDensityMatrix( X, theta, varargin )
 %   X and THETA must ...
 %       - be 1D-Arrays
 %       - have their NaN values at the same places.
+%
+% Optional Input Arguments:
+%   'Iterations': Default is 100. How many iterations take place in a loop.
+%   'Threshold': EXPERIMENTAL. Default is 0. Stop loop,
+%       when |rho - nextrho| < threshold.
 
 %% Constants
 MAX_FOCK_STATE = 30;
@@ -12,12 +17,14 @@ N_ITERATIONS = 100;
 %% Validate and parse input arguments
 p = inputParser;
 defaultIterations = N_ITERATIONS;
+addParameter(p,'Iterations',defaultIterations,@isnumeric);
 defaultRho = normalize(ones(MAX_FOCK_STATE+1,MAX_FOCK_STATE+1));
 addParameter(p,'Rho',defaultRho,@ismatrix);
-addParameter(p,'Iterations',defaultIterations,@isnumeric);
+defaultThreshold = 0;
+addParameter(p,'Threshold',defaultThreshold,@isnumeric);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[N_ITERATIONS,nextRho] = c{:};
+[N_ITERATIONS,nextRho,threshold] = c{:};
 
 % Stripping off NaN values
 dispstat('','init');
@@ -28,7 +35,7 @@ assert(length(X)==length(theta), ['X and THETA should have the same ' ...
     'length after stripping all NaN values!']);
 
 %% History
-% The _history_ variable will contain all intermediately calculated density
+% The _history_ variable will contain all calculated density
 % matrices. It is only saved when the output is required.
 if nargout>1
     history = zeros(MAX_FOCK_STATE+1,MAX_FOCK_STATE+1,N_ITERATIONS);
@@ -55,6 +62,12 @@ for iRho = 1:N_ITERATIONS
     % Update history output
     if nargout>1
         history(:,:,iRho) = nextRho;
+    end
+    
+    % Stop when change is smaller than threshold
+    if sum(sum(abs(rho-nextRho))) < threshold
+        rho = nextRho;
+        break;
     end
 end
 
