@@ -30,11 +30,15 @@ function [] = series3Ch(varargin)
 %   'SavePostselection': Default is 'false'. Choose 'true' if you want the
 %       function to save the postselected variables 'O1', 'O2', 'O3',
 %       'oTheta', 'selX', 'selTheta' and 'selParams' in a separate file.
+%   'NDisc': Default is 100. Number of bins to discretize theta for
+%       computing expectation values with 'computeExpectations'.
 
 %% Validate and parse input arguments
 p = inputParser;
 defaultFittedExpectations = false;
 addParameter(p,'FittedExpectations',defaultFittedExpectations,@islogical);
+defaultNDisc = 100;
+addParameter(p,'NDisc',defaultNDisc,@isnumeric);
 defaultRewriteRho = false;
 addParameter(p,'RewriteRho',defaultRewriteRho,@islogical);
 defaultRewriteWigner = false;
@@ -51,7 +55,7 @@ defaultSaveWigner = false;
 addParameter(p,'SaveWigner',defaultSaveWigner,@islogical);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[fitexp,rewriteRho,rewriteWigner,rhoParams,saveps,saverho, ...
+[fitexp,nDisc,rewriteRho,rewriteWigner,rhoParams,saveps,saverho, ...
     savetheta,saveWigner] = c{:};
 
 % Dependencies among optional input arguments
@@ -115,6 +119,7 @@ for i = 1:length(files)
         quantities.nX1(i) = n1;
         quantities.nX2(i) = n2;
         quantities.nX3(i) = n3;
+        quantities.minVar(i) = compute3ChLimit(n1,n2,n3);
     end
     
     %% Get quantities of interest
@@ -126,17 +131,18 @@ for i = 1:length(files)
     end
     
     % Compute expectation values of postselected state
-    [disSelX,disSelTheta]=discretizeTheta(selX,selTheta,100);
+    [disSelX,disSelTheta]=discretizeTheta(selX,selTheta,nDisc);
     [expQ,expP,expQ2,expP2,delQ,delP,~,~,~,~] = ...
         computeExpectations2(disSelX,disSelTheta,'bla','Plot','hide');
     quantities.q1(i) = expQ(1);
     quantities.q21(i) = expQ2(1);
     quantities.p1(i) = expP(1);
     quantities.p21(i) = expP2(1);
-    quantities.qmax(i) = max(expQ);
+    quantities.maxQ(i) = max(expQ);
     quantities.q2max(i) = max(expQ2);
     quantities.varQ(i) = delQ^2;
     quantities.varP(i) = delP^2;
+    quantities.discAmpl(i) = expQ(round(nDisc/4));
     
     %% Save workspace variables (because recomputing them takes time)
     % Save Theta
@@ -189,7 +195,6 @@ end
 
 % Write results to a new table file
 T.Filename = files';
-T.minVar = compute3ChLimit(quantities.nX1,quantities.nX2,quantities.nX3)';
 writetable(T,[datestr(date,'yyyy-mm-dd-'),'series3Ch']);
 
 end
