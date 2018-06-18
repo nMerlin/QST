@@ -5,7 +5,7 @@ function plotMovie(plotFun,plotInputs,varargin)
 %% Validate and parse input arguments
 p = inputParser;
 defaultFilename = 'Movie.mp4';
-defaultDelays = 1;
+defaultDelays = 24;
 defaultZLim = [NaN NaN];
 addParameter(p,'Filename',defaultFilename,@isstr);
 addParameter(p,'Delays',defaultDelays,@isnumeric);
