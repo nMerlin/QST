@@ -14,6 +14,9 @@ parse(p,varargin{:});
 c = struct2cell(p.Results);
 [delays,filename,zlim] = c{:};
 
+%% Preparing figure
+dispstat('','init')
+dispstat('plotMovie: Preparing figure ...','timestamp','keepthis');
 h = figure;
 axis tight;  % set axis limit to the range of the data
 axis manual;
@@ -22,7 +25,10 @@ movie.Quality = 100;
 open(movie);
 
 for iInput = 1:length(plotInputs)
-    plotFun(plotInputs{iInput},'Handle',gca);
+    dispstat(['plotMovie: Generating frame ',num2str(iInput),' of ', ...
+        num2str(length(plotInputs)),'.'],'timestamp');
+    plotFunParams.Handle = gca;
+    plotFun(plotInputs{iInput},plotFunParams);
     if ~isnan(zlim(1))
         set(gca,'ZLim',zlim);
     end
