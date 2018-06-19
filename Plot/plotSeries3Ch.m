@@ -3,13 +3,15 @@ function plotSeries3Ch(T,varargin)
 
 %% Validate and parse input arguments
 p = inputParser;
+defaultFilename = [datestr(date,'yyyy-mm-dd-'),'plotSeries3Ch'];
+addParameter(p,'Filename',defaultFilename,@isstr);
 defaultSave = false;
 addParameter(p,'Save',defaultSave,@islogical);
 defaultType = 'Delay';
 addParameter(p,'Type',defaultType,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[saveflag,typestr] = c{:};
+[filename,saveflag,typestr] = c{:};
 
 switch typestr
     case 'DelayMeanVarX'
@@ -76,7 +78,7 @@ legend('show');
 
 %% Write figure to file
 if saveflag
-    saveA5Landscape([datestr(date,'yyyy-mm-dd-'),'plotSeries3Ch']);
+    saveA5Landscape(filename);
 end
 
 end
