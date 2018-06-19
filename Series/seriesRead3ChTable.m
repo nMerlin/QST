@@ -8,14 +8,14 @@ function T = seriesRead3ChTable(selParams)
 % Input Arguments:
 %   selParams: Structure with selection parameters for 'selectRegion'.
 
-selStr = 'type=fullcircle-radius=2.5-thickness=0.5';
+selStr = '';
 if nargin > 0
-    selStr = selParamsToStr(selParams);
+    selStr = ['-',selParamsToStr(selParams)];
 end
-filestruct = dir(['*-',selStr,'-series3Ch.txt']);
+filestruct = dir(['*',selStr,'-series3Ch.txt']);
 if ~isempty(filestruct)
     filestring = strjoin({filestruct.name});
-    filedates = regexp(filestring,['([^ ]*)-',selStr, ...
+    filedates = regexp(filestring,['([^ ]*)',selStr, ...
         '-series3Ch.txt'],'tokens');
     filedates = [filedates{:}]';
     filedates = datetime(filedates,'InputFormat','yyyy-MM-dd');
@@ -24,7 +24,7 @@ if ~isempty(filestruct)
     T = sortrows(T,'filedates');
     T = readtable(T.filenames{end});
 else
-    warning(['There is no table *-',selStr,'-series3Ch.txt available!']);
+    warning(['There is no table *',selStr,'-series3Ch.txt available!']);
     T = [];
 end
 
