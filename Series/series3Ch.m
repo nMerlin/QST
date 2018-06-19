@@ -189,6 +189,13 @@ end
 %% Create and write table
 % Load most recent table file 'yyyy-MM-dd-series3Ch.txt'
 T = seriesRead3ChTable();
+if isempty(T)
+    try
+        T = readtable('raw-data/Delays.txt');
+    catch
+        warning('There was no ''raw-data/Delays.txt''!');
+    end
+end
 
 % Update table with new values by looping over 'quantities' variable
 fields = fieldnames(quantities);
