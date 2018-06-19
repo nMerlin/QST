@@ -28,12 +28,7 @@ T = seriesRead3ChTable();
 if ~isempty(T) && ismember('Delay',T.Properties.VariableNames)
     files = T.Filename;
     delays = T.Delay;
-    titles = cell(length(delays),1);
-    for iDelay = 1:length(delays)
-        titles{iDelay} = ['Delay: ',num2str(delays(iDelay)),' fs'];
-    end
 else
-    titles = {};
     %% Discover *.mat files
     if exist('post-data','dir')
         filestruct = dir('post-data/*.mat');
@@ -54,10 +49,24 @@ for iFile = 1:length(files)
         allWF(end+1) = {WF};
         clear WF;
     else
-        titles{iFile} = {};
+        delays(iFile) = NaN;
     end
 end
-titles = titles(~cellfun(@isempty,titles));
+delays = delays(~isnan(delays));
+
+%% Sort for delays
+[delays,iDelays] = sort(delays);
+allWF = allWF(iDelays);
+
+%% Create meaningful plot titles
+if ~isempty(delays)
+    titles = cell(length(delays),1);
+    for iDelay = 1:length(delays)
+        titles{iDelay} = ['Delay: ',num2str(round(delays(iDelay))),' fs'];
+    end
+else
+    titles = {};
+end
 
 %% Generate Movie
 plotfun = @(wigfun,params) plotWigner(wigfun,params,varargin{:});
