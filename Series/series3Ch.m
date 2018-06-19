@@ -175,17 +175,7 @@ end
 
 %% Create and write table
 % Load most recent table file 'yyyy-MM-dd-series3Ch.txt' (easier way?)
-filestruct = dir('*-series3CH.txt');
-if ~isempty(filestruct)
-    filestring = strjoin({filestruct.name});
-    filedates = regexp(filestring,'([^ ]*)-series3Ch.txt','tokens');
-    filedates = [filedates{:}]';
-    filedates = datetime(filedates,'InputFormat','yyyy-MM-dd');
-    filenames = {filestruct.name}';
-    T = table(filedates,filenames);
-    T = sortrows(T,'filedates');
-    T = readtable(T.filenames{end});
-end
+T = seriesRead3ChTable();
 
 % Update table with new values by looping over 'quantities' variable
 fields = fieldnames(quantities);
