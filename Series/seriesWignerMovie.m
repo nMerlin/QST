@@ -70,6 +70,9 @@ end
 
 %% Generate Movie
 plotfun = @(wigfun,params) plotWigner(wigfun,params,varargin{:});
-plotMovie(plotfun,allWF,'Titles',titles);
+
+filename = [datestr(date,'yyyy-mm-dd-'),'Movie-', ...
+    num2str(2+not(image)),'D.mp4'];
+plotMovie(plotfun,allWF,'Titles',titles,'Filename',filename);
 
 end
