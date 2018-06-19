@@ -116,8 +116,7 @@ for i = 1:length(files)
             end
         end
         [O1,O2,O3,oTheta] = selectOrthogonal(X2,X3,X1,theta,piezoSign);
-        [selX,selTheta] = selectRegion(O1,O2,O3,oTheta,selParams, ...
-            'Plot','show','Output','print','Filename',filename);
+        [selX,selTheta] = selectRegion(O1,O2,O3,oTheta,selParams);
         close all;
         
         % Compute photon numbers for each channel
