@@ -4,15 +4,17 @@ function plotMovie(plotFun,plotInputs,varargin)
 
 %% Validate and parse input arguments
 p = inputParser;
-defaultFilename = 'Movie.mp4';
 defaultDelays = 24;
-defaultZLim = [NaN NaN];
-addParameter(p,'Filename',defaultFilename,@isstr);
 addParameter(p,'Delays',defaultDelays,@isnumeric);
+defaultFilename = 'Movie.mp4';
+addParameter(p,'Filename',defaultFilename,@isstr);
+defaultTitles = {};
+addParameter(p,'Titles',defaultTitles,@iscell);
+defaultZLim = [NaN NaN];
 addParameter(p,'ZLim',defaultZLim,@isvector);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[delays,filename,zlim] = c{:};
+[delays,filename,titles,zlim] = c{:};
 
 %% Preparing figure
 dispstat('','init')
@@ -32,8 +34,12 @@ for iInput = 1:length(plotInputs)
     if ~isnan(zlim(1))
         set(gca,'ZLim',zlim);
     end
-    title(['Iteration ',num2str(iInput),' of ', ...
-        num2str(length(plotInputs))]);
+    if isempty(titles)
+        title(['Frame ',num2str(iInput),' of ', ...
+            num2str(length(plotInputs))]);
+    else
+        title(titles{iInput});
+    end
     frame = print(h,'-r150','-RGBImage');
     for iDelay = 1:delays
         writeVideo(movie, frame);
