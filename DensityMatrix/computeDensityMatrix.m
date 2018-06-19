@@ -29,10 +29,14 @@ c = struct2cell(p.Results);
 % Stripping off NaN values
 dispstat('','init');
 dispstat('Strip X and THETA off their NaN values.','timestamp','keepthis');
-X = X(~isnan(X));
+if sum(isnan(X))~=sum(isnan(theta))
+    warning(['X and THETA should have the same ',...
+        'length after stripping all NaN values!']);
+    X = X(~isnan(theta));
+else
+    X = X(~isnan(X));
+end
 theta = theta(~isnan(theta));
-assert(length(X)==length(theta), ['X and THETA should have the same ' ...
-    'length after stripping all NaN values!']);
 
 %% History
 % The _history_ variable will contain all calculated density
