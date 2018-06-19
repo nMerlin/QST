@@ -1,4 +1,4 @@
-function [] = series3Ch(varargin)
+function T = series3Ch(varargin)
 %SERIES3CH is used to batch process 3-Channel data already converted to mat
 %
 % Functionality:
@@ -8,6 +8,13 @@ function [] = series3Ch(varargin)
 %   variable.
 %
 % Optional Input Arguments:
+%   *** Postselection *** 'SavePostselection': Default is 'false'. Choose
+%       'true' if you want to recompute and save the postselected variables
+%       'O1', 'O2','O3','oTheta', 'selX', 'selTheta' and 'selParams' in a
+%       separate file.
+%   'SelectionParameters': Parameters for 'selectRegion'. Default is
+%       'Type'='fullcircle' and 'Position'=[2.5,0.5]
+%
 %   *** Density Matrix ***
 %   'RhoParams': Default is empty. Structure containing optional input
 %       arguments for function 'computeDensityMatrix'.
@@ -27,9 +34,6 @@ function [] = series3Ch(varargin)
 %   *** Other ***
 %   'SaveTheta': Default is 'false'. Choose true if you want the function
 %       to update the *.mat file with the computed theta vector.
-%   'SavePostselection': Default is 'false'. Choose 'true' if you want the
-%       function to save the postselected variables 'O1', 'O2', 'O3',
-%       'oTheta', 'selX', 'selTheta' and 'selParams' in a separate file.
 %   'NDisc': Default is 100. Number of bins to discretize theta for
 %       computing expectation values with 'computeExpectations'.
 
@@ -53,10 +57,12 @@ defaultSaveTheta = false;
 addParameter(p,'SaveTheta',defaultSaveTheta,@islogical);
 defaultSaveWigner = false;
 addParameter(p,'SaveWigner',defaultSaveWigner,@islogical);
+defaultSelParams = struct('Type','fullcircle','Position',[2.5,0.5]);
+addParameter(p,'SelectionParameters',defaultSelParams,@isstruct);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
 [fitexp,nDisc,rewriteRho,rewriteWigner,rhoParams,saveps,saverho, ...
-    savetheta,saveWigner] = c{:};
+    savetheta,saveWigner,selParams] = c{:};
 
 % Dependencies among optional input arguments
 if saveWigner || rewriteWigner
@@ -75,18 +81,19 @@ end
 %% Iterate through data files
 quantities = struct; % Structure that will contain quantities of interest
 tempsaveps = false; % Can change postselection saving behavior per case
+selStr = selParamsToStr(selParams);
 dispstat('','init','timestamp','keepthis',0);
 for i = 1:length(files)
     %% Load data
     dispstat(['Processing ',files{i},' ...'],'timestamp','keepthis',0);
     clear X1 X2 X3 theta piezoSign
-    clear O1 O2 O3 oTheta selX selTheta selParams;
+    clear O1 O2 O3 oTheta selX selTheta;
     clear rho WF;
     C = strsplit(files{i},'.');
     filename = C{1};
     if ~saveps
         try
-            load(['post-data/',filename,'-postselection.mat']);
+            load(['post-data/',filename,'-',selStr,'.mat']);
         catch
             dispstat(['Could not find postselection file, ', ...
                 'loading raw quadratures ...'],'timestamp','keepthis',0);
@@ -103,13 +110,12 @@ for i = 1:length(files)
             try
                 [theta,~] = computePhase(X1,X2,piezoSign);
             catch
-                warning('Problem using computePhase. Assigning random phase.');
+                warning(['Problem using computePhase.', ...
+                    ' Assigning random phase.']);
                 theta = rand(size(X1,1)*size(X1,2),size(X1,3))*2*pi;
             end
         end
         [O1,O2,O3,oTheta] = selectOrthogonal(X2,X3,X1,theta,piezoSign);
-        selParams.Type = 'fullcircle';
-        selParams.Position = [2.5 0.5];
         [selX,selTheta] = selectRegion(O1,O2,O3,oTheta,selParams, ...
             'Plot','show','Output','print','Filename',filename);
         close all;
@@ -152,29 +158,36 @@ for i = 1:length(files)
     
     % Save postselected variables
     if saveps || tempsaveps
-        save(['post-data/',filename,'-postselection.mat'], ...
-            'O1','O2','O3','oTheta','selX','selTheta','selParams');
+        postFilename = ['post-data/',filename,'-',selStr,'.mat'];
+        save(postFilename,'O1','O2','O3','oTheta', ...
+            'selX','selTheta','selParams');
         tempsaveps = false;
+        if exist('rho','var')
+            save(postFilename,'rho','rhoParams','-append');
+        end
+        if exist('WF','var')
+            save(postFilename,'WF','-append');
+        end
     end
     
     %% Reconstruct the Quantum State
     % Compute the density matrix
     if (saverho && (~exist('rho','var'))) || rewriteRho
         rho = computeDensityMatrix(selX,selTheta,rhoParams);
-        save(['post-data/',filename,'-postselection.mat'], ...
+        save(['post-data/',filename,'-',selStr,'.mat'], ...
             'rho','rhoParams','-append');
     end
     
     % Compute Wigner function
     if (saveWigner && ~exist('WF','var')) || rewriteWigner
         WF = mainWignerFromRho(rho);
-        save(['post-data/',filename,'-postselection.mat'], ...
+        save(['post-data/',filename,'-',selStr,'.mat'], ...
             'WF','-append');
     end
 end
 
 %% Create and write table
-% Load most recent table file 'yyyy-MM-dd-series3Ch.txt' (easier way?)
+% Load most recent table file 'yyyy-MM-dd-series3Ch.txt'
 T = seriesRead3ChTable();
 
 % Update table with new values by looping over 'quantities' variable
@@ -183,8 +196,8 @@ for iField = 1:numel(fields)
     T.(fields{iField}) = makecol(quantities.(fields{iField}));
 end
 
-% Write results to a new table file
-T.Filename = files';
-writetable(T,[datestr(date,'yyyy-mm-dd-'),'series3Ch']);
+% Remove '.mat' in filenames and write results to a new table file
+[~,T.Filename]=cellfun(@fileparts,files','UniformOutput',false);
+writetable(T,[datestr(date,'yyyy-mm-dd-'),selStr,'-series3Ch.txt']);
 
 end
