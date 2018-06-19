@@ -1,6 +1,12 @@
 function selStr = selParamsToStr(selParams,varargin)
 %SELPARAMSTOSTR Converts selection parameters of function 'selectRegion' to
-%human readable string for filenames.
+%   human readable string for filenames.
+%
+% Usage:
+%   selStr = selParamsToStr(selParams,varargin);
+%
+% Input Arguments:
+%   selParams: Structure with selection parameters for 'selectRegion'.
 
 type = selParams.Type;
 pos = selParams.Position;
