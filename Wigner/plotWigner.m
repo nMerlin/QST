@@ -7,6 +7,7 @@ function plotWigner(WF,varargin)
 %   'Narrow': Default is 'false'. Narrower axis limits.
 %   'Handle': With the default [] it creates a new plot. Axis handle to
 %       plot into. Not implemented for 'Image'.
+%   'ZLim': Limits of z-axis. Default is [-0.01 0.4].
 %
 % Notes:
 %   p and q have to be set manually
@@ -19,9 +20,11 @@ defaultImage = false;
 addParameter(p,'Image',defaultImage,@islogical);
 defaultNarrow = false;
 addParameter(p,'Narrow',defaultNarrow,@islogical);
+defaultZLim = [-0.01 0.4];
+addParameter(p,'ZLim',defaultZLim,@isvector);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[handle,image,narrow] = c{:};
+[handle,image,narrow,zlimit] = c{:};
 
 %% Preprocess data and axes
 if narrow
@@ -45,6 +48,9 @@ set(h,'LineStyle','none');
 if image
     view(2);
 end
+xlim([min(p),max(p)]);
+ylim([min(q) max(q)]);
+zlim(zlimit);
 
 end
 
