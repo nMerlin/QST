@@ -46,10 +46,10 @@ end
 selStr = selParamsToStr(selParams);
 allWF = {};
 for iFile = 1:length(files)
-    ss = strsplit(files{iFile},'.');
-    dispstat(['seriesWignerMovie: Loading ','post-data/',ss{1}, ...
-        '-',selStr,'.mat'],'timestamp');
-    load(['post-data/',ss{1},'-',selStr,'.mat']);
+    ss = strsplit(files{iFile},'.mat');
+    dispstat(['seriesWignerMovie: Loading ','post-data/',ss{1},'.mat'] ...
+        ,'timestamp');
+    load(['post-data/',ss{1},'.mat']);
     if exist('WF','var')
         allWF(end+1) = {WF};
         clear WF;
