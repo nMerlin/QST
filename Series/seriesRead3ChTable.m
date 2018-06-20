@@ -10,13 +10,13 @@ function T = seriesRead3ChTable(selParams)
 
 selStr = '';
 if nargin > 0
-    selStr = ['-',selParamsToStr(selParams)];
+    selStr = selParamsToStr(selParams);
 end
-filestruct = dir(['*',selStr,'-series3Ch.txt']);
+filestruct = dir(['*-series3Ch-',selStr,'.txt']);
 if ~isempty(filestruct)
     filestring = strjoin({filestruct.name});
-    filedates = regexp(filestring,['([^ ]*)',selStr, ...
-        '-series3Ch.txt'],'tokens');
+    filedates = regexp(filestring,['([^ ]*)','-series3Ch-',selStr] ...
+        ,'tokens');
     filedates = [filedates{:}]';
     filedates = datetime(filedates,'InputFormat','yyyy-MM-dd');
     filenames = {filestruct.name}';
@@ -24,7 +24,7 @@ if ~isempty(filestruct)
     T = sortrows(T,'filedates');
     T = readtable(T.filenames{end});
 else
-    warning(['There is no table *',selStr,'-series3Ch.txt available!']);
+    warning(['There is no table *-series3Ch-',selStr,'.txt available!']);
     T = [];
 end
 
