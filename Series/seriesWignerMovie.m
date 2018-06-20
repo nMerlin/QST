@@ -31,6 +31,8 @@ dispstat('seriesWignerMovie: Checking folder ''post-data''', ...
 T = seriesRead3ChTable();
 if ~isempty(T) && ismember('Delay',T.Properties.VariableNames)
     files = T.Filename;
+    % Remove filetype
+    [~,files] = cellfun(@fileparts,files,'UniformOutput',false);
     delays = T.Delay;
 else
     %% Discover *.mat files
@@ -47,9 +49,9 @@ selStr = selParamsToStr(selParams);
 allWF = {};
 for iFile = 1:length(files)
     ss = strsplit(files{iFile},'.mat');
-    dispstat(['seriesWignerMovie: Loading ','post-data/',ss{1},'.mat'] ...
-        ,'timestamp');
-    load(['post-data/',ss{1},'.mat']);
+    dispstat(['seriesWignerMovie: Loading ','post-data/', ...
+        ss{1},'-',selStr,'.mat'],'timestamp');
+    load(['post-data/',ss{1},'-',selStr,'.mat']);
     if exist('WF','var')
         allWF(end+1) = {WF};
         clear WF;
