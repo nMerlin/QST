@@ -63,11 +63,11 @@ else
 end
 if delayMeanVarX
     plotSeries3Ch(T,'Type','DelayMeanVarX','Filename', ...
-        [datestring,'-DelayMeanVarX-',selStr,'.pdf'],'Save',true);
+        [datestring,'-DelayMeanVarX-',selStr,'.fig']);
 end
 if delayMeanVarX
     plotSeries3Ch(T,'Type','DelayDiscAmpl','Filename', ...
-        [datestring,'-DelayDiscAmpl-',selStr,'.pdf'],'Save',true);
+        [datestring,'-DelayDiscAmpl-',selStr,'.fig']);
 end
 if movieWigner2D || movieWigner3D
     series3Ch('SaveWigner',true,'SelectionParameters',selParams);

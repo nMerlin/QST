@@ -3,34 +3,35 @@ function plotSeries3Ch(T,varargin)
 
 %% Validate and parse input arguments
 p = inputParser;
-defaultFilename = [datestr(date,'yyyy-mm-dd-'),'plotSeries3Ch'];
+defaultFilename = '';
 addParameter(p,'Filename',defaultFilename,@isstr);
-defaultSave = false;
-addParameter(p,'Save',defaultSave,@islogical);
 defaultType = 'Delay';
 addParameter(p,'Type',defaultType,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[filename,saveflag,typestr] = c{:};
+[filename,typestr] = c{:};
 
+fig = figure;
+hold on;
 switch typestr
     case 'DelayMeanVarX'
         %% Create plot delays versus postselected variance
         % Plot data
         xAxis = T.Delay;
         varX = T.discMeanVar;
-        plot(xAxis,varX,'o','DisplayName','(\Delta Q)^2'); hold on;
-        xlabel('Delay (fs)');
+        plot(xAxis,varX,'o','DisplayName','(\Delta Q)^2');
+        ax = get(fig,'CurrentAxes');
+        xlabel(ax,'Delay (fs)');
         
         % Fit with Gaussian
         fo = fitoptions('Method','NonlinearLeastSquares', ...
             'StartPoint',[-5 0 600 8.3]);
         ft = fittype('a*exp(-(x-b)^2/(2*s^2))+c','options',fo);
         res = fit(xAxis,varX,ft);
-        plot(min(xAxis):1:max(xAxis),res(min(xAxis):1:max(xAxis)),'r', ...
+        plot(ax,min(xAxis):1:max(xAxis),res(min(xAxis):1:max(xAxis)),'r', ...
             'DisplayName',['Gaussian with \sigma=', ...
             num2str(round(res.s)),' fs']);
-        xlim([min(xAxis) max(xAxis)]);
+        xlim(ax,[min(xAxis) max(xAxis)]);
         
         % Lower Bound
         %minVar = compute3ChLimit(T.nX2,T.nX3,T.nX1);
@@ -41,25 +42,25 @@ switch typestr
         %plot(xAxis,T.nX1+0.5,'*','DisplayName','Upper Bound');
 
         % Labels
-        ylabel('Postselected Variance');
+        ylabel(ax,'Postselected Variance');
     case 'DelayDiscAmpl'
         %% Create plot delays versus amplitude (discretization method)
         xAxis = T.Delay;
         yAxis = T.discAmpl;
-        plot(xAxis,yAxis,'o','DisplayName','|\alpha|'); hold on;
-        xlabel('Delay (fs)');
-        ylabel('Coherent Amplitude');
-        xlim([min(xAxis) max(xAxis)]);
+        plot(xAxis,yAxis,'o','DisplayName','|\alpha|');
+        ax = get(fig,'CurrentAxes');
+        xlabel(ax,'Delay (fs)');
+        ylabel(ax,'Coherent Amplitude');
+        xlim(ax,[min(xAxis) max(xAxis)]);
         
         % Fit with Gaussian
         fo = fitoptions('Method','NonlinearLeastSquares', ...
             'StartPoint',[-5 0 600 8.3]);
         ft = fittype('a*exp(-(x-b)^2/(2*s^2))+c','options',fo);
         res = fit(xAxis,yAxis,ft);
-        hold on;
         fitx = min(xAxis):1:max(xAxis);
         fity = res(min(xAxis):1:max(xAxis));
-        plot(fitx,fity,'r','DisplayName',['Gaussian; \sigma=', ...
+        plot(ax,fitx,fity,'r','DisplayName',['Gaussian; \sigma=', ...
             num2str(round(abs(res.s))),' fs']);
     case 'Photons'
         %% Create plot for series with different photon numbers
@@ -67,18 +68,19 @@ switch typestr
         xAxis = nX1./(nX2+nX3);
         varX = T.discMeanVar;
         plot(xAxis,varX,'o','DisplayName', ...
-            ['Minimum: ',num2str(min(varX))]); hold on;
-        xlabel('n_t/n_{ps}');
+            ['Minimum: ',num2str(min(varX))]);
+        ax = get(fig,'CurrentAxes');
+        xlabel(ax,'n_t/n_{ps}');
 end
 
 %% Common figure manipulation
+legend(ax,'show');
 hold off;
-legend('show');
 
-
-%% Write figure to file
-if saveflag
-    saveA5Landscape(filename);
+%% Write figure to file and close it
+if ~isempty(filename)
+    savefig(fig,filename);
+    delete(fig);
 end
 
 end
