@@ -20,7 +20,7 @@ c = struct2cell(p.Results);
 
 %% Preparing figure
 dispstat('','init')
-dispstat('plotMovie: Preparing figure ...','timestamp','keepthis');
+dispstat(['Working on ',filename,' ...'],'timestamp','keepthis');
 delete(findall(0)); % close all figures
 fig = figure('Visible',figurevisible);
 axis tight;  % set axis limit to the range of the data
@@ -31,7 +31,7 @@ open(movie);
 
 plotFunParams.Handle = get(fig,'CurrentAxes');
 for iInput = 1:length(plotInputs)
-    dispstat(['plotMovie: Generating frame ',num2str(iInput),' of ', ...
+    dispstat(['Generating frame ',num2str(iInput),' of ', ...
         num2str(length(plotInputs)),'.'],'timestamp');
     plotFun(plotInputs{iInput},plotFunParams);
     if ~isnan(zlim(1))
