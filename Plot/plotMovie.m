@@ -6,6 +6,8 @@ function plotMovie(plotFun,plotInputs,varargin)
 p = inputParser;
 defaultDelays = 24;
 addParameter(p,'Delays',defaultDelays,@isnumeric);
+defaultFigureVisible = 'off';
+addParameter(p,'FigureVisible',defaultFigureVisible,@isstr);
 defaultFilename = 'Movie.mp4';
 addParameter(p,'Filename',defaultFilename,@isstr);
 defaultTitles = {};
@@ -14,22 +16,23 @@ defaultZLim = [NaN NaN];
 addParameter(p,'ZLim',defaultZLim,@isvector);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[delays,filename,titles,zlim] = c{:};
+[delays,figurevisible,filename,titles,zlim] = c{:};
 
 %% Preparing figure
 dispstat('','init')
 dispstat('plotMovie: Preparing figure ...','timestamp','keepthis');
-h = figure;
+delete(findall(0)); % close all figures
+fig = figure('Visible',figurevisible);
 axis tight;  % set axis limit to the range of the data
 axis manual;
 movie = VideoWriter(filename, 'MPEG-4');
 movie.Quality = 100;
 open(movie);
 
+plotFunParams.Handle = get(fig,'CurrentAxes');
 for iInput = 1:length(plotInputs)
     dispstat(['plotMovie: Generating frame ',num2str(iInput),' of ', ...
         num2str(length(plotInputs)),'.'],'timestamp');
-    plotFunParams.Handle = gca;
     plotFun(plotInputs{iInput},plotFunParams);
     if ~isnan(zlim(1))
         set(gca,'ZLim',zlim);
@@ -40,7 +43,7 @@ for iInput = 1:length(plotInputs)
     else
         title(titles{iInput});
     end
-    frame = print(h,'-r150','-RGBImage');
+    frame = print(fig,'-r150','-RGBImage');
     for iDelay = 1:delays
         writeVideo(movie, frame);
     end % iDelay
