@@ -204,6 +204,6 @@ end
 
 % Remove '.mat' in filenames and write results to a new table file
 [~,T.Filename]=cellfun(@fileparts,files','UniformOutput',false);
-writetable(T,[datestr(date,'yyyy-mm-dd-'),selStr,'-series3Ch.txt']);
+writetable(T,[datestr(date,'yyyy-mm-dd-'),'series3Ch-',selStr]);
 
 end
