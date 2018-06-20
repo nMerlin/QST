@@ -72,11 +72,12 @@ end
 if movieWigner2D || movieWigner3D
     series3Ch('SaveWigner',true,'SelectionParameters',selParams);
 end
-if movieWigner2D
-    seriesWignerMovie('Image',true,'Narrow',true);
-end
-if movieWigner3D
+if movieWigner2D && movieWigner3D
     seriesWignerMovie('Narrow',true);
+elseif movieWigner2D
+    seriesWignerMovie('Dimensions','2D','Narrow',true);
+elseif movieWigner3D
+    seriesWignerMovie('Dimensions','3D','Narrow',true);
 end
 
 
