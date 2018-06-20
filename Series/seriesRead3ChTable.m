@@ -8,7 +8,7 @@ function T = seriesRead3ChTable(selParams)
 % Input Arguments:
 %   selParams: Structure with selection parameters for 'selectRegion'.
 
-selStr = '';
+selStr = 'type=fullcircle-radius=2.5-thickness=0.5';
 if nargin > 0
     selStr = selParamsToStr(selParams);
 end
