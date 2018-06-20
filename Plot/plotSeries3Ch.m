@@ -18,7 +18,7 @@ switch typestr
         %% Create plot delays versus postselected variance
         % Plot data
         xAxis = T.Delay;
-        varX = T.meanVarX;
+        varX = T.discMeanVar;
         plot(xAxis,varX,'o','DisplayName','(\Delta Q)^2'); hold on;
         xlabel('Delay (fs)');
         
@@ -65,7 +65,7 @@ switch typestr
         %% Create plot for series with different photon numbers
         nX1 = T.nX1; nX2 = T.nX2; nX3 = T.nX3;
         xAxis = nX1./(nX2+nX3);
-        varX = T.meanVarX;
+        varX = T.discMeanVar;
         plot(xAxis,varX,'o','DisplayName', ...
             ['Minimum: ',num2str(min(varX))]); hold on;
         xlabel('n_t/n_{ps}');
