@@ -16,9 +16,13 @@ defaultImage = false;
 addParameter(p,'Image',defaultImage,@islogical);
 defaultNarrow = false;
 addParameter(p,'Narrow',defaultNarrow,@islogical);
+defaultSelParams = struct('Type','fullcircle','Position',[2.5,0.5]);
+addParameter(p,'SelectionParameters',defaultSelParams,@isstruct);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[image,narrow] = c{:};
+[image,narrow,selParams] = c{:};
+wigParams.Image = image;
+wigParams.Narrow = narrow;
 
 %% Check data availability and capture data table
 dispstat('','init')
@@ -39,11 +43,12 @@ else
 end
 
 %% Capture the available WF variables
+selStr = selParamsToStr(selParams);
 allWF = {};
 for iFile = 1:length(files)
     ss = strsplit(files{iFile},'.');
     dispstat(['seriesWignerMovie: Loading ','post-data/',ss{1}, ...
-        '-postselection.mat'],'timestamp');
+        '-',selStr,'.mat'],'timestamp');
     load(['post-data/',ss{1},'-postselection.mat']);
     if exist('WF','var')
         allWF(end+1) = {WF};
@@ -69,10 +74,10 @@ else
 end
 
 %% Generate Movie
-plotfun = @(wigfun,params) plotWigner(wigfun,params,varargin{:});
+plotfun = @(wigfun,params) plotWigner(wigfun,params,wigParams);
 
-filename = [datestr(date,'yyyy-mm-dd-'),'Movie-', ...
-    num2str(2+not(image)),'D.mp4'];
+filename = [datestr(date,'yyyy-mm-dd-'),'WignerMovie', ...
+    num2str(2+not(image)),'D-',selStr,'.mp4'];
 plotMovie(plotfun,allWF,'Titles',titles,'Filename',filename);
 
 end
