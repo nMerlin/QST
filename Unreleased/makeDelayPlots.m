@@ -58,6 +58,8 @@ end
 datestring = datestr(date,'yyyy-mm-dd');
 if makeTable
     T = series3Ch('SelectionParameters',selParams);
+else
+    T = seriesRead3ChTable(selParams);
 end
 if delayMeanVarX
     plotSeries3Ch(T,'Type','DelayMeanVarX','Filename', ...
