@@ -27,8 +27,7 @@ wigParams.Narrow = narrow;
 
 %% Check data availability and capture data table
 dispstat('','init')
-dispstat('seriesWignerMovie: Checking folder ''post-data''', ...
-    'timestamp','keepthis');
+dispstat('Creating movies ...','timestamp','keepthis');
 T = seriesRead3ChTable();
 if ~isempty(T) && ismember('Delay',T.Properties.VariableNames)
     files = T.Filename;
@@ -50,7 +49,7 @@ selStr = selParamsToStr(selParams);
 allWF = {};
 for iFile = 1:length(files)
     ss = strsplit(files{iFile},'.mat');
-    dispstat(['seriesWignerMovie: Loading ','post-data/', ...
+    dispstat(['Loading ','post-data/', ...
         ss{1},'-',selStr,'.mat'],'timestamp');
     load(['post-data/',ss{1},'-',selStr,'.mat']);
     if exist('WF','var')
@@ -88,17 +87,17 @@ elseif strcmp(dimensions,'3D')
 end
 
 if twoD
-    wigParams.image = true;
+    wigParams.Image = true;
     plotfun = @(wigfun,params) plotWigner(wigfun,params,wigParams);
     filename = [datestr(date,'yyyy-mm-dd-'),'WignerMovie', ...
-    num2str(2+not(image)),'D-',selStr,'.mp4'];
+        num2str(2+not(wigParams.Image)),'D-',selStr,'.mp4'];
     plotMovie(plotfun,allWF,'Titles',titles,'Filename',filename);
 end
 if threeD
-    wigParams.image = false;
+    wigParams.Image = false;
     plotfun = @(wigfun,params) plotWigner(wigfun,params,wigParams);
     filename = [datestr(date,'yyyy-mm-dd-'),'WignerMovie', ...
-    num2str(2+not(image)),'D-',selStr,'.mp4'];
+        num2str(2+not(wigParams.Image)),'D-',selStr,'.mp4'];
     plotMovie(plotfun,allWF,'Titles',titles,'Filename',filename);
 end
 
