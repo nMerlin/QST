@@ -81,9 +81,9 @@ end
 if strcmp(dimensions,'both')
     twoD = true;
     threeD = true;
-elseif strcmp(dimensions,'2d')
+elseif strcmp(dimensions,'2D')
     twoD = true;
-elseif strcmp(dimensions,'3d')
+elseif strcmp(dimensions,'3D')
     threeD = true;
 end
 
