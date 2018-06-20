@@ -3,6 +3,7 @@ function seriesWignerMovie(varargin)
 %wrapper function for 'plotMovie'.
 %
 % Optional Input Arguments:
+%   'Dimensions': Specify '2D' or '3D' movie. Default is 'both'.
 %   'Image': Default is 'false' (3D plot). If 'true',
 %       create a 2D plot of WF.
 %   'Narrow': Default is 'false'. Narrower axis limits.
@@ -12,15 +13,15 @@ function seriesWignerMovie(varargin)
 
 %% Validate and parse input arguments
 p = inputParser;
-defaultImage = false;
-addParameter(p,'Image',defaultImage,@islogical);
+defaultDimensions = 'both';
+addParameter(p,'Dimensions',defaultDimensions,@isstr);
 defaultNarrow = false;
 addParameter(p,'Narrow',defaultNarrow,@islogical);
 defaultSelParams = struct('Type','fullcircle','Position',[2.5,0.5]);
 addParameter(p,'SelectionParameters',defaultSelParams,@isstruct);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[image,narrow,selParams] = c{:};
+[dimensions,narrow,selParams] = c{:};
 wigParams.Image = image;
 wigParams.Narrow = narrow;
 
@@ -75,11 +76,31 @@ else
     titles = {};
 end
 
-%% Generate Movie
-plotfun = @(wigfun,params) plotWigner(wigfun,params,wigParams);
+%% Generate Movie(s)
+[twoD,threeD] = deal(false);
+if strcmp(dimensions,'both')
+    twoD = true;
+    threeD = true;
+elseif strcmp(dimensions,'2d')
+    twoD = true;
+elseif strcmp(dimensions,'3d')
+    threeD = true;
+end
 
-filename = [datestr(date,'yyyy-mm-dd-'),'WignerMovie', ...
+if twoD
+    wigParams.image = true;
+    plotfun = @(wigfun,params) plotWigner(wigfun,params,wigParams);
+    filename = [datestr(date,'yyyy-mm-dd-'),'WignerMovie', ...
     num2str(2+not(image)),'D-',selStr,'.mp4'];
-plotMovie(plotfun,allWF,'Titles',titles,'Filename',filename);
+    plotMovie(plotfun,allWF,'Titles',titles,'Filename',filename);
+end
+if threeD
+    wigParams.image = false;
+    plotfun = @(wigfun,params) plotWigner(wigfun,params,wigParams);
+    filename = [datestr(date,'yyyy-mm-dd-'),'WignerMovie', ...
+    num2str(2+not(image)),'D-',selStr,'.mp4'];
+    plotMovie(plotfun,allWF,'Titles',titles,'Filename',filename);
+end
+
 
 end
