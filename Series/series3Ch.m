@@ -132,7 +132,7 @@ for i = 1:length(files)
     if fitexp
         expectations = computeExpectationsFit(selX,selTheta);
         quantities.cohAmpl(i) = expectations.cohAmpl;
-        quantities.meanVarX(i) = expectations.varX;
+        quantities.fitMeanVar(i) = expectations.varX;
     end
     
     % Compute expectation values of postselected state
@@ -148,6 +148,7 @@ for i = 1:length(files)
     quantities.varQ(i) = delQ^2;
     quantities.varP(i) = delP^2;
     quantities.discAmpl(i) = expQ(round(nDisc/4));
+    quantities.discMeanVar(i) = mean(expQ2(:)-(expQ(:)).^2);
     
     %% Save workspace variables (because recomputing them takes time)
     % Save Theta
