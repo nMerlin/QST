@@ -85,7 +85,7 @@ selStr = selParamsToStr(selParams);
 dispstat('','init','timestamp','keepthis',0);
 for i = 1:length(files)
     %% Load data
-    dispstat(['Processing ',files{i},' ...'],'timestamp','keepthis',0);
+    dispstat(['Loading ',files{i},' ...'],'timestamp',0);
     clear X1 X2 X3 theta piezoSign
     clear O1 O2 O3 oTheta selX selTheta;
     clear rho WF;

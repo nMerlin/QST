@@ -80,7 +80,7 @@ hold off;
 %% Write figure to file and close it
 if ~isempty(filename)
     savefig(fig,filename);
-    delete(fig);
+    close all;
 end
 
 end

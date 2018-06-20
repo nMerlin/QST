@@ -55,28 +55,36 @@ if (delayMeanVarX || delayDiscAmpl) && ...
 end
 
 %% Make
+dispstat('','init','timestamp','keepthis',0);
 datestring = datestr(date,'yyyy-mm-dd');
 if makeTable
+    dispstat('Making 3-channel table ...','timestamp','keepthis');
     T = series3Ch('SelectionParameters',selParams);
 else
     T = seriesRead3ChTable(selParams);
 end
 if delayMeanVarX
+    dispstat('Making DelayMeanVarX plot ...','timestamp','keepthis');
     plotSeries3Ch(T,'Type','DelayMeanVarX','Filename', ...
         [datestring,'-DelayMeanVarX-',selStr,'.fig']);
 end
 if delayMeanVarX
+    dispstat('Making DelayDiscAmpl plot ...','timestamp','keepthis');
     plotSeries3Ch(T,'Type','DelayDiscAmpl','Filename', ...
         [datestring,'-DelayDiscAmpl-',selStr,'.fig']);
 end
 if movieWigner2D || movieWigner3D
+    dispstat('Making Wigner functions ...','timestamp','keepthis');
     series3Ch('SaveWigner',true,'SelectionParameters',selParams);
 end
 if movieWigner2D && movieWigner3D
+    dispstat('Making 2D & 3D Wigner movies ...','timestamp','keepthis');
     seriesWignerMovie('Narrow',true);
 elseif movieWigner2D
+    dispstat('Making 2D Wigner movie ...','timestamp','keepthis');
     seriesWignerMovie('Dimensions','2D','Narrow',true);
 elseif movieWigner3D
+    dispstat('Making 3D Wigner movie ...','timestamp','keepthis');
     seriesWignerMovie('Dimensions','3D','Narrow',true);
 end
 
