@@ -80,7 +80,7 @@ end
 
 %% Make clean
 if cleanall
-    listMeanVarX = dir(['*-MeanVarX-',selStr,'*']);
+    listMeanVarX = dir(['*-DelayMeanVarX-',selStr,'*']);
     cellfun(@delete,{listMeanVarX.name});
     listDelayDiscAmpl = dir(['*-DelayDiscAmpl-',selStr,'*']);
     cellfun(@delete,{listDelayDiscAmpl.name});
