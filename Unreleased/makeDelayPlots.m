@@ -49,8 +49,7 @@ end
 
 % Find dependencies that need to be created
 [makeTable] = deal(false);
-if (delayMeanVarX || delayDiscAmpl) && ...
-        isempty(seriesRead3ChTable(selParams))
+if isempty(seriesRead3ChTable(selParams))
     makeTable = true;
 end
 
@@ -68,7 +67,7 @@ if delayMeanVarX
     plotSeries3Ch(T,'Type','DelayMeanVarX','Filename', ...
         [datestring,'-DelayMeanVarX-',selStr,'.fig']);
 end
-if delayMeanVarX
+if delayDiscAmpl
     dispstat('Making DelayDiscAmpl plot ...','timestamp','keepthis');
     plotSeries3Ch(T,'Type','DelayDiscAmpl','Filename', ...
         [datestring,'-DelayDiscAmpl-',selStr,'.fig']);
