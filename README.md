@@ -3,19 +3,8 @@ A set of MatLab scripts for optical homodyne quantum state tomography.
 
 [Demo for 3-Channel data analysis](https://github.com/nMerlin/QST/gh-pages/README.md)
 
-## Software Requirements
-Currently, the tools are developed and tested with:
-* Python 2.7.11 (64-bit)
-* SCons 2.5.0
+## Requirements
 * MatLab2015a (64-bit)
-on a Windows 7 64-bit machine. The steps necessary to set up the software are
-# Installing MatLab
-# Installing Python-2.7.11.amd64.msi and checking "Add python.exe to Path" during the installation setup
-# Open cmd.exe with administrator rights
-## Going to "C:\Program Files\MatLab\R2015a\extern\engines\python"
-## Running "python setup.py install"
-# Unzip scons-2.5.0.zip to "SCONS"-folder
-## Navigate in cmd.exe to "SCONS"-folder
-## Run "python setup.py install"
+* [export_fig](https://github.com/altmany/export_fig) in the MatLab path
 
-Warning: The wrong combination of software tools can result in compatibility issues. The matlab.engine used by python is first available in MatLab2014b.
+The code was tested on a Windows 7 64-bit machine.
