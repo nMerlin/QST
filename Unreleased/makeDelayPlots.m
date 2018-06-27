@@ -3,12 +3,14 @@ function makeDelayPlots(type,varargin)
 
 %% Validate and parse input arguments
 p = inputParser;
+defaultFigurepath = 'figures/';
+addParameter(p,'Figurepath',defaultFigurepath,@isstr);
 defaultSelectionParameters = struct('Type','fullcircle', ...
     'Position',[2.5 0.5]);
 addParameter(p,'SelectionParameters',defaultSelectionParameters,@isstruct);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[selParams] = c{:};
+[figurepath,selParams] = c{:};
 
 % make all if nothing is specified
 if nargin == 0
@@ -17,7 +19,8 @@ end
 
 %% Find out what needs to be done
 [delayMeanVarX,delayDiscAmpl,movieWigner2D,movieWigner3D, ...
-    cleanall] = deal(false);
+    cleanDelayMeanVarX,cleanDelayDiscAmpl,cleanMovieWigner2D, ...
+    cleanMovieWigner3D] = deal(false);
 % User request
 switch type
     case 'all'
@@ -29,21 +32,27 @@ switch type
         delayMeanVarX = true;
         delayDiscAmpl = true;
     case 'cleanall'
-        cleanall = true;
+        cleanDelayMeanVarX = true;
+        cleanDelayDiscAmpl = true;
+        cleanMovieWigner2D = true;
+        cleanMovieWigner3D = true;
+    case 'cleanplots'
+        cleanDelayMeanVarX = true;
+        cleanDelayDiscAmpl = true;
 end
 
 % Look what is already there
 selStr = selParamsToStr(selParams);
-if ~isempty(dir(['*-DelayMeanVarX-',selStr,'*']))
+if ~isempty(dir([figurepath,'*-DelayMeanVarX-',selStr,'*']))
     delayMeanVarX = false;
 end
-if ~isempty(dir(['*-DelayDiscAmpl-',selStr,'*']))
+if ~isempty(dir([figurepath,'*-DelayDiscAmpl-',selStr,'*']))
     delayDiscAmpl = false;
 end
-if ~isempty(dir(['*-WignerMovie3D-',selStr,'*']))
+if ~isempty(dir([figurepath,'*-WignerMovie3D-',selStr,'*']))
     movieWigner3D = false;
 end
-if ~isempty(dir(['*-WignerMovie2D-',selStr,'*']))
+if ~isempty(dir([figurepath,'*-WignerMovie2D-',selStr,'*']))
     movieWigner2D = false;
 end
 
@@ -62,15 +71,18 @@ if makeTable
 else
     T = seriesRead3ChTable(selParams);
 end
+if ~exist('figures','dir')
+    mkdir('figures');
+end
 if delayMeanVarX
     dispstat('Making DelayMeanVarX plot ...','timestamp','keepthis');
     plotSeries3Ch(T,'Type','DelayMeanVarX','Filename', ...
-        [datestring,'-DelayMeanVarX-',selStr,'.fig']);
+        [figurepath,datestring,'-DelayMeanVarX-',selStr,'.fig']);
 end
 if delayDiscAmpl
     dispstat('Making DelayDiscAmpl plot ...','timestamp','keepthis');
     plotSeries3Ch(T,'Type','DelayDiscAmpl','Filename', ...
-        [datestring,'-DelayDiscAmpl-',selStr,'.fig']);
+        [figurepath,datestring,'-DelayDiscAmpl-',selStr,'.fig']);
 end
 if movieWigner2D || movieWigner3D
     dispstat('Making Wigner functions ...','timestamp','keepthis');
@@ -89,13 +101,19 @@ end
 
 
 %% Make clean
-if cleanall
-    listMeanVarX = dir(['*-DelayMeanVarX-',selStr,'*']);
-    cellfun(@delete,{listMeanVarX.name});
-    listDelayDiscAmpl = dir(['*-DelayDiscAmpl-',selStr,'*']);
-    cellfun(@delete,{listDelayDiscAmpl.name});
+if cleanDelayMeanVarX
+    listMeanVarX = dir([figurepath,'*-DelayMeanVarX-',selStr,'*']);
+    cellfun(@(x) delete([figurepath,x]),{listMeanVarX.name});
+end
+if cleanDelayDiscAmpl
+    listDelayDiscAmpl = dir([figurepath,'*-DelayDiscAmpl-',selStr,'*']);
+    cellfun(@(x) delete([figurepath,x]),{listDelayDiscAmpl.name});
+end
+if cleanMovieWigner2D
     listWignerMovie2D = dir(['*-WignerMovie2D-',selStr,'*']);
     cellfun(@delete,{listWignerMovie2D.name});
+end
+if cleanMovieWigner3D
     listWignerMovie3D = dir(['*-WignerMovie3D-',selStr,'*']);
     cellfun(@delete,{listWignerMovie3D.name});
 end
