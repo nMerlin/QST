@@ -3,7 +3,7 @@ function makeDelayPlots(type,varargin)
 
 %% Validate and parse input arguments
 p = inputParser;
-defaultFigurepath = 'figures/';
+defaultFigurepath = 'figures-fig/';
 addParameter(p,'Figurepath',defaultFigurepath,@isstr);
 defaultSelectionParameters = struct('Type','fullcircle', ...
     'Position',[2.5 0.5]);
@@ -11,6 +11,9 @@ addParameter(p,'SelectionParameters',defaultSelectionParameters,@isstruct);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
 [figurepath,selParams] = c{:};
+
+% Constants
+pdfpath = 'figures-pdf/';
 
 % make all if nothing is specified
 if nargin == 0
@@ -20,7 +23,7 @@ end
 %% Find out what needs to be done
 [delayMeanVarX,delayDiscAmpl,movieWigner2D,movieWigner3D, ...
     cleanDelayMeanVarX,cleanDelayDiscAmpl,cleanMovieWigner2D, ...
-    cleanMovieWigner3D] = deal(false);
+    cleanMovieWigner3D,pdfs] = deal(false);
 % User request
 switch type
     case 'all'
@@ -28,9 +31,12 @@ switch type
         delayDiscAmpl = true;
         movieWigner2D = true;
         movieWigner3D = true;
+        pdfs = true;
     case 'plots'
         delayMeanVarX = true;
         delayDiscAmpl = true;
+    case 'pdfs'
+        pdfs = true;
     case 'cleanall'
         cleanDelayMeanVarX = true;
         cleanDelayDiscAmpl = true;
@@ -71,13 +77,16 @@ if makeTable
 else
     T = seriesRead3ChTable(selParams);
 end
-if ~exist('figures','dir')
-    mkdir('figures');
+if ~exist('figures-fig','dir')
+    mkdir('figures-fig');
+end
+if ~exist('figures-pdf','dir')
+    mkdir('figures-pdf')
 end
 if delayMeanVarX
     dispstat('Making DelayMeanVarX plot ...','timestamp','keepthis');
-    plotSeries3Ch(T,'Type','DelayMeanVarX','Filename', ...
-        [figurepath,datestring,'-DelayMeanVarX-',selStr,'.fig']);
+    filenameFig = [figurepath,datestring,'-DelayMeanVarX-',selStr,'.fig'];
+    plotSeries3Ch(T,'Type','DelayMeanVarX','Filename',filenameFig);
 end
 if delayDiscAmpl
     dispstat('Making DelayDiscAmpl plot ...','timestamp','keepthis');
@@ -98,7 +107,18 @@ elseif movieWigner3D
     dispstat('Making 3D Wigner movie ...','timestamp','keepthis');
     seriesWignerMovie('Dimensions','3D','Narrow',true);
 end
-
+if pdfs
+    listOfFigures = dir([figurepath,'*.fig']);
+    filenames = {listOfFigures.name};
+    for i = 1:length(filenames)
+        filenameFig = filenames{i};
+        fig = openfig([figurepath,filenameFig]);
+        [~,name] = fileparts(filenameFig);
+        filenamePdf = [pdfpath,name,'.pdf'];
+        export_fig(sprintf('%s',filenamePdf),'-pdf');
+        close(fig);
+    end
+end
 
 %% Make clean
 if cleanDelayMeanVarX
