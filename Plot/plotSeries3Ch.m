@@ -12,6 +12,7 @@ c = struct2cell(p.Results);
 [filename,typestr] = c{:};
 
 fig = figure;
+formatFigA5(fig);
 hold on;
 switch typestr
     case 'DelayMeanVarX'
