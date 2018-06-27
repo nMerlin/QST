@@ -113,7 +113,7 @@ elseif movieWigner3D
     seriesWignerMovie('Dimensions','3D','Narrow',true);
 end
 if pdfs
-    listOfFigures = dir([figurepath,'*.fig']);
+    listOfFigures = dir([figurepath,'*',selStr,'.fig']);
     filenames = {listOfFigures.name};
     for i = 1:length(filenames)
         filenameFig = filenames{i};
@@ -143,7 +143,7 @@ if cleanMovieWigner3D
     cellfun(@delete,{listWignerMovie3D.name});
 end
 if cleanpdfs
-    listOfPdfs = dir([pdfpath,'*.pdf']);
+    listOfPdfs = dir([pdfpath,'*',selStr,'.pdf']);
     cellfun(@(x) delete([pdfpath,x]),{listOfPdfs.name});
 end
 
