@@ -74,6 +74,7 @@ switch typestr
 end
 
 %% Common figure manipulation
+set(fig,'Color','w');
 legend(ax,'show');
 hold off;
 
