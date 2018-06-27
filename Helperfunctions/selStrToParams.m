@@ -3,7 +3,11 @@ function selParams = selStrToParams(selStr,varargin)
 %used in 'selectRegion' to structure with these parameters.
 
 type = regexp(selStr,'type=(\w*)','tokens');
-type = type{1}{1};
+if ~isempty(type)
+    type = type{1}{1};
+else
+    type = '';
+end
 switch type
     case {'fullcircle','halfcircle'}
         r = regexp(selStr,'radius=([0-9.]*)','tokens');
@@ -32,8 +36,12 @@ switch type
         w = regexp(selStr,'width=([0-9]*.[0-9]*)','tokens');
         pos(2) = str2double(w{1}{1});
 end
-selParams.Type = type;
-selParams.Position = pos;
+if ~isempty(type)
+    selParams.Type = type;
+    selParams.Position = pos;
+else
+    selParams = struct('Type',{},'Position',{});
+end
 
 end
 
