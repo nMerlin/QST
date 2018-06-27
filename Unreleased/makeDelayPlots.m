@@ -35,6 +35,7 @@ switch type
     case 'plots'
         delayMeanVarX = true;
         delayDiscAmpl = true;
+        pdfs = true;
     case 'pdfs'
         pdfs = true;
     case 'cleanall'
@@ -42,9 +43,11 @@ switch type
         cleanDelayDiscAmpl = true;
         cleanMovieWigner2D = true;
         cleanMovieWigner3D = true;
+        cleanpdfs = true;
     case 'cleanplots'
         cleanDelayMeanVarX = true;
         cleanDelayDiscAmpl = true;
+        cleanpdfs = true;
     case 'cleanpdfs'
         cleanpdfs = true;
 end
