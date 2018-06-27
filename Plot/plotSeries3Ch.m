@@ -77,6 +77,12 @@ end
 %% Common figure manipulation
 set(fig,'Color','w');
 legend(ax,'show');
+if ~isempty(filename)
+    selParams = selStrToParams(filename);
+    if ~isempty(selParams)
+        title(ax,selParamsToStr(selParams));
+    end
+end
 hold off;
 
 %% Write figure to file and close it
