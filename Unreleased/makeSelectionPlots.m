@@ -17,10 +17,14 @@ if isempty(listOfParams)
     listOfParams = cellfun(@selStrToParams,{listMeanVarX.name});
 end
 
-[radiusDiscAmpl] = deal(false);
+[radiusDiscAmpl,cleanDelayPlots,delayPlots] = deal(false);
 switch type
     case 'all'
         radiusDiscAmpl = true;
+    case 'cleanDelayPlots'
+        cleanDelayPlots = true;
+    case 'delayPlots'
+        delayPlots = true;
 end
 
 %% Resolve dependencies
@@ -28,6 +32,19 @@ end
 %% Make stuff
 if radiusDiscAmpl
     plotSeriesPostselections(listOfParams);
+end
+if delayPlots
+    for iParams = 1:length(listOfParams)
+        makeDelayPlots('plots','SelectionParameters',listOfParams(iParams));
+    end
+end
+
+%% Clean stuff
+if cleanDelayPlots
+    for iParams = 1:length(listOfParams)
+        makeDelayPlots('cleanplots', ...
+            'SelectionParameters',listOfParams(iParams));
+    end
 end
 
 end
