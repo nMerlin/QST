@@ -23,7 +23,7 @@ end
 %% Find out what needs to be done
 [delayMeanVarX,delayDiscAmpl,movieWigner2D,movieWigner3D, ...
     cleanDelayMeanVarX,cleanDelayDiscAmpl,cleanMovieWigner2D, ...
-    cleanMovieWigner3D,pdfs] = deal(false);
+    cleanMovieWigner3D,pdfs,cleanpdfs] = deal(false);
 % User request
 switch type
     case 'all'
@@ -45,6 +45,8 @@ switch type
     case 'cleanplots'
         cleanDelayMeanVarX = true;
         cleanDelayDiscAmpl = true;
+    case 'cleanpdfs'
+        cleanpdfs = true;
 end
 
 % Look what is already there
@@ -136,6 +138,10 @@ end
 if cleanMovieWigner3D
     listWignerMovie3D = dir(['*-WignerMovie3D-',selStr,'*']);
     cellfun(@delete,{listWignerMovie3D.name});
+end
+if cleanpdfs
+    listOfPdfs = dir([pdfpath,'*.pdf']);
+    cellfun(@(x) delete([pdfpath,x]),{listOfPdfs.name});
 end
 
 end
