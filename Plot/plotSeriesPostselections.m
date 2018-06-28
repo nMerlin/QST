@@ -3,11 +3,13 @@ function plotSeriesPostselections(listOfParams,varargin)
 
 %% Validate and parse input arguments
 p = inputParser;
+defaultFilename = '';
+addParameter(p,'Filename',defaultFilename,@isstr);
 defaultType = 'Amplitude';
 addParameter(p,'Type',defaultType,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[typestr] = c{:};
+[filename,typestr] = c{:};
 
 %% Gather data
 [X,Y,Z] = deal([]);
@@ -27,11 +29,17 @@ X = X(I,:);
 Y = Y(I,:);
 Z = Z(I,:);
 
-%% Create plots
+%% Create figure
 switch typestr
     case 'Amplitude'
         waterfall(X,Y,Z);
         view(-20,20);
+end
+
+%% Write figure to file and close it
+if ~isempty(filename)
+    savefig(fig,filename);
+    close all;
 end
 
 end
