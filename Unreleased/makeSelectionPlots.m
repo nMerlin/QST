@@ -20,6 +20,7 @@ end
 [radiusDiscAmpl,cleanDelayPlots,delayPlots] = deal(false);
 switch type
     case 'all'
+        delayPlots = true;
         radiusDiscAmpl = true;
     case 'cleanDelayPlots'
         cleanDelayPlots = true;
