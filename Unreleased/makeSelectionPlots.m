@@ -27,6 +27,8 @@ switch type
     case 'all'
         delayPlots = true;
         radiusDiscAmpl = true;
+        radiusMeanVar = true;
+        pdfs = true;
     case 'radiusPlots'
         radiusDiscAmpl = true;
         radiusMeanVar = true;
