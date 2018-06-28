@@ -114,15 +114,7 @@ elseif movieWigner3D
 end
 if pdfs
     listOfFigures = dir([figurepath,'*',selStr,'.fig']);
-    filenames = {listOfFigures.name};
-    for i = 1:length(filenames)
-        filenameFig = filenames{i};
-        fig = openfig([figurepath,filenameFig]);
-        [~,name] = fileparts(filenameFig);
-        filenamePdf = [pdfpath,name,'.pdf'];
-        export_fig(sprintf('%s',filenamePdf),'-pdf');
-        close(fig);
-    end
+    cellfun(@(x) makePdf([figurepath,x],pdfpath),{listOfFigures.name});
 end
 
 %% Make clean
