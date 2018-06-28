@@ -58,6 +58,8 @@ if pdfs
     for iParams = 1:length(listOfParams)
         makeDelayPlots('pdfs','SelectionParameters',listOfParams(iParams));
     end
+    listRadiusFigs = dir([figurepath,'*-RadiusDiscAmpl*']);
+    cellfun(@(x) makePdf([figurepath,x],pdfpath),{listRadiusFigs.name});
 end
 
 %% Clean stuff
