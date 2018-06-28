@@ -30,11 +30,14 @@ Y = Y(I,:);
 Z = Z(I,:);
 
 %% Create figure
+fig = figure;
+formatFigA5(fig);
 switch typestr
     case 'Amplitude'
         waterfall(X,Y,Z);
         view(-20,20);
 end
+set(fig,'Color','w');
 
 %% Write figure to file and close it
 if ~isempty(filename)
