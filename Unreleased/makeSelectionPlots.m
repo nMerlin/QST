@@ -77,7 +77,7 @@ if cleanPdfs
             'SelectionParameters',listOfParams(iParams));
     end
     listRadiusPdfs = dir([pdfpath,'*-RadiusDiscAmpl*']);
-    cellfun(@(x) delete([pdfpath,x]),{listRadiusPlots.name});
+    cellfun(@(x) delete([pdfpath,x]),{listRadiusPdfs.name});
 end
 
 end
