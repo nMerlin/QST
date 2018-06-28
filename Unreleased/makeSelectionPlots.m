@@ -21,16 +21,18 @@ if isempty(listOfParams)
     listOfParams = cellfun(@selStrToParams,{listMeanVarX.name});
 end
 
-[radiusDiscAmpl,cleanRadiusDiscAmpl,cleanDelayPlots, ...
-    delayPlots,pdfs,cleanpdfs] = deal(false);
+[radiusDiscAmpl,cleanRadiusDiscAmpl,cleanDelayPlots,delayPlots,pdfs, ...
+    cleanpdfs,radiusMeanVar,cleanRadiusMeanVar] = deal(false);
 switch type
     case 'all'
         delayPlots = true;
         radiusDiscAmpl = true;
     case 'radiusPlots'
         radiusDiscAmpl = true;
+        radiusMeanVar = true;
     case 'cleanRadiusPlots'
         cleanRadiusDiscAmpl = true;
+        cleanRadiusMeanVar = true;
     case 'delayPlots'
         delayPlots = true;
     case 'cleanDelayPlots'
@@ -52,7 +54,13 @@ if delayPlots
 end
 if radiusDiscAmpl
     filenameFig = [figurepath,datestring,'-RadiusDiscAmpl.fig'];
-    plotSeriesPostselections(listOfParams,'Filename',filenameFig);
+    plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
+        'Type','Amplitude');
+end
+if radiusMeanVar
+    filenameFig = [figurepath,datestring,'-RadiusMeanVar.fig'];
+    plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
+        'Type','MeanVar');
 end
 if pdfs
     for iParams = 1:length(listOfParams)
@@ -77,6 +85,10 @@ if cleanDelayPlots
 end
 if cleanRadiusDiscAmpl
     listRadiusPlots = dir([figurepath,'*-RadiusDiscAmpl*']);
+    cellfun(@(x) delete([figurepath,x]),{listRadiusPlots.name});
+end
+if cleanRadiusMeanVar
+    listRadiusPlots = dir([figurepath,'*-RadiusMeanVar*']);
     cellfun(@(x) delete([figurepath,x]),{listRadiusPlots.name});
 end
 if cleanpdfs
