@@ -114,7 +114,13 @@ elseif movieWigner3D
 end
 if pdfs
     listOfFigures = dir([figurepath,'*',selStr,'.fig']);
-    cellfun(@(x) makePdf([figurepath,x],pdfpath),{listOfFigures.name});
+    [~,figNames] = cellfun(@fileparts,{listOfFigures.name}, ...
+        'UniformOutput',false);
+    listOfPdfs = dir([pdfpath,'*',selStr,'.pdf']);
+    [~,pdfNames] = cellfun(@fileparts,{listOfPdfs.name}, ...
+        'UniformOutput',false);
+    cellfun(@(x) makePdf([figurepath,x,'.fig'],pdfpath), ...
+        setdiff(figNames,pdfNames));
 end
 
 %% Make clean
