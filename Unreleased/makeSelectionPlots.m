@@ -76,6 +76,8 @@ if cleanPdfs
         makeDelayPlots('cleanpdfs', ...
             'SelectionParameters',listOfParams(iParams));
     end
+    listRadiusPdfs = dir([pdfpath,'*-RadiusDiscAmpl*']);
+    cellfun(@(x) delete([figurepath,x]),{listRadiusPlots.name});
 end
 
 end
