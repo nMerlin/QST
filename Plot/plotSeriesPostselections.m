@@ -36,6 +36,9 @@ switch typestr
     case 'Amplitude'
         waterfall(X,Y,Z);
         view(-20,20);
+        xlabel('Delay (fs)');
+        zlabel('Coherent Amplitude');
+        title('Coherent Amplitude vs. Radius of Postselected Fullcircle');
 end
 set(fig,'Color','w');
 
