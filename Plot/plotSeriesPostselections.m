@@ -12,7 +12,7 @@ c = struct2cell(p.Results);
 [filename,typestr] = c{:};
 
 %% Gather data
-[X,Y,discAmpl,discMeanVar] = deal([]);
+[X,Y,discAmpl,discMeanVar,discN] = deal([]);
 for iParams = 1:length(listOfParams)
     selParams = listOfParams(iParams);
     A = seriesRead3ChTable(selParams);
