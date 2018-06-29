@@ -3,8 +3,8 @@ function makeSelectionPlots(type,varargin)
 
 %% Validate and parse input arguments
 p = inputParser;
-defaultListOfParams = '';
-addParameter(p,'ListOfParams',defaultListOfParams,@isstr);
+defaultListOfParams = {};
+addParameter(p,'ListOfParams',defaultListOfParams,@iscell);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
 [listOfParams] = c{:};
@@ -51,7 +51,7 @@ end
 datestring = datestr(date,'yyyy-mm-dd');
 if delayPlots
     for iParams = 1:length(listOfParams)
-        makeDelayPlots('plots','SelectionParameters',listOfParams(iParams));
+        makeDelayPlots('plots','SelectionParameters',listOfParams{iParams});
     end
 end
 if radiusDiscAmpl
