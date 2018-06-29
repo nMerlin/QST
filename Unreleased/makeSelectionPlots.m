@@ -102,7 +102,7 @@ if cleanRadiusMeanVar
     listRadiusPlots = dir([figurepath,'*-RadiusMeanVar*']);
     cellfun(@(x) delete([figurepath,x]),{listRadiusPlots.name});
 end
-if cleanRadiusMeanVar
+if cleanRadiusDiscN
     listRadiusPlots = dir([figurepath,'*-RadiusDiscN*']);
     cellfun(@(x) delete([figurepath,x]),{listRadiusPlots.name});
 end
