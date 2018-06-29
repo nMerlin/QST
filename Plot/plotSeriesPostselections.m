@@ -14,7 +14,7 @@ c = struct2cell(p.Results);
 %% Gather data
 [X,Y,discAmpl,discMeanVar] = deal([]);
 for iParams = 1:length(listOfParams)
-    selParams = listOfParams(iParams);
+    selParams = listOfParams{iParams};
     A = seriesRead3ChTable(selParams);
     H = height(A);
     Radii = ones(H,1) * selParams.Position(1);
