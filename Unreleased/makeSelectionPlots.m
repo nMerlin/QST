@@ -66,7 +66,7 @@ if radiusMeanVar
 end
 if pdfs
     for iParams = 1:length(listOfParams)
-        makeDelayPlots('pdfs','SelectionParameters',listOfParams(iParams));
+        makeDelayPlots('pdfs','SelectionParameters',listOfParams{iParams});
     end
     listOfFigures = dir([figurepath,'*-Radius*.fig']);
     [~,figNames] = cellfun(@fileparts,{listOfFigures.name}, ...
@@ -82,7 +82,7 @@ end
 if cleanDelayPlots
     for iParams = 1:length(listOfParams)
         makeDelayPlots('cleanplots', ...
-            'SelectionParameters',listOfParams(iParams));
+            'SelectionParameters',listOfParams{iParams});
     end
 end
 if cleanRadiusDiscAmpl
@@ -96,7 +96,7 @@ end
 if cleanpdfs
     for iParams = 1:length(listOfParams)
         makeDelayPlots('cleanpdfs', ...
-            'SelectionParameters',listOfParams(iParams));
+            'SelectionParameters',listOfParams{iParams});
     end
     listRadiusPdfs = dir([pdfpath,'*-Radius*']);
     cellfun(@(x) delete([pdfpath,x]),{listRadiusPdfs.name});
