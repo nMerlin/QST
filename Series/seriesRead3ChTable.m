@@ -1,6 +1,7 @@
 function T = seriesRead3ChTable(selParams)
-%SERIESREADTABLE3CH Load most recent table file 'yyyy-MM-dd-series3Ch.txt'
-% in current folder. Output is empty if no table was detected.
+%SERIESREADTABLE3CH Load most recent table file
+%'yyyy-MM-dd-series3Ch-selectionParameters.txt' in current folder. Output
+%is empty if no table was detected.
 %
 % Usage:
 %   T = seriesRead3ChTable(selParams);
@@ -24,7 +25,7 @@ if ~isempty(filestruct)
     T = sortrows(T,'filedates');
     T = readtable(T.filenames{end});
 else
-    warning(['There is no table *-series3Ch-',selStr,'.txt available!']);
+    %warning(['There is no table *-series3Ch-',selStr,'.txt available!']);
     T = [];
 end
 

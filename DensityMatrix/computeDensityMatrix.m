@@ -10,21 +10,23 @@ function [rho,history] = computeDensityMatrix( X, theta, varargin )
 %   'Threshold': EXPERIMENTAL. Default is 0. Stop loop,
 %       when |rho - nextrho| < threshold.
 
-%% Constants
-MAX_FOCK_STATE = 30;
-N_ITERATIONS = 100;
-
 %% Validate and parse input arguments
 p = inputParser;
-defaultIterations = N_ITERATIONS;
+defaultIterations = 100;
 addParameter(p,'Iterations',defaultIterations,@isnumeric);
-defaultRho = normalize(ones(MAX_FOCK_STATE+1,MAX_FOCK_STATE+1));
+defaultMaxFockState = 30;
+addParameter(p,'MaxFockState',defaultMaxFockState,@isnumeric);
+defaultRho = [];
 addParameter(p,'Rho',defaultRho,@ismatrix);
 defaultThreshold = 0;
 addParameter(p,'Threshold',defaultThreshold,@isnumeric);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[N_ITERATIONS,nextRho,threshold] = c{:};
+[N_ITERATIONS,maxFockState,nextRho,threshold] = c{:};
+
+if isempty(nextRho)
+    nextRho = normalize(ones(maxFockState+1,maxFockState+1));
+end
 
 % Stripping off NaN values
 dispstat('','init');
@@ -42,11 +44,11 @@ theta = theta(~isnan(theta));
 % The _history_ variable will contain all calculated density
 % matrices. It is only saved when the output is required.
 if nargout>1
-    history = zeros(MAX_FOCK_STATE+1,MAX_FOCK_STATE+1,N_ITERATIONS);
+    history = zeros(maxFockState+1,maxFockState+1,N_ITERATIONS);
 end
 
 %% Iteration
-PI1D = computeProjector1D( X, theta, MAX_FOCK_STATE);
+PI1D = computeProjector1D( X, theta, maxFockState);
 nX = length(X);
 prob = zeros(nX, 1);
 for iRho = 1:N_ITERATIONS
@@ -55,7 +57,7 @@ for iRho = 1:N_ITERATIONS
     dispstat(['Iteration: ' num2str(iRho) ' of ' ...
         num2str(N_ITERATIONS) '.'], 'timestamp');
     rho = nextRho;
-    R = zeros(MAX_FOCK_STATE+1,MAX_FOCK_STATE+1);
+    R = zeros(maxFockState+1,maxFockState+1);
     for i = 1:nX
         prob(i) = PI1D(:,i)' * rho * PI1D(:,i);
         R = R + (PI1D(:,i)*PI1D(:,i)')/(nX*prob(i));

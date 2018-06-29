@@ -12,6 +12,8 @@ c = struct2cell(p.Results);
 [filename,typestr] = c{:};
 
 fig = figure;
+formatFigA5(fig);
+legendLocation = 'northeast';
 hold on;
 switch typestr
     case 'DelayMeanVarX'
@@ -43,6 +45,7 @@ switch typestr
 
         % Labels
         ylabel(ax,'Postselected Variance');
+        legendLocation = 'southeast';
     case 'DelayDiscAmpl'
         %% Create plot delays versus amplitude (discretization method)
         xAxis = T.Delay;
@@ -74,7 +77,15 @@ switch typestr
 end
 
 %% Common figure manipulation
+set(fig,'Color','w');
+legend(ax,'Location',legendLocation);
 legend(ax,'show');
+if ~isempty(filename)
+    selParams = selStrToParams(filename);
+    if ~isempty(selParams)
+        title(ax,selParamsToStr(selParams));
+    end
+end
 hold off;
 
 %% Write figure to file and close it
