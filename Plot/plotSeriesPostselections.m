@@ -14,7 +14,7 @@ c = struct2cell(p.Results);
 %% Gather data
 [X,Y,discAmpl,discMeanVar] = deal([]);
 for iParams = 1:length(listOfParams)
-    selParams = listOfParams{iParams};
+    selParams = listOfParams(iParams);
     A = seriesRead3ChTable(selParams);
     H = height(A);
     Radii = ones(H,1) * selParams.Position(1);
@@ -25,12 +25,15 @@ for iParams = 1:length(listOfParams)
     discAmpl(iParams,:) = discAmpl(iParams,I);
     discMeanVar(iParams,:) = A.discMeanVar;
     discMeanVar(iParams,:) = discMeanVar(iParams,I);
+    discN(iParams,:) = A.discN;
+    discN(iParams,:) = discN(iParams,I);
 end
 [~,I] = sort(X(:,1)); % Sort for Radii
 X = X(I,:);
 Y = Y(I,:);
 discAmpl = discAmpl(I,:);
 discMeanVar = discMeanVar(I,:);
+discN = discN(I,:);
 
 %% Create figure
 fig = figure;
@@ -48,6 +51,12 @@ switch typestr
         xlabel('Delay (fs)');
         zlabel('Average Variance');
         title('Variance vs. Radius of Postselected Fullcircle');
+    case 'DiscN'
+        waterfall(X,Y,discN);
+        view(-20,20);
+        xlabel('Delay (fs)');
+        zlabel('Photon Number');
+        title('Photon Number vs. Radius of Postselected Fullcircle');
 end
 set(fig,'Color','w');
 
