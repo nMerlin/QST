@@ -92,11 +92,12 @@ for i = 1:length(files)
     C = strsplit(files{i},'.');
     filename = C{1};
     if ~saveps
+        postFilename = ['post-data/',filename,'-',selStr,'.mat'];
         try
-            load(['post-data/',filename,'-',selStr,'.mat']);
+            load(postFilename);
         catch
-            dispstat(['Could not find postselection file, ', ...
-                'loading raw quadratures ...'],'timestamp','keepthis',0);
+            dispstat(['Could not find ',postFilename, ...
+                ' loading raw quadratures ...'],'timestamp','keepthis',0);
             load(['mat-data/',files{i}]);
             tempsaveps = true;
         end
@@ -149,6 +150,8 @@ for i = 1:length(files)
     quantities.varP(i) = delP^2;
     quantities.discAmpl(i) = expQ(round(nDisc/4));
     quantities.discMeanVar(i) = mean(expQ2(:)-(expQ(:)).^2);
+    quantities.discN(i) = 0.5 * (expQ2(round(nDisc/4)) + ...
+        expP2(round(nDisc/2)) - 1);
     
     %% Save workspace variables (because recomputing them takes time)
     % Save Theta
