@@ -4,7 +4,7 @@ function makeSelectionPlots(type,varargin)
 %% Validate and parse input arguments
 p = inputParser;
 defaultListOfParams = {};
-addParameter(p,'ListOfParams',defaultListOfParams,@iscell);
+addParameter(p,'ListOfParams',defaultListOfParams,@isstruct);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
 [listOfParams] = c{:};
@@ -22,19 +22,23 @@ if isempty(listOfParams)
 end
 
 [radiusDiscAmpl,cleanRadiusDiscAmpl,cleanDelayPlots,delayPlots,pdfs, ...
-    cleanpdfs,radiusMeanVar,cleanRadiusMeanVar] = deal(false);
+    cleanpdfs,radiusMeanVar,cleanRadiusMeanVar,radiusDiscN, ...
+    cleanRadiusDiscN] = deal(false);
 switch type
     case 'all'
         delayPlots = true;
         radiusDiscAmpl = true;
         radiusMeanVar = true;
+        radiusDiscN = true;
         pdfs = true;
     case 'radiusPlots'
         radiusDiscAmpl = true;
         radiusMeanVar = true;
+        radiusDiscN = true;
     case 'cleanRadiusPlots'
         cleanRadiusDiscAmpl = true;
         cleanRadiusMeanVar = true;
+        cleanRadiusDiscN = true;
     case 'delayPlots'
         delayPlots = true;
     case 'cleanDelayPlots'
@@ -51,7 +55,7 @@ end
 datestring = datestr(date,'yyyy-mm-dd');
 if delayPlots
     for iParams = 1:length(listOfParams)
-        makeDelayPlots('plots','SelectionParameters',listOfParams{iParams});
+        makeDelayPlots('plots','SelectionParameters',listOfParams(iParams));
     end
 end
 if radiusDiscAmpl
@@ -64,9 +68,14 @@ if radiusMeanVar
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
         'Type','MeanVar');
 end
+if radiusDiscN
+    filenameFig = [figurepath,datestring,'-RadiusDiscN.fig'];
+    plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
+        'Type','DiscN');
+end
 if pdfs
     for iParams = 1:length(listOfParams)
-        makeDelayPlots('pdfs','SelectionParameters',listOfParams{iParams});
+        makeDelayPlots('pdfs','SelectionParameters',listOfParams(iParams));
     end
     listOfFigures = dir([figurepath,'*-Radius*.fig']);
     [~,figNames] = cellfun(@fileparts,{listOfFigures.name}, ...
@@ -82,7 +91,7 @@ end
 if cleanDelayPlots
     for iParams = 1:length(listOfParams)
         makeDelayPlots('cleanplots', ...
-            'SelectionParameters',listOfParams{iParams});
+            'SelectionParameters',listOfParams(iParams));
     end
 end
 if cleanRadiusDiscAmpl
@@ -93,10 +102,14 @@ if cleanRadiusMeanVar
     listRadiusPlots = dir([figurepath,'*-RadiusMeanVar*']);
     cellfun(@(x) delete([figurepath,x]),{listRadiusPlots.name});
 end
+if cleanRadiusMeanVar
+    listRadiusPlots = dir([figurepath,'*-RadiusDiscN*']);
+    cellfun(@(x) delete([figurepath,x]),{listRadiusPlots.name});
+end
 if cleanpdfs
     for iParams = 1:length(listOfParams)
         makeDelayPlots('cleanpdfs', ...
-            'SelectionParameters',listOfParams{iParams});
+            'SelectionParameters',listOfParams(iParams));
     end
     listRadiusPdfs = dir([pdfpath,'*-Radius*']);
     cellfun(@(x) delete([pdfpath,x]),{listRadiusPdfs.name});
