@@ -57,6 +57,12 @@ switch typestr
         xlabel('Delay (fs)');
         zlabel('Photon Number');
         title('Photon Number vs. Radius of Postselected Fullcircle');
+    case 'ThicknessMeanVar'
+        surf(X,Y,discMeanVar);
+        view(-50,20);
+        xlabel('Delay (fs)');
+        zlabel('Average Variance');
+        title('Variance vs. Thickness of Postselected Fullcircle');
 end
 set(fig,'Color','w');
 
