@@ -90,10 +90,20 @@ if pdfs
     for iParams = 1:length(listOfParams)
         makeDelayPlots('pdfs','SelectionParameters',listOfParams(iParams));
     end
+    % Radius pdfs
     listOfFigures = dir([figurepath,'*-Radius*.fig']);
     [~,figNames] = cellfun(@fileparts,{listOfFigures.name}, ...
         'UniformOutput',false);
     listOfPdfs = dir([pdfpath,'*-Radius*.pdf']);
+    [~,pdfNames] = cellfun(@fileparts,{listOfPdfs.name}, ...
+        'UniformOutput',false);
+    cellfun(@(x) makePdf([figurepath,x,'.fig'],pdfpath), ...
+        setdiff(figNames,pdfNames));
+    % Thickness pdfs
+    listOfFigures = dir([figurepath,'*-Thickness*.fig']);
+    [~,figNames] = cellfun(@fileparts,{listOfFigures.name}, ...
+        'UniformOutput',false);
+    listOfPdfs = dir([pdfpath,'*-Thickness*.pdf']);
     [~,pdfNames] = cellfun(@fileparts,{listOfPdfs.name}, ...
         'UniformOutput',false);
     cellfun(@(x) makePdf([figurepath,x,'.fig'],pdfpath), ...
@@ -129,6 +139,8 @@ if cleanpdfs
             'SelectionParameters',listOfParams(iParams));
     end
     listRadiusPdfs = dir([pdfpath,'*-Radius*']);
+    cellfun(@(x) delete([pdfpath,x]),{listRadiusPdfs.name});
+    listRadiusPdfs = dir([pdfpath,'*-Thickness*']);
     cellfun(@(x) delete([pdfpath,x]),{listRadiusPdfs.name});
 end
 

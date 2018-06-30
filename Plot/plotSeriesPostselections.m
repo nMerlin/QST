@@ -12,15 +12,17 @@ c = struct2cell(p.Results);
 [filename,typestr] = c{:};
 
 %% Gather data
-[X,Y,discAmpl,discMeanVar,discN] = deal([]);
+[X,Yr,Yt,discAmpl,discMeanVar,discN] = deal([]);
 for iParams = 1:length(listOfParams)
     selParams = listOfParams(iParams);
     A = seriesRead3ChTable(selParams);
     H = height(A);
     Radii = ones(H,1) * selParams.Position(1);
+    Thicknesses = ones(H,1) * selParams.Position(2);
     X(iParams,:) = A.Delay;
     [X(iParams,:),I] = sort(X(iParams,:)); % Sort for Delays
-    Y(iParams,:) = Radii;
+    Yr(iParams,:) = Radii;
+    Yt(iParams,:) = Thicknesses;
     discAmpl(iParams,:) = A.discAmpl;
     discAmpl(iParams,:) = discAmpl(iParams,I);
     discMeanVar(iParams,:) = A.discMeanVar;
@@ -30,7 +32,8 @@ for iParams = 1:length(listOfParams)
 end
 [~,I] = sort(X(:,1)); % Sort for Radii
 X = X(I,:);
-Y = Y(I,:);
+Yr = Yr(I,:);
+Yt = Yt(I,:);
 discAmpl = discAmpl(I,:);
 discMeanVar = discMeanVar(I,:);
 discN = discN(I,:);
@@ -40,25 +43,25 @@ fig = figure;
 formatFigA5(fig);
 switch typestr
     case 'Amplitude'
-        waterfall(X,Y,discAmpl);
+        waterfall(X,Yr,discAmpl);
         view(-20,20);
         xlabel('Delay (fs)');
         zlabel('Coherent Amplitude');
         title('Coherent Amplitude vs. Radius of Postselected Fullcircle');
     case 'MeanVar'
-        surf(X,Y,discMeanVar);
+        surf(X,Yr,discMeanVar);
         view(-50,20);
         xlabel('Delay (fs)');
         zlabel('Average Variance');
         title('Variance vs. Radius of Postselected Fullcircle');
     case 'DiscN'
-        waterfall(X,Y,discN);
+        waterfall(X,Yr,discN);
         view(-20,20);
         xlabel('Delay (fs)');
         zlabel('Photon Number');
         title('Photon Number vs. Radius of Postselected Fullcircle');
     case 'ThicknessMeanVar'
-        surf(X,Y,discMeanVar);
+        surf(X,Yt,discMeanVar);
         view(-50,20);
         xlabel('Delay (fs)');
         zlabel('Average Variance');
