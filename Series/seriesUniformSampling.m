@@ -12,12 +12,16 @@ c = struct2cell(p.Results);
 [thetaN,~,bin] = histcounts(selTheta,nBins);
 nMin = min(thetaN);
 [uniformX,uniformTheta] = deal(zeros(nBins*nMin,1));
+[~,binI] = sort(bin);
+stops = cumsum(thetaN);
+start = 1;
 for iBin = 1:nBins
-    r = randi(thetaN(iBin),nMin,1);
-    X = selX(bin==iBin);
-    Theta = selTheta(bin==iBin);
-    uniformX(((iBin-1)*nMin+1):iBin*nMin) = X(r);
-    uniformTheta(((iBin-1)*nMin+1):iBin*nMin) = Theta(r);
+    r = randi([start,stops(iBin)],nMin,1);
+    uniformX(((iBin-1)*nMin+1):iBin*nMin) = selX(binI(r));
+    if nargout>1
+        uniformTheta(((iBin-1)*nMin+1):iBin*nMin) = selTheta(binI(r));
+    end
+    start = stops(iBin)+1;
 end
 
 end
