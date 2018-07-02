@@ -66,6 +66,12 @@ switch typestr
         xlabel('Delay (fs)');
         zlabel('Average Variance');
         title('Variance vs. Thickness of Postselected Fullcircle');
+    case 'ThicknessMeanVarMin'
+        [~,iMin] = min(discMeanVar(1,:));
+        plot(Yt(:,iMin),discMeanVar(:,iMin));
+        xlabel('Ring Thickness');
+        ylabel('Minimum of Postselected Variance');
+        title('Minimum Variance vs. Thickness of Postselected Fullcircle');
 end
 set(fig,'Color','w');
 
