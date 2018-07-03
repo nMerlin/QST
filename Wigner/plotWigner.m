@@ -2,7 +2,8 @@ function plotWigner(WF,varargin)
 %PLOTWIGNER Plots given Wigner Function
 %
 % Optional Input Arguments:
-%   'Narrow': Default is 'false'. Narrower axis limits.
+%   'Filename': Exports the figure to a pdf with the given filename.
+%       Default is '' and saves nothing.
 %   'Handle': With the default [] it creates a new plot. Axis handle to
 %       plot into. Not implemented for 'Image'.
 %   'PQ': Specify p axis. Default is -20:0.125:20.
@@ -16,6 +17,8 @@ function plotWigner(WF,varargin)
 
 %% Validate and parse input arguments
 p = inputParser;
+defaultFilename = '';
+addParameter(p,'Filename',defaultFilename);
 defaultHandle = [];
 addParameter(p,'Handle',defaultHandle);
 defaultPQ = -20:0.125:20;
@@ -26,7 +29,7 @@ defaultZLim = [];
 addParameter(p,'ZLim',defaultZLim,@isvector);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[handle,pq,style,zlimit] = c{:};
+[filename,handle,pq,style,zlimit] = c{:};
 
 if strcmp(style,'2D')
     image = true;
@@ -96,6 +99,7 @@ if strcmp(style,'advanced')
     [~,indProjQ] = max(maxP);
     plot3(ones(length(p))*5,p,WF(:,indProjP),'Color','black');
     plot3(q,ones(length(q))*5,WF(indProjQ,:),'Color','black');
+    hold off;
 else
     h = surf(gca,p,q,real(WF));
     set(h,'LineStyle','none');
@@ -105,6 +109,12 @@ else
     xlim([min(p),max(p)]);
     ylim([min(q) max(q)]);
     zlim(zlimit);
+end
+
+if ~isempty(filename)
+    [path,name] = fileparts(filename);
+    filenamePdf = [path,name,'.pdf'];
+    export_fig(sprintf('%s',filenamePdf),'-pdf','-painters');
 end
 
 end
