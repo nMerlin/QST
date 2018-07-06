@@ -76,9 +76,10 @@ if strcmp(style,'advanced')
         minZl = max(abs(zl));
         zlim([-minZl,zl(2)]);
     end
-    xlabel('q','FontWeight','bold');
-    ylabel('p','FontWeight','bold');
-    zlabel('W(q,p)','FontWeight','bold');
+    xlabel('q','FontWeight','bold','FontSize',32);
+    ylabel('p','FontWeight','bold','FontSize',32);
+    zlabel('W(q,p)','FontWeight','bold','FontSize',32);
+    set(gca,'FontSize',22);
     grid on;
     view(3);
 
