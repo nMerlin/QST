@@ -24,23 +24,27 @@ end
 [radiusDiscAmpl,cleanRadiusDiscAmpl,cleanDelayPlots,delayPlots,pdfs, ...
     cleanpdfs,radiusMeanVar,cleanRadiusMeanVar,radiusDiscN, ...
     cleanRadiusDiscN,thicknessMeanVar,cleanThicknessMeanVar, ...
-    thicknessMeanVarMin, cleanThicknessMeanVarMin] = deal(false);
+    thicknessMeanVarMin,cleanThicknessMeanVarMin,radiusG2,cleanRadiusG2,...
+    ] = deal(false);
 switch type
     case 'all'
         delayPlots = true;
         radiusDiscAmpl = true;
         radiusMeanVar = true;
         radiusDiscN = true;
+        radiusG2 = true;
         pdfs = true;
     case 'radiusPlots'
         radiusDiscAmpl = true;
         radiusMeanVar = true;
         radiusDiscN = true;
+        radiusG2 = true;
         delayPlots = true;
     case 'cleanRadiusPlots'
         cleanRadiusDiscAmpl = true;
         cleanRadiusMeanVar = true;
         cleanRadiusDiscN = true;
+        cleanRadiusG2 = true;
         delayPlots = true;
     case 'thicknessPlots'
         thicknessMeanVar = true;
@@ -83,6 +87,11 @@ if radiusDiscN
     filenameFig = [figurepath,datestring,'-RadiusDiscN.fig'];
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
         'Type','DiscN');
+end
+if radiusG2
+    filenameFig = [figurepath,datestring,'-RadiusG2.fig'];
+    plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
+        'Type','G2');
 end
 if thicknessMeanVar
     filenameFig = [figurepath,datestring,'-ThicknessMeanVar.fig'];
@@ -136,6 +145,10 @@ end
 if cleanRadiusDiscN
     listRadiusPlots = dir([figurepath,'*-RadiusDiscN*']);
     cellfun(@(x) delete([figurepath,x]),{listRadiusPlots.name});
+end
+if cleanRadiusG2
+    listRadiusG2 = dir([figurepath,'*-RadiusG2*']);
+    cellfun(@(x) delete([figurepath,x]),{listRadiusG2.name});
 end
 if cleanThicknessMeanVar
     listThicknessMeanVar = dir([figurepath,'*-ThicknessMeanVar*']);
