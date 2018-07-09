@@ -85,7 +85,7 @@ switch typestr
         ylabel('Minimum of Postselected Variance');
         title('Minimum Variance vs. Thickness of Postselected Fullcircle');
     case 'ThicknessG2'
-        waterfall(X,Yt,g2vals);
+        surf(X,Yt,g2vals);
         view(3);
         xlabel('Delay (fs)');
         zlabel('g^{(2)}');
