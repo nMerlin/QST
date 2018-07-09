@@ -66,7 +66,7 @@ switch typestr
         xlabel('Delay (fs)');
         zlabel('Photon Number');
         title('Photon Number vs. Radius of Postselected Fullcircle');
-    case 'g2'
+    case 'G2'
         waterfall(X,Yr,g2vals);
         view(3);
         xlabel('Delay (fs)');
