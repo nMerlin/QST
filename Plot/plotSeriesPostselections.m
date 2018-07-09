@@ -84,6 +84,12 @@ switch typestr
         xlabel('Ring Thickness');
         ylabel('Minimum of Postselected Variance');
         title('Minimum Variance vs. Thickness of Postselected Fullcircle');
+    case 'ThicknessG2'
+        waterfall(X,Yt,g2vals);
+        view(3);
+        xlabel('Delay (fs)');
+        zlabel('g^{(2)}');
+        title('Photon Number vs. Thickness of Postselected Fullcircle');
 end
 set(fig,'Color','w');
 
