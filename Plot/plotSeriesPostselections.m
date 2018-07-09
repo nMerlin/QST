@@ -12,7 +12,7 @@ c = struct2cell(p.Results);
 [filename,typestr] = c{:};
 
 %% Gather data
-[X,Yr,Yt,discAmpl,discMeanVar,discN] = deal([]);
+[X,Yr,Yt,discAmpl,discMeanVar,discN,g2vals,g2std] = deal([]);
 for iParams = 1:length(listOfParams)
     selParams = listOfParams(iParams);
     A = seriesRead3ChTable(selParams);
@@ -29,6 +29,10 @@ for iParams = 1:length(listOfParams)
     discMeanVar(iParams,:) = discMeanVar(iParams,I);
     discN(iParams,:) = A.discN;
     discN(iParams,:) = discN(iParams,I);
+    g2vals(iParams,:) = A.g2;
+    g2vals(iParams,:) = g2vals(iParams,I);
+    g2std(iParams,:) = A.g2std;
+    g2std(iParams,:) = g2std(iParams,I);
 end
 [~,I] = sort(X(:,1)); % Sort for Radii
 X = X(I,:);
@@ -37,6 +41,8 @@ Yt = Yt(I,:);
 discAmpl = discAmpl(I,:);
 discMeanVar = discMeanVar(I,:);
 discN = discN(I,:);
+g2vals = g2vals(I,:);
+g2std = g2std(I,:);
 
 %% Create figure
 fig = figure;
@@ -59,6 +65,12 @@ switch typestr
         view(-20,20);
         xlabel('Delay (fs)');
         zlabel('Photon Number');
+        title('Photon Number vs. Radius of Postselected Fullcircle');
+    case 'g2'
+        waterfall(X,Yr,g2vals);
+        view(3);
+        xlabel('Delay (fs)');
+        zlabel('g^{(2)}');
         title('Photon Number vs. Radius of Postselected Fullcircle');
     case 'ThicknessMeanVar'
         surf(X,Yt,discMeanVar);
