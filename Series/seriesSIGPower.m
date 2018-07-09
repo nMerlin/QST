@@ -38,7 +38,10 @@ end
 
 p = polyfit(pMeas,powerHD,1);
 f = polyval(p,pMeas);
-plot(pMeas,powerHD,'o',pMeas,f,'-');
+errorbar(pMeas,powerHD,stdPowerHD,'o');
+hold on;
+plot(pMeas,f,'-');
+hold off;
 xlabel('SIG power (mW)');
 ylabel('HD Output Power (arb. unit)');
 title('SIG power series');
@@ -46,8 +49,8 @@ title('SIG power series');
 saveA5Landscape(['seriesSIGPower',configname]);
 PowerSIG = pMeas;
 OutputPowerHD = powerHD;
-StandardError = stdPowerHD;
-T = table(PowerSIG,OutputPowerHD,StandardError);
+StandardDeviation = stdPowerHD;
+T = table(PowerSIG,OutputPowerHD,StandardDeviation);
 writetable(T,['seriesSIGPower',configname]);
 
 end
