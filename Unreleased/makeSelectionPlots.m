@@ -34,6 +34,8 @@ switch type
         radiusDiscN = true;
         radiusG2 = true;
         pdfs = true;
+    case 'G2'
+        radiusG2 = true;
     case 'radiusPlots'
         radiusDiscAmpl = true;
         radiusMeanVar = true;
