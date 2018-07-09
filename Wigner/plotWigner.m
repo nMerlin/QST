@@ -92,14 +92,18 @@ if strcmp(style,'advanced')
     plot3(ones(lenq,1)*0,q,ones(lenq,1)*imgzposition,'Color','black');
     plot3(p,ones(lenp,1)*0,ones(lenp,1)*imgzposition,'Color','black');
 
-    % Draw projections along q and p axes
-    searchWF = abs(WF);
-    maxQ = max(searchWF,[],1);
-    [~,indProjP] = max(maxQ);
-    maxP = max(searchWF,[],2);
-    [~,indProjQ] = max(maxP);
-    plot3(ones(length(p))*5,p,WF(:,indProjP),'Color','black');
-    plot3(q,ones(length(q))*5,WF(indProjQ,:),'Color','black');
+    % Draw integral projections along q and p axes
+%     searchWF = abs(WF);
+%     maxQ = max(searchWF,[],1);
+%     [~,indProjP] = max(maxQ);
+%     maxP = max(searchWF,[],2);
+%     [~,indProjQ] = max(maxP);
+    prq = sum(WF,2);
+    prq = prq * max(max(WF))/max(prq);
+    prp = sum(WF,1);
+    prp = prp * max(max(WF))/max(prp);
+    plot3(ones(length(p))*5,p,prq,'Color','black');
+    plot3(q,ones(length(q))*5,prp,'Color','black');
     hold off;
 else
     h = surf(gca,p,q,real(WF));

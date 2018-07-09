@@ -24,31 +24,39 @@ end
 [radiusDiscAmpl,cleanRadiusDiscAmpl,cleanDelayPlots,delayPlots,pdfs, ...
     cleanpdfs,radiusMeanVar,cleanRadiusMeanVar,radiusDiscN, ...
     cleanRadiusDiscN,thicknessMeanVar,cleanThicknessMeanVar, ...
-    thicknessMeanVarMin, cleanThicknessMeanVarMin] = deal(false);
+    thicknessMeanVarMin,cleanThicknessMeanVarMin,radiusG2,cleanRadiusG2,...
+    thicknessG2,cleanThicknessG2] = deal(false);
 switch type
     case 'all'
         delayPlots = true;
         radiusDiscAmpl = true;
         radiusMeanVar = true;
         radiusDiscN = true;
+        radiusG2 = true;
         pdfs = true;
+    case 'G2'
+        radiusG2 = true;
     case 'radiusPlots'
         radiusDiscAmpl = true;
         radiusMeanVar = true;
         radiusDiscN = true;
+        radiusG2 = true;
         delayPlots = true;
     case 'cleanRadiusPlots'
         cleanRadiusDiscAmpl = true;
         cleanRadiusMeanVar = true;
         cleanRadiusDiscN = true;
+        cleanRadiusG2 = true;
         delayPlots = true;
     case 'thicknessPlots'
         thicknessMeanVar = true;
         thicknessMeanVarMin = true;
+        thicknessG2 = true;
         delayPlots = true;
     case 'cleanThicknessPlots'
         cleanThicknessMeanVar = true;
         cleanThicknessMeanVarMin = true;
+        cleanThicknessG2 = true;
         delayPlots = true;
     case 'delayPlots'
         delayPlots = true;
@@ -84,6 +92,11 @@ if radiusDiscN
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
         'Type','DiscN');
 end
+if radiusG2
+    filenameFig = [figurepath,datestring,'-RadiusG2.fig'];
+    plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
+        'Type','G2');
+end
 if thicknessMeanVar
     filenameFig = [figurepath,datestring,'-ThicknessMeanVar.fig'];
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
@@ -93,6 +106,11 @@ if thicknessMeanVarMin
     filenameFig = [figurepath,datestring,'-ThicknessMeanVarMin.fig'];
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
         'Type','ThicknessMeanVarMin');
+end
+if thicknessG2
+    filenameFig = [figurepath,datestring,'-ThicknessG2.fig'];
+    plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
+        'Type','ThicknessG2');
 end
 if pdfs
     for iParams = 1:length(listOfParams)
@@ -137,6 +155,10 @@ if cleanRadiusDiscN
     listRadiusPlots = dir([figurepath,'*-RadiusDiscN*']);
     cellfun(@(x) delete([figurepath,x]),{listRadiusPlots.name});
 end
+if cleanRadiusG2
+    listRadiusG2 = dir([figurepath,'*-RadiusG2*']);
+    cellfun(@(x) delete([figurepath,x]),{listRadiusG2.name});
+end
 if cleanThicknessMeanVar
     listThicknessMeanVar = dir([figurepath,'*-ThicknessMeanVar*']);
     cellfun(@(x) delete([figurepath,x]),{listThicknessMeanVar.name});
@@ -144,6 +166,10 @@ end
 if cleanThicknessMeanVarMin
     listThicknessMeanVarMin = dir([figurepath,'*-ThicknessMeanVarMin*']);
     cellfun(@(x) delete([figurepath,x]),{listThicknessMeanVarMin.name});
+end
+if cleanThicknessG2
+    listThicknessG2 = dir([figurepath,'*-ThicknessG2*']);
+    cellfun(@(x) delete([figurepath,x]),{listThicknessG2.name});
 end
 if cleanpdfs
     for iParams = 1:length(listOfParams)

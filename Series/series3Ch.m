@@ -136,7 +136,7 @@ for i = 1:length(files)
         quantities.fitMeanVar(i) = expectations.varX;
     end
     
-    % Compute expectation values of postselected state
+    % Compute simple expectation values of postselected state
     [disSelX,disSelTheta]=discretizeTheta(selX,selTheta,nDisc);
     [expQ,expP,expQ2,expP2,delQ,delP,~,~,~,~] = ...
         computeExpectations2(disSelX,disSelTheta,'bla','Plot','hide');
@@ -152,6 +152,15 @@ for i = 1:length(files)
     quantities.discMeanVar(i) = mean(expQ2(:)-(expQ(:)).^2);
     quantities.discN(i) = 0.5 * (expQ2(round(nDisc/4)) + ...
         expP2(round(nDisc/2)) - 1);
+    
+    % g2 estimation
+    g2values = zeros(10,1);
+    for iG2=1:10
+        uniformX = seriesUniformSampling(selX,selTheta,'NBins',100);
+        g2values(iG2) = g2(uniformX,length(uniformX));
+    end
+    quantities.g2(i) = mean(g2values);
+    quantities.g2std(i) = std(g2values);
     
     %% Save workspace variables (because recomputing them takes time)
     % Save Theta
