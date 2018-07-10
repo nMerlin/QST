@@ -35,6 +35,10 @@ switch typestr
             num2str(round(res.s)),' fs']);
         xlim(ax,[min(xAxis) max(xAxis)]);
         
+        % Add fit results
+        fitString = evalc('disp(res)');
+        text(min(xlim),mean(ylim),fitString);
+        
         % Lower Bound
         %minVar = compute3ChLimit(T.nX2,T.nX3,T.nX1);
         %plot(xAxis,minVar,'x','DisplayName',['Limit ca. ', ...
@@ -65,6 +69,11 @@ switch typestr
         fity = res(min(xAxis):1:max(xAxis));
         plot(ax,fitx,fity,'r','DisplayName',['Gaussian; \sigma=', ...
             num2str(round(abs(res.s))),' fs']);
+        
+        % Add fit results
+        fitString = evalc('disp(res)');
+        text(min(xlim),mean(ylim),fitString);
+        
     case 'Photons'
         %% Create plot for series with different photon numbers
         nX1 = T.nX1; nX2 = T.nX2; nX3 = T.nX3;
