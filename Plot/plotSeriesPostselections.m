@@ -79,7 +79,11 @@ switch typestr
         xlabel('Delay (fs)');
         zlabel('Average Variance');
         title('Variance vs. Radius of Postselected Fullcircle');
-    case 'MeanVarSigma'
+    case 'RadiusMeanVarSigma'
+        plot(Yr,sigmas);
+        xlabel('Ring Thickness');
+        ylabel('Temporal Width of Minimum Variance');
+        title('Width of Minimum Variance vs. Postselected Radius');
     case 'DiscN'
         waterfall(X,Yr,discN);
         view(-20,20);
