@@ -11,10 +11,16 @@ parse(p,varargin{:});
 c = struct2cell(p.Results);
 [filename,typestr] = c{:};
 
+% Constants
+figurepath = 'figures-fig/';
+
 %% Gather data
 [X,Yr,Yt,discAmpl,discMeanVar,discN,g2vals,g2std] = deal([]);
+sigmas = zeros(length(listOfParams),1);
 for iParams = 1:length(listOfParams)
     selParams = listOfParams(iParams);
+    
+    % From tables
     A = seriesRead3ChTable(selParams);
     H = height(A);
     Radii = ones(H,1) * selParams.Position(1);
@@ -33,6 +39,19 @@ for iParams = 1:length(listOfParams)
     g2vals(iParams,:) = g2vals(iParams,I);
     g2std(iParams,:) = A.g2std;
     g2std(iParams,:) = g2std(iParams,I);
+    
+    % From DelayMeanVarX Plots
+    selstr = selParamsToStr(selParams);
+    filelist = dir([figurepath,'*-DelayMeanVarX-',selstr,'.fig']);
+    filelist = {filelist.name};
+    fig = openfig([figurepath,filelist{1}]);
+    figData = get(gca,'Children');
+    fitStr = strjoin(figData(1).String);
+    toks = regexpi(fitStr,'s =\s*([\d.]*)','tokens');
+    sigmas(iParams) = str2double(cell2mat(toks{1}));
+    clos(fig);
+    
+    % From DelayDiscAmpl Plots
 end
 [~,I] = sort(X(:,1)); % Sort for Radii
 X = X(I,:);
@@ -60,6 +79,7 @@ switch typestr
         xlabel('Delay (fs)');
         zlabel('Average Variance');
         title('Variance vs. Radius of Postselected Fullcircle');
+    case 'MeanVarSigma'
     case 'DiscN'
         waterfall(X,Yr,discN);
         view(-20,20);
