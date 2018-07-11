@@ -17,6 +17,7 @@ figurepath = 'figures-fig/';
 %% Gather data
 [X,Yr,Yt,discAmpl,discMeanVar,discN,g2vals,g2std] = deal([]);
 sigmas = zeros(length(listOfParams),1);
+sigmaConf = zeros(length(listOfParams),2);
 for iParams = 1:length(listOfParams)
     selParams = listOfParams(iParams);
     
@@ -50,6 +51,10 @@ for iParams = 1:length(listOfParams)
         fitStr = strjoin(figData(1).String);
         toks = regexpi(fitStr,'s =\s*([\d.]*)','tokens');
         sigmas(iParams) = str2double(cell2mat(toks{1}));
+        toks = regexpi(fitStr,'s =[\d.\s]*\(([\d.]*)','tokens');
+        sigmaConf(iParams,1) = str2double(cell2mat(toks{1}));
+        toks = regexpi(fitStr,'s =[\d.\s]*\([\d.]*,\s([\d.]*)','tokens');
+        sigmaConf(iParams,2) = str2double(cell2mat(toks{1}));
         close(fig);
     end
     
@@ -82,10 +87,13 @@ switch typestr
         zlabel('Average Variance');
         title('Variance vs. Radius of Postselected Fullcircle');
     case 'MeanVarSigma'
-        plot(Yr,sigmas,'o');
-        xlabel('Ring Thickness');
+        errorbar(Yr(:,1),sigmas,abs(sigmas-sigmaConf(:,1)), ...
+            abs(sigmas-sigmaConf(:,2)),'o','DisplayName', ...
+            'Standard Deviation of Gaussian with 95% confidence intervals');
+        xlabel('Ring Radius');
         ylabel('Temporal Width of Minimum Variance');
         title('Width of Minimum Variance vs. Postselected Radius');
+        legend('show');
     case 'DiscN'
         waterfall(X,Yr,discN);
         view(-20,20);
@@ -104,6 +112,14 @@ switch typestr
         xlabel('Delay (fs)');
         zlabel('Average Variance');
         title('Variance vs. Thickness of Postselected Fullcircle');
+    case 'ThicknessMeanVarSigma'
+        errorbar(Yt(:,1),sigmas,abs(sigmas-sigmaConf(:,1)), ...
+            abs(sigmas-sigmaConf(:,2)),'o','DisplayName', ...
+            'Standard Deviation of Gaussian with 95% confidence intervals');
+        xlabel('Ring Thickness');
+        ylabel('Temporal Width of Minimum Variance');
+        title('Width of Minimum Variance vs. Postselected Thickness');
+        legend('show');
     case 'ThicknessMeanVarMin'
         [~,iMin] = min(discMeanVar(1,:));
         plot(Yt(:,iMin),discMeanVar(:,iMin));
