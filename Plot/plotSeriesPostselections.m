@@ -41,15 +41,17 @@ for iParams = 1:length(listOfParams)
     g2std(iParams,:) = g2std(iParams,I);
     
     % From DelayMeanVarX Plots
-    selstr = selParamsToStr(selParams);
-    filelist = dir([figurepath,'*-DelayMeanVarX-',selstr,'.fig']);
-    filelist = {filelist.name};
-    fig = openfig([figurepath,filelist{1}]);
-    figData = get(gca,'Children');
-    fitStr = strjoin(figData(1).String);
-    toks = regexpi(fitStr,'s =\s*([\d.]*)','tokens');
-    sigmas(iParams) = str2double(cell2mat(toks{1}));
-    clos(fig);
+    if strcmp(typestr,'MeanVarSigma')
+        selstr = selParamsToStr(selParams);
+        filelist = dir([figurepath,'*-DelayMeanVarX-',selstr,'.fig']);
+        filelist = {filelist.name};
+        fig = openfig([figurepath,filelist{1}]);
+        figData = get(gca,'Children');
+        fitStr = strjoin(figData(1).String);
+        toks = regexpi(fitStr,'s =\s*([\d.]*)','tokens');
+        sigmas(iParams) = str2double(cell2mat(toks{1}));
+        close(fig);
+    end
     
     % From DelayDiscAmpl Plots
 end
@@ -79,8 +81,8 @@ switch typestr
         xlabel('Delay (fs)');
         zlabel('Average Variance');
         title('Variance vs. Radius of Postselected Fullcircle');
-    case 'RadiusMeanVarSigma'
-        plot(Yr,sigmas);
+    case 'MeanVarSigma'
+        plot(Yr,sigmas,'o');
         xlabel('Ring Thickness');
         ylabel('Temporal Width of Minimum Variance');
         title('Width of Minimum Variance vs. Postselected Radius');
