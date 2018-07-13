@@ -26,7 +26,8 @@ end
     cleanRadiusDiscN,thicknessMeanVar,cleanThicknessMeanVar, ...
     thicknessMeanVarMin,cleanThicknessMeanVarMin,radiusG2,cleanRadiusG2,...
     thicknessG2,cleanThicknessG2,radiusMeanVarSigma, ...
-    cleanRadiusMeanVarSigma] = deal(false);
+    cleanRadiusMeanVarSigma,thicknessMeanVarSigma, ...
+    cleanThicknessMeanVarSigma] = deal(false);
 switch type
     case 'all'
         delayPlots = true;
@@ -54,11 +55,13 @@ switch type
         delayPlots = true;
     case 'thicknessPlots'
         thicknessMeanVar = true;
+        thicknessMeanVarSigma = true;
         thicknessMeanVarMin = true;
         thicknessG2 = true;
         delayPlots = true;
     case 'cleanThicknessPlots'
         cleanThicknessMeanVar = true;
+        cleanThicknessMeanVarSigma = true;
         cleanThicknessMeanVarMin = true;
         cleanThicknessG2 = true;
         delayPlots = true;
@@ -110,6 +113,11 @@ if thicknessMeanVar
     filenameFig = [figurepath,datestring,'-ThicknessMeanVar.fig'];
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
         'Type','ThicknessMeanVar');
+end
+if thicknessMeanVarSigma
+    filenameFig = [figurepath,datestring,'-ThicknessMeanVarSigma.fig'];
+    plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
+        'Type','ThicknessMeanVarSigma');
 end
 if thicknessMeanVarMin
     filenameFig = [figurepath,datestring,'-ThicknessMeanVarMin.fig'];
@@ -175,6 +183,10 @@ end
 if cleanThicknessMeanVar
     listThicknessMeanVar = dir([figurepath,'*-ThicknessMeanVar*']);
     cellfun(@(x) delete([figurepath,x]),{listThicknessMeanVar.name});
+end
+if cleanThicknessMeanVarSigma
+    list = dir([figurepath,'*-ThicknessMeanVarSigma*']);
+    cellfun(@(x) delete([figurepath,x]),{list.name});
 end
 if cleanThicknessMeanVarMin
     listThicknessMeanVarMin = dir([figurepath,'*-ThicknessMeanVarMin*']);
