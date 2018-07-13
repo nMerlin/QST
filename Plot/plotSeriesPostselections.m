@@ -42,18 +42,19 @@ for iParams = 1:length(listOfParams)
     g2std(iParams,:) = g2std(iParams,I);
     
     % From DelayMeanVarX Plots
-    if strcmp(typestr,'MeanVarSigma')
+    if strcmp(typestr,'MeanVarSigma') || ...
+            strcmp(typestr,'ThicknessMeanVarSigma')
         selstr = selParamsToStr(selParams);
         filelist = dir([figurepath,'*-DelayMeanVarX-',selstr,'.fig']);
         filelist = {filelist.name};
         fig = openfig([figurepath,filelist{1}]);
         figData = get(gca,'Children');
         fitStr = strjoin(figData(1).String);
-        toks = regexpi(fitStr,'s =\s*([\d.]*)','tokens');
+        toks = regexpi(fitStr,'s =\s*([\d.-]*)','tokens');
         sigmas(iParams) = str2double(cell2mat(toks{1}));
-        toks = regexpi(fitStr,'s =[\d.\s]*\(([\d.]*)','tokens');
+        toks = regexpi(fitStr,'s =[\d.\s]*\(([\d.-]*)','tokens');
         sigmaConf(iParams,1) = str2double(cell2mat(toks{1}));
-        toks = regexpi(fitStr,'s =[\d.\s]*\([\d.]*,\s([\d.]*)','tokens');
+        toks = regexpi(fitStr,'s =[\d.\s]*\([\d.]*,\s([\d.-]*)','tokens');
         sigmaConf(iParams,2) = str2double(cell2mat(toks{1}));
         close(fig);
     end
