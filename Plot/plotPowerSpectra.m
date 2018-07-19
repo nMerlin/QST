@@ -1,4 +1,4 @@
-function [  ] = plotPowerSpectra( varargin )
+function plotPowerSpectra(varargin)
 %PLOTPOWERSPECTRA Summary of this function goes here
 %   Detailed explanation goes here
 %   Assumes the datafiles in the directory 'raw-data'. The filenames should
@@ -123,8 +123,8 @@ close all;
 % Plot data curves
 plot(response(:,1)/1000000,response(:,2));
 axis([xMin xMax yMin yMax]);
-xlabel('Frequency [MHz]');
-ylabel('HD output power [dBm]');
+xlabel('Frequency (MHz)');
+ylabel('BD Output Power (dBm)');
 hold on;
 plot(filteredResponse(:,1)/1000000,filteredResponse(:,2));
 plot(electronicNoise(:,1)/1000000,electronicNoise(:,2));
@@ -144,7 +144,8 @@ h = annotation('textbox');
 set(h,'parent',gca, ...
     'Position',[xMid+2 electronicNoiseAverage+2*clearance/3 0 0], ...
     'String',strcat(num2str(clearance,3),' dBm'), ...
-    'FitBoxToText','on','EdgeColor','none');
+    'FitBoxToText','on','EdgeColor','none','FontSize',14);
+set(gca,'FontSize',14);
 
 % Plot inset for CMRR
 insetAx = axes('Parent',gcf,'Position',[0.22 0.6 0.15 0.25]);
@@ -153,15 +154,19 @@ hold on;
 plot(cmrrOneDiode(:,1)/1000000,cmrrOneDiode(:,2),'Color',[0.5 0.5 0.5]);
 hold off;
 set(insetAx,'XLim',[65 85], ...
-    'YLim',[-90 -10], ...
+    'YLim',[-90 -5], ...
     'FontSize',8);
-xlabel('Frequency [MHz]');
-ylabel('HD output power [dBm]');
-title(['CMRR = ' num2str(peakOneDiode-peakTwoDiodes,3) ' dBm']);
+xlabel('Frequency (MHz)');
+ylabel('BD Output Power (dBm)');
+title(['CMRR = ' num2str(peakOneDiode-peakTwoDiodes,3) ' dB']);
+set(gca,'FontSize',12);
 
 % Saving figure
 %print([outputFilename,'.jpg'],outputFiletype);
-saveA5Landscape(outputFilename);
+%saveA5Landscape(outputFilename);
+set(gcf,'Color','w');
+formatFigA5;
+export_fig power-spectra.pdf
 
 dispstat('Finished!','timestamp',quiet);
 
