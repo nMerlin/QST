@@ -36,12 +36,12 @@ hold off;
 xlabel('LO power (mW)');
 ylabel('HD Output Power (arb. unit)');
 title('LO power series');
-saveA5Landscape('seriesHDPower');
+saveA5Landscape('seriesLOPower');
 PowerLO = pMeas';
 OutputPowerHD = powerHD';
 StandardDeviation = stdPowerHD';
 T = table(PowerLO,OutputPowerHD,StandardDeviation);
-writetable(T,'seriesHDPower');
+writetable(T,'seriesLOPower');
 
 end
 
