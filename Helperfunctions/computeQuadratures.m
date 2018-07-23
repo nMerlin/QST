@@ -11,7 +11,11 @@ defaultLocationOffset = 0;
 addParameter(p,'LocationOffset',defaultLocationOffset,@isnumeric);
 defaultIntegrationWindow = 0;
 addParameter(p,'IntegrationWindow',defaultIntegrationWindow,@isnumeric);
-defaultMinPeakDistance = 10;
+if config.SpectrumCard.Clock.SamplingRate0x28MHz0x29_DBL == 5000
+    defaultMinPeakDistance = 40; % intended for 5GS/s
+else
+    defaultMinPeakDistance = 10; % intended for 1.25GS/s
+end
 addParameter(p,'MinPeakDistance',defaultMinPeakDistance,@isnumeric);
 defaultRepetitionRate = 75.4e6; % Mira repetition rate
 addParameter(p,'RepetitionRate',defaultRepetitionRate,@isnumeric);
