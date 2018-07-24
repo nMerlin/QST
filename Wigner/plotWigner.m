@@ -33,6 +33,8 @@ c = struct2cell(p.Results);
 
 if strcmp(style,'2D')
     image = true;
+else
+    image = false;
 end
 
 %% Preprocess data and axes
