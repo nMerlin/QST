@@ -104,8 +104,8 @@ if strcmp(style,'advanced')
     prq = prq * max(max(WF))/max(prq);
     prp = sum(WF,1);
     prp = prp * max(max(WF))/max(prp);
-    plot3(ones(length(p))*5,p,prq,'Color','black');
-    plot3(q,ones(length(q))*5,prp,'Color','black');
+    plot3(ones(length(p))* max(p),p,prq,'Color','black');
+    plot3(q,ones(length(q))* max(p),prp,'Color','black');
     hold off;
 else
     h = surf(gca,p,q,real(WF));
