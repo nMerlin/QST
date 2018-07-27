@@ -23,6 +23,8 @@ defaultFilename = '';
 addParameter(p,'Filename',defaultFilename);
 defaultHandle = [];
 addParameter(p,'Handle',defaultHandle);
+defaultMarker = '-';
+addParameter(p,'Marker',defaultMarker,@isstr);
 defaultPQ = -20:0.125:20;
 addParameter(p,'PQ',defaultPQ,@isvector);
 defaultStyle = '3D';
@@ -31,7 +33,7 @@ defaultZLim = [];
 addParameter(p,'ZLim',defaultZLim,@isvector);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[edgecolor,filename,handle,pq,style,zlimit] = c{:};
+[edgecolor,filename,handle,marker,pq,style,zlimit] = c{:};
 
 if strcmp(style,'2D')
     image = true;
@@ -112,8 +114,8 @@ if strcmp(style,'advanced')
     prq = prq * max(max(WF))/max(prq);
     prp = sum(WF,1);
     prp = prp * max(max(WF))/max(prp);
-    plot3(ones(length(p))* max(p),p,prq,'Color','black');
-    plot3(q,ones(length(q))* max(p),prp,'Color','black');
+    plot3(ones(length(p))* max(p),p,prq,marker,'Color','black');
+    plot3(q,ones(length(q))* max(p),prp,marker,'Color','black');
     hold off;
 else
     h = surf(gca,p,q,real(WF));
