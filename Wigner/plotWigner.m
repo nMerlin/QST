@@ -17,6 +17,8 @@ function plotWigner(WF,varargin)
 
 %% Validate and parse input arguments
 p = inputParser;
+defaultEdgeColor = 'black';
+addParameter(p,'EdgeColor',defaultEdgeColor);
 defaultFilename = '';
 addParameter(p,'Filename',defaultFilename);
 defaultHandle = [];
@@ -29,7 +31,7 @@ defaultZLim = [];
 addParameter(p,'ZLim',defaultZLim,@isvector);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[filename,handle,pq,style,zlimit] = c{:};
+[edgecolor,filename,handle,pq,style,zlimit] = c{:};
 
 if strcmp(style,'2D')
     image = true;
@@ -70,7 +72,7 @@ if strcmp(style,'advanced')
     set(fig,'Color','w');
 
     % Add 3D plot with important details
-    surf(q,p,WF);
+    surf(q,p,WF,'EdgeColor',edgecolor);
     xlim([min(q),max(q)]);
     ylim([min(q),max(q)]);
     if ~isempty(zlimit)
