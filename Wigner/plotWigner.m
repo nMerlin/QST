@@ -115,7 +115,9 @@ else
     end
     xlim([min(p),max(p)]);
     ylim([min(q) max(q)]);
-    zlim(zlimit);
+    if ~isempty(zlimit)
+        zlim(zlimit);
+    end
 end
 
 if ~isempty(filename)
