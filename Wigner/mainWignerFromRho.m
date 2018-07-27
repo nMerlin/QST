@@ -14,3 +14,7 @@ for nVal=0:maxn-1
         WF=WF+(rho(nVal+1,mVal+1)*WigTab);
     end;
 end
+WF = real(WF);
+WF = WF/sum(sum(WF));
+
+end
