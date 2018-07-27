@@ -71,6 +71,8 @@ if strcmp(style,'advanced')
 
     % Add 3D plot with important details
     surf(q,p,WF);
+    xlim([min(q),max(q)]);
+    ylim([min(q),max(q)]);
     if ~isempty(zlimit)
         zlim(zlimit);
     else
