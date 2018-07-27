@@ -72,7 +72,12 @@ if strcmp(style,'advanced')
     set(fig,'Color','w');
 
     % Add 3D plot with important details
-    surf(q,p,WF,'EdgeColor',edgecolor);
+    colormap hsv
+    surf(q,p,WF,'EdgeColor',edgecolor,'FaceLighting','gouraud');
+    view(3);
+    if ~isempty(edgecolor)
+        camlight('left');
+    end
     xlim([min(q),max(q)]);
     ylim([min(q),max(q)]);
     if ~isempty(zlimit)
@@ -87,7 +92,6 @@ if strcmp(style,'advanced')
     zlabel('W(q,p)','FontWeight','bold','FontSize',32);
     set(gca,'FontSize',22);
     grid on;
-    view(3);
 
     % Draw image beneath 3D plot and two grid lines
     imgzposition = min(zlim);
