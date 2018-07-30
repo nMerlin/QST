@@ -19,9 +19,9 @@ function [correlations, delayArray] = statisticalIndependence(data, varargin)
 %       'Val'='preformatted', not modifying the DATA matrix. When using a
 %       raw data DATA-matrix, employ the option 'rawdata'.
 %   'Method','Val': When choosing 'Val'='matrix', the first two dimensions
-%       of DATA are considered as one. By using the default 'Val'='vector',
-%       Each column will be considered as a separate measurement. By using
-%       'Val' = 'vectorAverage', the correlations of all vectors with the
+%       of DATA are considered as one. By using 'Val'='vector', each column
+%       will be considered as a separate measurement. By using 'Val' =
+%       'vectorAverage' (default), the correlations of all vectors with the
 %       same delay will be averaged.
 
 %% Validate and parse input arguments
@@ -29,7 +29,7 @@ p = inputParser;
 defaultPulses = 20;
 defaultPlot = 'show';
 defaultType = 'preformatted';
-defaultMethod = 'matrix';
+defaultMethod = 'vectorAverage';
 addParameter(p,'Pulses',defaultPulses,@isnumeric);
 addParameter(p,'Plot',defaultPlot);
 addParameter(p,'Type',defaultType);
