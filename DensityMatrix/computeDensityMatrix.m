@@ -12,6 +12,8 @@ function [rho,history] = computeDensityMatrix( X, theta, varargin )
 
 %% Validate and parse input arguments
 p = inputParser;
+defaultDebug = false;
+addParameter(p,'Debug',defaultDebug,@islogical);
 defaultIterations = 100;
 addParameter(p,'Iterations',defaultIterations,@isnumeric);
 defaultMaxFockState = 30;
@@ -22,7 +24,7 @@ defaultThreshold = 0;
 addParameter(p,'Threshold',defaultThreshold,@isnumeric);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[N_ITERATIONS,maxFockState,nextRho,threshold] = c{:};
+[debug,N_ITERATIONS,maxFockState,nextRho,threshold] = c{:};
 
 if isempty(nextRho)
     nextRho = normalize(ones(maxFockState+1,maxFockState+1));
@@ -77,6 +79,11 @@ for iRho = 1:N_ITERATIONS
             num2str(N_ITERATIONS),'. Threshold reached!'], ...
             'timestamp','keepthis');
         break;
+    end
+    
+    % Plot in debug mode
+    if debug
+        plotRho(nextRho);
     end
 end
 
