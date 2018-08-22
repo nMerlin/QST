@@ -132,8 +132,8 @@ end
 
 if ~isempty(filename)
     [path,name] = fileparts(filename);
-    filenamePdf = [path,name,'.pdf'];
-    export_fig(sprintf('%s',filenamePdf),'-pdf','-painters');
+    filenamePdf = [path,name,'.jpg'];
+    export_fig(sprintf('%s',filenamePdf),'-jpg','-r600');
 end
 
 end
