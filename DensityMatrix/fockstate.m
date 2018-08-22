@@ -21,6 +21,7 @@ function fval = fockstate(n,x)
 % Iterative derivation using the recursion formula
 F_2 = pi^(-0.25)*exp(-0.5*x.^2);
 F_1 = pi^(-0.25)*exp(-0.5*x.^2).*x*sqrt(2);
+F_0 = 0;
 if n == 0
     fval = F_2;
 elseif n == 1
