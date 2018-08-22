@@ -152,6 +152,8 @@ set(ax1, 'Position', ax1Pos);
 %print([outputFilename,'.jpg'],outputFiletype);
 %saveA5Landscape(outputFilename);
 set(gcf,'Color','w');
+ax1.XRuler.TickLength = 10;
+ax1.YRuler.TickLength = 10;
 formatFigA5;
 export_fig shot-noise-plot.pdf
 
