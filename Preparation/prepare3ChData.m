@@ -58,6 +58,7 @@ if strcmp(corrRemove,'yes')
         XLO(:,:,1:3) = bsxfun(@minus, XLO(:,:,1:3), mean(XLO(:,:,1:3)));
         dispstat('Removing correlations from LO... ','timestamp','keepthis',0);
         XLO = correlationCompensation(XLO);
+        XLO = XLO(1:end-1,:,1:3); % remove linearly dependent last vector
 end
 
 % Calculate the variance piece-wise to compensate slow drifts (e.g.
@@ -84,19 +85,21 @@ for iCh = 1:3
     dispstat(['Removing piecewise offset from channel ',num2str(iCh), ...
         ' ...'],'timestamp','keepthis',0);
     X(:,:,iCh) = bsxfun(@minus, X(:,:,iCh), mean(X(:,:,iCh)));
+    piezoX = X(:,:,iCh);
     
     if strcmp(corrRemove,'yes')
         %Removing correlations with precedent pulses
         dispstat(['Removing correlations from channel ',num2str(iCh), ...
             ' ...'],'timestamp','keepthis',0);
         X(:,:,iCh) = correlationCompensation(X(:,:,iCh));
+        piezoX = X(1:end-1,:,iCh);
     end
     
     % Cut the raw data into segments of equal length according to piezo
     % modulation
     dispstat(['Reshaping channel ',num2str(iCh), ...
         ' into piezo segments ...'],'timestamp','keepthis',0);
-    [Y,piezoSign] = piezoSegments(timestamps,X(:,:,iCh),'cut');
+    [Y,piezoSign] = piezoSegments(timestamps,piezoX,'cut');
     switch iCh
         case 1
             X1 = Y;
