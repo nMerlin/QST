@@ -46,6 +46,12 @@ switch type
         y = position(2);
         r = position(3);
         iSelect = find(((O1-x).^2+(O2-y).^2) <= r^2);
+    case 'phase'
+        mTheta = position(1);
+        dTheta = position(2);
+        husimiPhase = atan2(O2,O1);
+        iSelect = find(husimiPhase>mTheta-dTheta/2 & ...
+            husimiPhase<mTheta+dTheta/2 & (O1.^2+O2.^2)>0.5);
     case 'Qline'
         Q = position(1); % line center
         w = position(2); % line width
