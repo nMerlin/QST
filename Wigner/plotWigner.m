@@ -31,9 +31,11 @@ defaultStyle = '3D';
 addParameter(p,'Style',defaultStyle,@isstr);
 defaultZLim = [];
 addParameter(p,'ZLim',defaultZLim,@isvector);
+defaultZString = 'W(q,p)';
+addParameter(p,'ZString',defaultZString,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[edgecolor,filename,handle,marker,pq,style,zlimit] = c{:};
+[edgecolor,filename,handle,marker,pq,style,zlimit,zstring] = c{:};
 
 if strcmp(style,'2D')
     image = true;
@@ -91,7 +93,7 @@ if strcmp(style,'advanced')
     end
     xlabel('q','FontWeight','bold','FontSize',32);
     ylabel('p','FontWeight','bold','FontSize',32);
-    zlabel('W(q,p)','FontWeight','bold','FontSize',32);
+    zlabel(zstring,'FontWeight','bold','FontSize',32);
     set(gca,'FontSize',22);
     grid on;
 
