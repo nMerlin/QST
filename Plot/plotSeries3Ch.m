@@ -77,12 +77,26 @@ switch typestr
     case 'Photons'
         %% Create plot for series with different photon numbers
         nX1 = T.nX1; nX2 = T.nX2; nX3 = T.nX3;
-        xAxis = nX1./(nX2+nX3);
+        nSum = nX1 + nX2 + nX3;
+        xAxis = nX1./(nX1+nX2+nX3);
         varX = T.discMeanVar;
-        plot(xAxis,varX,'o','DisplayName', ...
-            ['Minimum: ',num2str(min(varX))]);
+        xTheo = linspace(0,1,100);
+        minVar = (1/mean(nSum)+1+xTheo)./(2*(1/mean(nSum)+1-xTheo));
+        maxVar = xTheo*mean(nSum)+0.5;
+        hold on;
+        plot(xTheo,minVar,'DisplayName','Theory Phase-Sensitive', ...
+            'LineWidth',2);
+        plot(xTheo,maxVar,'DisplayName','Theory Phase-Randomized', ...
+            'LineWidth',2);
+        plot(xAxis,varX,'o','DisplayName','Measured','MarkerSize',10, ...
+            'MarkerEdgeColor','k','MarkerFaceColor','w','LineWidth',2);
+        hold off;
         ax = get(fig,'CurrentAxes');
-        xlabel(ax,'n_t/n_{ps}');
+        xlabel('n_t/(n_t+n_{ps})','FontSize',26);
+        ylabel('Var(Q_t)','FontSize',26);
+        box on;
+        legendLocation = 'NorthWest';
+        ax.FontSize = 22;
 end
 
 %% Common figure manipulation
