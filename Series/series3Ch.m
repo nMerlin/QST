@@ -206,6 +206,7 @@ if isempty(T)
         T = readtable('raw-data/Delays.txt');
     catch
         warning('There was no ''raw-data/Delays.txt''!');
+        T = cell2table(files','VariableNames',{'Filename'});
     end
 end
 
