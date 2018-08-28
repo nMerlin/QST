@@ -125,7 +125,7 @@ for i = 1:length(files)
         quantities.nX1(i) = n1;
         quantities.nX2(i) = n2;
         quantities.nX3(i) = n3;
-        quantities.minVar(i) = compute3ChLimit(n1,n2,n3);
+        quantities.minVar(i) = compute3ChLimit(n2,n3,n1);
     end
     
     %% Get quantities of interest
