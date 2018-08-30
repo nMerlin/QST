@@ -36,9 +36,16 @@ function T = series3Ch(varargin)
 %       to update the *.mat file with the computed theta vector.
 %   'NDisc': Default is 100. Number of bins to discretize theta for
 %       computing expectation values with 'computeExpectations'.
+%
+%   *** Developer Only ***
+%   'FileRange': Default is [] and loops over all found files. In any other
+%       case, the loop is only executed over the given file indices. This
+%       is intended for manual parallelization only.
 
 %% Validate and parse input arguments
 p = inputParser;
+defaultFileRange = []; % be careful
+addParameter(p,'FileRange',defaultFileRange,@isvector);
 defaultFittedExpectations = false;
 addParameter(p,'FittedExpectations',defaultFittedExpectations,@islogical);
 defaultNDisc = 100;
@@ -61,8 +68,8 @@ defaultSelParams = struct('Type','fullcircle','Position',[2.5,0.5]);
 addParameter(p,'SelectionParameters',defaultSelParams,@isstruct);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[fitexp,nDisc,rewriteRho,rewriteWigner,rhoParams,saveps,saverho, ...
-    savetheta,saveWigner,selParams] = c{:};
+[filerange,fitexp,nDisc,rewriteRho,rewriteWigner,rhoParams,saveps, ...
+    saverho,savetheta,saveWigner,selParams] = c{:};
 
 % Dependencies among optional input arguments
 if saveWigner || rewriteWigner
@@ -83,7 +90,11 @@ quantities = struct; % Structure that will contain quantities of interest
 tempsaveps = false; % Can change postselection saving behavior per case
 selStr = selParamsToStr(selParams);
 dispstat('','init','timestamp','keepthis',0);
-for i = 1:length(files)
+if isempty(filerange)
+    filerange = 1:length(files);
+end
+for ii = 1:length(filerange)
+    i = filerange(ii);
     %% Load data
     dispstat(['Loading ',files{i},' ...'],'timestamp',0);
     clear X1 X2 X3 theta piezoSign
