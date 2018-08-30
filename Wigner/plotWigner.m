@@ -71,13 +71,15 @@ end
 
 if strcmp(style,'advanced')
     % Prepare figure for export to pdf
-    hold on;
-    formatFigA5(fig);
+    if isempty(handle)
+        formatFigA5(fig);
+    end
     set(fig,'Color','w');
 
     % Add 3D plot with important details
     colormap hsv
     surf(q,p,WF,'EdgeColor',edgecolor,'FaceLighting','gouraud');
+    hold on;
     view(3);
     if ~isempty(edgecolor)
         camlight('left');
