@@ -15,15 +15,17 @@ function seriesWignerMovie(varargin)
 p = inputParser;
 defaultDimensions = 'both';
 addParameter(p,'Dimensions',defaultDimensions,@isstr);
-defaultNarrow = false;
-addParameter(p,'Narrow',defaultNarrow,@islogical);
+defaultPQ = -20:0.125:20;
+addParameter(p,'PQ',defaultPQ,@isvector);
 defaultSelParams = struct('Type','fullcircle','Position',[2.5,0.5]);
 addParameter(p,'SelectionParameters',defaultSelParams,@isstruct);
+defaultZLim = [NaN NaN];
+addParameter(p,'ZLim',defaultZLim,@isvector);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[dimensions,narrow,selParams] = c{:};
-wigParams.Image = image;
-wigParams.Narrow = narrow;
+[dimensions,pq,selParams,zlimits] = c{:};
+wigParams.PQ = pq;
+wigParams.ZLim = zlimits;
 
 %% Check data availability and capture data table
 dispstat('','init')
@@ -87,17 +89,18 @@ elseif strcmp(dimensions,'3D')
 end
 
 if twoD
-    wigParams.Image = true;
+    wigParams.Style = '2D';
     plotfun = @(wigfun,params) plotWigner(wigfun,params,wigParams);
-    filename = [datestr(date,'yyyy-mm-dd-'),'WignerMovie', ...
-        num2str(2+not(wigParams.Image)),'D-',selStr,'.mp4'];
+    filename = [datestr(date,'yyyy-mm-dd-'),'WignerMovie-', ...
+        wigParams.Style,'-',selStr,'.mp4'];
     plotMovie(plotfun,allWF,'Titles',titles,'Filename',filename);
 end
 if threeD
-    wigParams.Image = false;
+    wigParams.Style = 'advanced';
+    wigParams.EdgeColor = 'None';
     plotfun = @(wigfun,params) plotWigner(wigfun,params,wigParams);
-    filename = [datestr(date,'yyyy-mm-dd-'),'WignerMovie', ...
-        num2str(2+not(wigParams.Image)),'D-',selStr,'.mp4'];
+    filename = [datestr(date,'yyyy-mm-dd-'),'WignerMovie-', ...
+        wigParams.Style,'-',selStr,'.mp4'];
     plotMovie(plotfun,allWF,'Titles',titles,'Filename',filename);
 end
 
