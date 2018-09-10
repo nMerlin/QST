@@ -74,13 +74,13 @@ else
     fig = figure;
 end
 
-if strcmp(style,'advanced')
-    % Prepare figure for export to pdf
-    if isempty(handle)
-        formatFigA5(fig);
-    end
-    set(fig,'Color','w');
+% Prepare figure for export to pdf
+if isempty(handle)
+    formatFigA5(fig);
+end
+set(fig,'Color','w');
 
+if strcmp(style,'advanced')
     % Add 3D plot with important details
     colormap(cmap);
     surf(q,p,WF,'EdgeColor',edgecolor,'FaceLighting','gouraud');
@@ -129,8 +129,7 @@ if strcmp(style,'advanced')
     hold off;
 else
     colormap(cmap);
-    h = surf(gca,p,q,real(WF));
-    set(h,'LineStyle','none');
+    surf(gca,p,q,real(WF),'EdgeColor',edgecolor);
     if image
         view(2);
     end
@@ -139,8 +138,14 @@ else
     if ~isempty(zlimit)
         zlim(zlimit);
     end
+    cb = colorbar('FontSize',32);
+    cb.Label.String = zstring;
+    p = get(gca,'Position');
+    set(gca,'OuterPosition',p);
+    xlabel('q','FontWeight','bold','FontSize',32);
+    ylabel('p','FontWeight','bold','FontSize',32);
+    set(gca,'FontSize',22);
 end
-colorbar;
 
 if ~isempty(filename)
     [path,name] = fileparts(filename);
