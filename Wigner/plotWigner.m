@@ -17,6 +17,10 @@ function plotWigner(WF,varargin)
 
 %% Validate and parse input arguments
 p = inputParser;
+defaultCLimits = 'auto';
+addParameter(p,'ColorLimits',defaultCLimits);
+defaultColorMap = hsv;
+addParameter(p,'ColorMap',defaultColorMap);
 defaultEdgeColor = 'black';
 addParameter(p,'EdgeColor',defaultEdgeColor);
 defaultFilename = '';
@@ -35,7 +39,8 @@ defaultZString = 'W(q,p)';
 addParameter(p,'ZString',defaultZString,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[edgecolor,filename,handle,marker,pq,style,zlimit,zstring] = c{:};
+[climits,cmap,edgecolor,filename,handle,marker,pq,style,zlimit, ...
+    zstring] = c{:};
 
 if strcmp(style,'2D')
     image = true;
@@ -77,13 +82,12 @@ if strcmp(style,'advanced')
     set(fig,'Color','w');
 
     % Add 3D plot with important details
-    colormap hsv
+    colormap(cmap);
     surf(q,p,WF,'EdgeColor',edgecolor,'FaceLighting','gouraud');
+    caxis(climits);
+    colorbar;
     hold on;
     view(3);
-    if ~isempty(edgecolor)
-        camlight('left');
-    end
     xlim([min(q),max(q)]);
     ylim([min(q),max(q)]);
     if ~isempty(zlimit)
@@ -92,6 +96,9 @@ if strcmp(style,'advanced')
         zl = zlim;
         minZl = max(abs(zl));
         zlim([-minZl,zl(2)]);
+    end
+    if ~isempty(edgecolor)
+        camlight('left');
     end
     xlabel('q','FontWeight','bold','FontSize',32);
     ylabel('p','FontWeight','bold','FontSize',32);
