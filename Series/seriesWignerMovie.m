@@ -103,7 +103,7 @@ if threeD
         'UniformOutput',false)));
     cmap = hsv(128);
     shift = ceil(abs(minVal)/(maxVal-minVal)*length(cmap));
-    cmap = circshift(cmap,-shift,1);
+    cmap = circshift(cmap,shift,1);
     wigParams.Style = 'advanced';
     wigParams.EdgeColor = 'None';
     wigParams.ColorMap = cmap;
