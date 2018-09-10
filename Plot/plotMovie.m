@@ -24,7 +24,8 @@ dispstat(['Working on ',filename,' ...'],'timestamp','keepthis');
 if ~isempty(findobj('type','figure'))
     delete(findall(0)); % close all figures
 end
-fig = figure('Visible',figurevisible);
+%fig = figure('Visible',figurevisible);
+fig = figure;
 axis tight;  % set axis limit to the range of the data
 axis manual;
 movie = VideoWriter(filename, 'MPEG-4');
