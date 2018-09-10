@@ -19,7 +19,7 @@ function plotWigner(WF,varargin)
 p = inputParser;
 defaultCLimits = 'auto';
 addParameter(p,'ColorLimits',defaultCLimits);
-defaultColorMap = hsv;
+defaultColorMap = hsv(128);
 addParameter(p,'ColorMap',defaultColorMap);
 defaultEdgeColor = 'black';
 addParameter(p,'EdgeColor',defaultEdgeColor);
@@ -85,7 +85,6 @@ if strcmp(style,'advanced')
     colormap(cmap);
     surf(q,p,WF,'EdgeColor',edgecolor,'FaceLighting','gouraud');
     caxis(climits);
-    colorbar;
     hold on;
     view(3);
     xlim([min(q),max(q)]);
@@ -129,6 +128,7 @@ if strcmp(style,'advanced')
     plot3(q,ones(length(q))* max(p),prp,marker,'Color','black');
     hold off;
 else
+    colormap(cmap);
     h = surf(gca,p,q,real(WF));
     set(h,'LineStyle','none');
     if image
@@ -140,6 +140,7 @@ else
         zlim(zlimit);
     end
 end
+colorbar;
 
 if ~isempty(filename)
     [path,name] = fileparts(filename);
