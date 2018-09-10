@@ -128,6 +128,11 @@ if strcmp(style,'advanced')
     plot3(q,ones(length(q))* max(p),prp,marker,'Color','black');
     hold off;
 else
+    cmap = hsv(128);
+    minVal = min(min(WF));
+    maxVal = max(max(WF));
+    shift = ceil(abs(minVal)/(maxVal-minVal)*length(cmap));
+    cmap = circshift(cmap,shift,1);
     colormap(cmap);
     surf(gca,p,q,real(WF),'EdgeColor',edgecolor);
     if image
@@ -138,19 +143,25 @@ else
     if ~isempty(zlimit)
         zlim(zlimit);
     end
-    cb = colorbar('FontSize',32);
-    cb.Label.String = zstring;
+    colorbar;
     p = get(gca,'Position');
     set(gca,'OuterPosition',p);
+    title(zstring,'FontSize',32);
     xlabel('q','FontWeight','bold','FontSize',32);
     ylabel('p','FontWeight','bold','FontSize',32);
     set(gca,'FontSize',22);
 end
 
 if ~isempty(filename)
-    [path,name] = fileparts(filename);
-    filenamePdf = [path,name,'.jpg'];
-    export_fig(sprintf('%s',filenamePdf),'-jpg','-r600');
+    [path,name,ext] = fileparts(filename);
+    switch ext
+        case '.jpg'
+            filenameJpg = [path,name,'.jpg'];
+            export_fig(sprintf('%s',filenameJpg),'-jpg','-r600');
+        case '.pdf'
+            filenamePdf = [path,name,'.pdf'];
+            export_fig(sprintf('%s',filenamePdf),'-pdf','-painters');
+    end
 end
 
 end
