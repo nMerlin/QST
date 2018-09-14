@@ -112,6 +112,7 @@ if threeD
     wigParams.EdgeColor = 'None';
     wigParams.ColorMap = cmap;
     wigParams.ColorLimits = [minVal,maxVal];
+    wigParams.ColorBar = 'on';
     plotfun = @(wigfun,params) plotWigner(wigfun,params,wigParams);
     filename = [datestr(date,'yyyy-mm-dd-'),'WignerMovie-', ...
         wigParams.Style,'-',selStr,'.mp4'];
