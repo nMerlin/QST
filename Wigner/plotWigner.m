@@ -128,13 +128,17 @@ if strcmp(style,'advanced')
     plot3(q,ones(length(q))* max(p),prp,marker,'Color','black');
     hold off;
 else
-    cmap = hsv(128);
-    minVal = min(min(WF));
-    maxVal = max(max(WF));
-    shift = ceil(abs(minVal)/(maxVal-minVal)*length(cmap));
-    cmap = circshift(cmap,shift,1);
+    if strcmp(climits,'auto')
+        minVal = min(min(WF));
+        maxVal = max(max(WF));
+        shift = ceil(abs(minVal)/(maxVal-minVal)*length(cmap));
+        cmap = circshift(cmap,shift,1);
+    end
     colormap(cmap);
     surf(gca,p,q,real(WF),'EdgeColor',edgecolor);
+    if ~strcmp(climits,'auto')
+        caxis(climits);
+    end
     if image
         view(2);
     end
@@ -143,13 +147,20 @@ else
     if ~isempty(zlimit)
         zlim(zlimit);
     end
-    colorbar;
-    p = get(gca,'Position');
-    set(gca,'OuterPosition',p);
-    title(zstring,'FontSize',32);
-    xlabel('q','FontWeight','bold','FontSize',32);
-    ylabel('p','FontWeight','bold','FontSize',32);
-    set(gca,'FontSize',22);
+    cb = colorbar;
+    if isempty(handle) % adapt figure size only when no figure was prepared
+        p = get(gca,'Position');
+        set(gca,'OuterPosition',p);
+    else
+        cb.Label.FontWeight = 'bold';
+        cb.Label.FontSize = 24;
+        cb.Label.String = zstring;
+    end
+    title(zstring,'FontSize',24);
+    xlabel('q','FontWeight','bold','FontSize',24);
+    ylabel('p','FontWeight','bold','FontSize',24);
+    set(gca,'FontSize',20);
+    set(gca,'DataAspectRatio',[1,1,1]);
 end
 
 if ~isempty(filename)
