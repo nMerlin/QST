@@ -17,6 +17,8 @@ function plotWigner(WF,varargin)
 
 %% Validate and parse input arguments
 p = inputParser;
+defaultCBar = 'off';
+addParameter(p,'ColorBar',defaultCBar);
 defaultCLimits = 'auto';
 addParameter(p,'ColorLimits',defaultCLimits);
 defaultColorMap = hsv(128);
@@ -39,7 +41,7 @@ defaultZString = 'W(q,p)';
 addParameter(p,'ZString',defaultZString,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[climits,cmap,edgecolor,filename,handle,marker,pq,style,zlimit, ...
+[cbar,climits,cmap,edgecolor,filename,handle,marker,pq,style,zlimit, ...
     zstring] = c{:};
 
 if strcmp(style,'2D')
@@ -79,6 +81,15 @@ if isempty(handle)
     formatFigA5(fig);
 end
 set(fig,'Color','w');
+
+% Prepare automatic colormap
+if strcmp(climits,'auto')
+    cmap = defaultColorMap;
+    minVal = min(min(WF));
+    maxVal = max(max(WF));
+    shift = ceil(abs(minVal)/(maxVal-minVal)*length(cmap));
+    cmap = circshift(cmap,shift,1);
+end
 
 if strcmp(style,'advanced')
     % Add 3D plot with important details
@@ -127,14 +138,12 @@ if strcmp(style,'advanced')
     plot3(ones(length(p))* max(p),p,prq,marker,'Color','black');
     plot3(q,ones(length(q))* max(p),prp,marker,'Color','black');
     hold off;
-else
-    if strcmp(climits,'auto')
-        cmap = defaultColorMap;
-        minVal = min(min(WF));
-        maxVal = max(max(WF));
-        shift = ceil(abs(minVal)/(maxVal-minVal)*length(cmap));
-        cmap = circshift(cmap,shift,1);
+    
+    % Add colorbar and move it to prevent overlap with xlabel
+    if strcmp(cbar,'on')
+        colorbar;
     end
+else
     colormap(cmap);
     surf(gca,p,q,real(WF),'EdgeColor',edgecolor);
     if ~strcmp(climits,'auto')
@@ -158,9 +167,9 @@ else
         cb.Label.String = zstring;
     end
     title(zstring,'FontSize',24);
-    xlabel('q','FontWeight','bold','FontSize',24);
+    xlabel('q','FontWeight','bold','FontSize',24); % old was 32
     ylabel('p','FontWeight','bold','FontSize',24);
-    set(gca,'FontSize',20);
+    set(gca,'FontSize',20); % old was 22
     set(gca,'DataAspectRatio',[1,1,1]);
 end
 
