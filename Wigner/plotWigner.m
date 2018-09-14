@@ -129,6 +129,7 @@ if strcmp(style,'advanced')
     hold off;
 else
     if strcmp(climits,'auto')
+        cmap = defaultColorMap;
         minVal = min(min(WF));
         maxVal = max(max(WF));
         shift = ceil(abs(minVal)/(maxVal-minVal)*length(cmap));
