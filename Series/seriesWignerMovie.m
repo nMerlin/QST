@@ -88,22 +88,26 @@ elseif strcmp(dimensions,'3D')
     threeD = true;
 end
 
+% compute colormap
+minVal = min(cell2mat(cellfun(@(A) min(min(A)),allWF, ...
+    'UniformOutput',false)));
+maxVal = max(cell2mat(cellfun(@(A) max(max(A)),allWF, ...
+    'UniformOutput',false)));
+cmap = hsv(128);
+shift = ceil(abs(minVal)/(maxVal-minVal)*length(cmap));
+cmap = circshift(cmap,shift,1);
+
 if twoD
     wigParams.Style = '2D';
+    wigParams.EdgeColor = 'None';
+    wigParams.ColorMap = cmap;
+    wigParams.ColorLimits = [minVal,maxVal];
     plotfun = @(wigfun,params) plotWigner(wigfun,params,wigParams);
     filename = [datestr(date,'yyyy-mm-dd-'),'WignerMovie-', ...
         wigParams.Style,'-',selStr,'.mp4'];
     plotMovie(plotfun,allWF,'Titles',titles,'Filename',filename);
 end
 if threeD
-    % compute colormap
-    minVal = min(cell2mat(cellfun(@(A) min(min(A)),allWF, ...
-        'UniformOutput',false)));
-    maxVal = max(cell2mat(cellfun(@(A) max(max(A)),allWF, ...
-        'UniformOutput',false)));
-    cmap = hsv(128);
-    shift = ceil(abs(minVal)/(maxVal-minVal)*length(cmap));
-    cmap = circshift(cmap,shift,1);
     wigParams.Style = 'advanced';
     wigParams.EdgeColor = 'None';
     wigParams.ColorMap = cmap;
