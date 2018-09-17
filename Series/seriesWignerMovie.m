@@ -7,6 +7,7 @@ function seriesWignerMovie(varargin)
 %   'Image': Default is 'false' (3D plot). If 'true',
 %       create a 2D plot of WF.
 %   'Narrow': Default is 'false'. Narrower axis limits.
+%   'Shift': Temporal shift of delays vector. Default is 0.
 %
 % Prerequisites:
 %   - expects 'WF' variable in the *.mat files in a 'post-data' folder
@@ -19,11 +20,13 @@ defaultPQ = -20:0.125:20;
 addParameter(p,'PQ',defaultPQ,@isvector);
 defaultSelParams = struct('Type','fullcircle','Position',[2.5,0.5]);
 addParameter(p,'SelectionParameters',defaultSelParams,@isstruct);
+defaultShift = 0;
+addParameter(p,'Shift',defaultShift,@isnumeric);
 defaultZLim = [NaN NaN];
 addParameter(p,'ZLim',defaultZLim,@isvector);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[dimensions,pq,selParams,zlimits] = c{:};
+[dimensions,pq,selParams,shift,zlimits] = c{:};
 wigParams.PQ = pq;
 wigParams.ZLim = zlimits;
 
@@ -63,9 +66,10 @@ for iFile = 1:length(files)
 end
 delays = delays(~isnan(delays));
 
-%% Sort for delays
+%% Sort for delays & apply shift
 [delays,iDelays] = sort(delays);
 allWF = allWF(iDelays);
+delays = delays + shift;
 
 %% Create meaningful plot titles
 if ~isempty(delays)
@@ -112,7 +116,7 @@ if threeD
     wigParams.EdgeColor = 'None';
     wigParams.ColorMap = cmap;
     wigParams.ColorLimits = [minVal,maxVal];
-    wigParams.ColorBar = 'on';
+    %wigParams.ColorBar = 'on';
     plotfun = @(wigfun,params) plotWigner(wigfun,params,wigParams);
     filename = [datestr(date,'yyyy-mm-dd-'),'WignerMovie-', ...
         wigParams.Style,'-',selStr,'.mp4'];
