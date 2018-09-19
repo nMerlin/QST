@@ -71,7 +71,7 @@ end
 fitFunction = @(b,x)  b(1).*(sin(2*pi*x./b(2) + b(3))) + b(4);
 % Least-Squares cost function
 squaresFunction = @(b) sum((fitFunction(b,x) - y).^2);
-% Minimise Least-Squares (with lower boundaries)
+% Minimize Least-Squares (with lower boundaries)
 [fitParams,~,exitFlag] = fminsearchbnd(squaresFunction, ...
     [yRange/2;period;phase;yOffset], [0;0;-inf;-inf]);
 
