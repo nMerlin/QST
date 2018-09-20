@@ -17,16 +17,16 @@ c = struct2cell(p.Results);
 imagesc(binsO1,binsO2,H); axis on; colormap hot; hold on;
 scatter(O1(iSelect),O2(iSelect),'.g'); hold off;
 set(gca,'XLim',limits,'YLim',limits);
-pbaspect([1 1 1]); % ensure that a circle doesn't look elliptic
 if strcmp(style,'simple')
     set(gca,'YTickLabel',[]);
     set(gca,'XTickLabel',[]);
-    title('H(q,p)','FontSize',32);
+    title('H(q,p)','FontSize',48);
 else
     xlabel('q');
     ylabel('p');
     title('H(q,p)');
 end
+pbaspect([1 1 1]); % ensure that a circle doesn't look elliptic
 
 saveFig(filename);
 
