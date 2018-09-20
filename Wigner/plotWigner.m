@@ -84,7 +84,7 @@ set(fig,'Color','w');
 
 % Prepare automatic colormap
 if strcmp(climits,'auto')
-    cmap = defaultColorMap;
+    %cmap = defaultColorMap;
     minVal = min(min(WF));
     maxVal = max(max(WF));
     shift = ceil(abs(minVal)/(maxVal-minVal)*length(cmap));
@@ -166,24 +166,14 @@ else
         cb.Label.FontSize = 24;
         cb.Label.String = zstring;
     end
-    title(zstring,'FontSize',24);
-    xlabel('q','FontWeight','bold','FontSize',24); % old was 32
-    ylabel('p','FontWeight','bold','FontSize',24);
-    set(gca,'FontSize',20); % old was 22
+    title(zstring,'FontSize',32); % old was 32
+    xlabel('q','FontWeight','bold','FontSize',32); % old was 32
+    ylabel('p','FontWeight','bold','FontSize',32);
+    set(gca,'FontSize',22); % old was 22
     set(gca,'DataAspectRatio',[1,1,1]);
 end
 
-if ~isempty(filename)
-    [path,name,ext] = fileparts(filename);
-    switch ext
-        case '.jpg'
-            filenameJpg = [path,name,'.jpg'];
-            export_fig(sprintf('%s',filenameJpg),'-jpg','-r600');
-        case '.pdf'
-            filenamePdf = [path,name,'.pdf'];
-            export_fig(sprintf('%s',filenamePdf),'-pdf','-painters');
-    end
-end
+saveFig(filename); % does not save empty filename
 
 end
 
