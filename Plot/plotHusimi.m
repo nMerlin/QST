@@ -1,12 +1,34 @@
-function plotHusimi(O1,O2,iSelect)
+function plotHusimi(O1,O2,iSelect,varargin)
 %PLOTHUSIMI Plot histogram of Husimi-Q function
-    [H, binsO1, binsO2] = histogram2D(O1,O2);
-    imagesc(binsO1,binsO2,H); axis on; colormap hot; hold on;
-    plot(O1(iSelect),O2(iSelect),'.'); hold off;
-    set(gca,'XLim',[-7,7],'YLim',[-7,7]);
-    pbaspect([1 1 1]); % ensure that a circle doesn't look elliptic
-    title('Histogram of Husimi-Q and Selected Region');
-    xlabel('X1');
-    ylabel('X2');
+%% Validate and parse input arguments
+p = inputParser;
+defaultFilename = '';
+addParameter(p,'Filename',defaultFilename);
+defaultLimits = [-7,7];
+addParameter(p,'Limits',defaultLimits);
+defaultStyle = 'auto'; % 'simple'
+addParameter(p,'Style',defaultStyle);
+parse(p,varargin{:});
+c = struct2cell(p.Results);
+[filename,limits,style] = c{:};
+
+%% Plotting
+[H, binsO1, binsO2] = histogram2D(O1,O2);
+imagesc(binsO1,binsO2,H); axis on; colormap hot; hold on;
+scatter(O1(iSelect),O2(iSelect),'.g'); hold off;
+set(gca,'XLim',limits,'YLim',limits);
+pbaspect([1 1 1]); % ensure that a circle doesn't look elliptic
+if strcmp(style,'simple')
+    set(gca,'YTickLabel',[]);
+    set(gca,'XTickLabel',[]);
+    title('H(q,p)','FontSize',32);
+else
+    xlabel('q');
+    ylabel('p');
+    title('H(q,p)');
+end
+
+saveFig(filename);
+
 end
 
