@@ -13,7 +13,7 @@ c = struct2cell(parser.Results);
 disc = mean(diff(q));
 HF = zeros(length(q),length(p));
 for iP = 1:length(p)
-    HF(:,iP)=disc^2*(1/norm)^2*1/(pi*(nPhotons+1))* ...
+    HF(:,iP)=disc^2*norm^2*1/(pi*(nPhotons+1))* ...
         exp(-((q*norm).^2+(p(iP)*norm).^2)/(nPhotons+1));
 end
 %HF = HF./sum(sum(HF)); % Usually not necessary
