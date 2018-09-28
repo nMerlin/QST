@@ -1,4 +1,4 @@
-function [ QF ] = thermHusimi(q,p,nPhotons,varargin)
+function [ HF ] = thermHusimi(q,p,nPhotons,varargin)
 %THERMHUSIMI Returns Q(q,p) for a thermal state with NPHOTONS.
 %   Detailed explanation goes here
 
@@ -11,9 +11,9 @@ c = struct2cell(parser.Results);
 [norm] = c{:};
 
 disc = mean(diff(q));
-QF = zeros(length(q),length(p));
+HF = zeros(length(q),length(p));
 for iP = 1:length(p)
-    QF(:,iP)=disc^2*(1/norm)^2*1/(pi*(nPhotons+1))* ...
+    HF(:,iP)=disc^2*(1/norm)^2*1/(pi*(nPhotons+1))* ...
         exp(-((q*norm).^2+(p(iP)*norm).^2)/(nPhotons+1));
 end
 %HF = HF./sum(sum(HF)); % Usually not necessary
