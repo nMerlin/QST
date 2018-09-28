@@ -23,7 +23,7 @@ defaultCLimits = 'auto';
 addParameter(p,'ColorLimits',defaultCLimits);
 defaultColorMap = hsv(128);
 addParameter(p,'ColorMap',defaultColorMap);
-defaultEdgeColor = 'black';
+defaultEdgeColor = 'None'; % black
 addParameter(p,'EdgeColor',defaultEdgeColor);
 defaultFilename = '';
 addParameter(p,'Filename',defaultFilename);
@@ -33,7 +33,7 @@ defaultMarker = '-';
 addParameter(p,'Marker',defaultMarker,@isstr);
 defaultPQ = -20:0.125:20;
 addParameter(p,'PQ',defaultPQ,@isvector);
-defaultStyle = '3D';
+defaultStyle = 'advanced';
 addParameter(p,'Style',defaultStyle,@isstr);
 defaultZLim = [];
 addParameter(p,'ZLim',defaultZLim,@isvector);
