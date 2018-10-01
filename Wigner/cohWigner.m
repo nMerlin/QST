@@ -12,15 +12,17 @@ function [ WF ] = cohWigner( q, p, nPhotons, varargin )
 
 %% Validate and parse input arguments
 parser = inputParser;
+defaultP0 = sqrt(2*nPhotons); % Change that for another normalization!
+addParameter(parser,'P0',defaultP0,@isnumeric);
+defaultQ0 = 0;
+addParameter(parser,'Q0',defaultQ0,@isnumeric);
 defaultTheta = 0; % Rotation angle in degrees
 addParameter(parser,'Theta',defaultTheta,@isnumeric);
 parse(parser,varargin{:});
 c = struct2cell(parser.Results);
-[theta] = c{:};
+[p0,q0,theta] = c{:};
 
 sigma = 1/sqrt(2); % Select another norm if applicable
-p0 = 0;
-q0 = sqrt(2*nPhotons); % Change that for another normalization!
 
 WF = zeros(length(q),length(p));
 for iP = 1:length(p)
