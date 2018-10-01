@@ -19,8 +19,8 @@ c = struct2cell(parser.Results);
 [theta] = c{:};
 
 sigma = 1/sqrt(2); % Select another norm if applicable
-q0 = 0;
-p0 = sqrt(2*nPhotons); % Change that for another normalization!
+p0 = 0;
+q0 = sqrt(2*nPhotons); % Change that for another normalization!
 
 WF = zeros(length(q),length(p));
 for iP = 1:length(p)
