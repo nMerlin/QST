@@ -110,8 +110,8 @@ if strcmp(style,'advanced')
     if ~isempty(edgecolor)
         camlight('left');
     end
-    xlabel('q','FontWeight','bold','FontSize',32);
-    ylabel('p','FontWeight','bold','FontSize',32);
+    xlabel('p','FontWeight','bold','FontSize',32);
+    ylabel('q','FontWeight','bold','FontSize',32);
     zlabel(zstring,'FontWeight','bold','FontSize',32);
     set(gca,'FontSize',22);
     grid on;
