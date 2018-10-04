@@ -8,9 +8,11 @@ defaultLimits = [-7,7];
 addParameter(p,'Limits',defaultLimits);
 defaultStyle = 'auto'; % 'simple'
 addParameter(p,'Style',defaultStyle);
+defaultTitleStr = 'H(q,p)';
+addParameter(p,'Title',defaultTitleStr,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[filename,limits,style] = c{:};
+[filename,limits,style,titlestr] = c{:};
 
 %% Plotting
 [H, binsO1, binsO2] = histogram2D(O1,O2);
@@ -20,11 +22,11 @@ set(gca,'XLim',limits,'YLim',limits);
 if strcmp(style,'simple')
     set(gca,'YTickLabel',[]);
     set(gca,'XTickLabel',[]);
-    title('H(q,p)','FontSize',48);
+    title(titlestr,'FontSize',48);
 else
     xlabel('q');
     ylabel('p');
-    title('H(q,p)');
+    title(titlestr);
 end
 pbaspect([1 1 1]); % ensure that a circle doesn't look elliptic
 
