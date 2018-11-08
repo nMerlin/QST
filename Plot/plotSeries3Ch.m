@@ -14,6 +14,7 @@ c = struct2cell(p.Results);
 fig = figure;
 formatFigA5(fig);
 legendLocation = 'northeast';
+hideLegend = false;
 hold on;
 switch typestr
     case 'DelayMeanVarX'
@@ -88,8 +89,9 @@ switch typestr
             'LineWidth',2);
         plot(xTheo,maxVar,'DisplayName','Without Postselection', ...
             'LineWidth',2);
-        plot(xAxis,varX,'o','DisplayName','Measured','MarkerSize',10, ...
-            'MarkerEdgeColor','k','MarkerFaceColor','w','LineWidth',2);
+        plot(xAxis,varX,'o','DisplayName','Experimental Data', ...
+            'MarkerSize',10,'MarkerEdgeColor','k','MarkerFaceColor', ...
+            'w','LineWidth',2);
         hold off;
         ax = get(fig,'CurrentAxes');
         xlabel('$\bar{n}_t/(\bar{n}_t+\bar{n}_{ps})$','FontSize',26, ...
@@ -97,6 +99,7 @@ switch typestr
         ylabel('Variance','FontSize',26);
         box on;
         legendLocation = 'NorthWest';
+        hideLegend = true;
         ax.FontSize = 22;
 end
 
@@ -104,6 +107,9 @@ end
 set(fig,'Color','w');
 legend(ax,'Location',legendLocation);
 legend(ax,'show');
+if hideLegend
+    legend boxoff;
+end
 if ~isempty(filename)
     selParams = selStrToParams(filename);
     if ~isempty(selParams)
