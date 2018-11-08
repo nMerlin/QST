@@ -1,7 +1,7 @@
 # QST
 A set of MatLab scripts for optical homodyne quantum state tomography.
 
-https://zenodo.org/badge/58628877.svg
+[![DOI](https://zenodo.org/badge/58628877.svg)](https://zenodo.org/badge/latestdoi/58628877)
 
 ## Requirements
 * MatLab
