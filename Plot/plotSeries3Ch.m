@@ -14,6 +14,7 @@ c = struct2cell(p.Results);
 fig = figure;
 formatFigA5(fig);
 legendLocation = 'northeast';
+hideLegend = false;
 hold on;
 switch typestr
     case 'DelayMeanVarX'
@@ -84,18 +85,21 @@ switch typestr
         minVar = (1/mean(nSum)+1+xTheo)./(2*(1/mean(nSum)+1-xTheo));
         maxVar = xTheo*mean(nSum)+0.5;
         hold on;
-        plot(xTheo,minVar,'DisplayName','Theory Phase-Sensitive', ...
+        plot(xTheo,minVar,'DisplayName','Theoretical Minimum', ...
             'LineWidth',2);
-        plot(xTheo,maxVar,'DisplayName','Theory Phase-Randomized', ...
+        plot(xTheo,maxVar,'DisplayName','Without Postselection', ...
             'LineWidth',2);
-        plot(xAxis,varX,'o','DisplayName','Measured','MarkerSize',10, ...
-            'MarkerEdgeColor','k','MarkerFaceColor','w','LineWidth',2);
+        plot(xAxis,varX,'o','DisplayName','Experimental Data', ...
+            'MarkerSize',10,'MarkerEdgeColor','k','MarkerFaceColor', ...
+            'w','LineWidth',2);
         hold off;
         ax = get(fig,'CurrentAxes');
-        xlabel('n_t/(n_t+n_{ps})','FontSize',26);
-        ylabel('Var(Q_t)','FontSize',26);
+        xlabel('$\bar{n}_t/(\bar{n}_t+\bar{n}_{ps})$','FontSize',26, ...
+            'Interpreter','latex');
+        ylabel('Variance','FontSize',26);
         box on;
         legendLocation = 'NorthWest';
+        hideLegend = true;
         ax.FontSize = 22;
 end
 
@@ -103,6 +107,9 @@ end
 set(fig,'Color','w');
 legend(ax,'Location',legendLocation);
 legend(ax,'show');
+if hideLegend
+    legend boxoff;
+end
 if ~isempty(filename)
     selParams = selStrToParams(filename);
     if ~isempty(selParams)
