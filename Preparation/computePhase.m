@@ -46,7 +46,7 @@ for iSeg = 1:nSegments
     % However, the parameters have to be chosen carefully.
     peakOptsMax.MinPeakDistance = 0.6 * length(y)/periodsPerSeg;
     peakOptsMin.MinPeakDistance = 0.6 * length(y)/periodsPerSeg;
-    % _MinPeakDistance_ is by far the most important parameter. It
+    % _MinPeakDistance_ is by far the most important parameter. It 
     % determines how far away of each other the found peaks must be. In our
     % case, the data should exhibit a certain periodicity and we want to
     % know where the maximum and minimum in each period is. Therefore, a

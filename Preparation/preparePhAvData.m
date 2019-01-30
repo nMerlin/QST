@@ -8,10 +8,12 @@ function X = preparePhAvData(filenameLO,filenameSIG,varargin)
 %% Validate and parse input arguments
 p = inputParser;
 defaultCorrRemove = 'no';
+defaultChannel = 1;
 addParameter(p,'CorrRemove',defaultCorrRemove);
+addParameter(p,'Channel',defaultChannel,@isnumeric);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[corrRemove] = c{:};
+[channel,corrRemove] = c{:};
 
 CALIBRATION_CH1 = 4.596047840078126e-05; % Ampere per Volt
 
@@ -23,7 +25,7 @@ Norm = 1/sqrt(2);
 % Compute number of LO photons
 dispstat('Computing number of LO photons ...','timestamp','keepthis',0);
 [data8bit,config,~]=load8BitBinary(filenameLO,'dontsave');
-XLO = computeQuadratures(data8bit, config, CALIBRATION_CH1);
+XLO = computeQuadratures(data8bit(:,:,channel), config, CALIBRATION_CH1);
 
 if strcmp(corrRemove,'yes')
     %Removing correlations with preceding pulses
@@ -39,7 +41,7 @@ NLO = mean(var(XLO));
 dispstat('Computing quadratures for target quantum state ...',...
     'timestamp','keepthis',0);
 [data8bit,config,~]=load8BitBinary(filenameSIG,'dontsave');
-X = computeQuadratures(data8bit, config, CALIBRATION_CH1);
+X = computeQuadratures(data8bit(:,:,channel), config, CALIBRATION_CH1);
 
 if strcmp(corrRemove,'yes')
     %Removing correlations with preceding pulses
