@@ -1,9 +1,10 @@
-function [decaytime, decaytimeError] = plotStreak(filenameSIG, filenameBG,varargin)
-%PLOTSTREAK plots the picture of a streak camera. It also plots a sum over
-%the space over time and makes an exponential decay fit. 
+function [decaytime, decaytimeError] = plotStreakDat(filenameSIG, filenameBG,varargin)
+%PLOTSTREAK plots the picture of a streak camera from .dat files. It also plots a sum over
+%the space over time and makes an exponential decay fit. It needs a .prf
+%file with time information. 
 %
 %   Input Arguments:
-%       filenameSIG: file with the signal data, of '.img' format.
+%       filenameSIG: file with the signal data, of '.dat' format.
 %       It should be located in a folder 'raw-data'.
 %       filenameBG: file with background data.
 
@@ -17,14 +18,17 @@ c = struct2cell(parser.Results);
 
 %% load data
     cd('raw-data');
-    [M, time] = loadImg(filenameSIG);
-    [MBG, ~] = loadImg(filenameBG);
+    M=load(filenameSIG);
+    MBG = load(filenameBG);
     
     if strcmp(subtract,'yes') % optional: subtract background
         M = M - MBG;
     end
     
 %% make surface plot
+    %time = 0:size(M,1)-1;
+    prf = dlmread('profil.prf',',',5,0);
+    time = prf(:,1);
     x = 0:size(M,2)-1;
     surf(x, time, M);
     colorbar;
