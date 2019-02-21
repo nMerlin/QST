@@ -9,14 +9,13 @@ function [decaytime, decaytimeError] = plotStreak(filenameSIG, filenameBG,vararg
 
 %% Validate and parse input arguments
 parser = inputParser;
-defaultSubtract = 'yes'; % Rotation angle in degrees
+defaultSubtract = 'yes'; 
 addParameter(parser,'Subtract',defaultSubtract);
 parse(parser,varargin{:});
 c = struct2cell(parser.Results);
 [subtract] = c{:};
 
 %% load data
-    %datafile = '01-signal-Gain0-Exposure100.dat';
     cd('raw-data');
     M=load(filenameSIG);
     MBG = load(filenameBG);
