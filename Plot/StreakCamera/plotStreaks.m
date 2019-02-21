@@ -1,5 +1,6 @@
 function plotStreaks
-% for a series of streak measurements located in folder 'raw-data'.
+% for a series of streak measurements located in folder 'raw-data' as .dat
+% files.
 
 
 %% Create data overview
@@ -12,8 +13,8 @@ rawDataContents = dir('raw-data');
 for name = {rawDataContents.name}
     % Loop only over Signal files
     filename = cell2mat(name);
-    if not(isempty(regexpi(filename,'background.dat','match')))...
-            || isempty(regexpi(filename,'.dat','match'))
+    if not(isempty(regexpi(filename,'background.img','match')))...
+            || isempty(regexpi(filename,'.img','match'))
         continue
     end
     
@@ -28,7 +29,7 @@ end
 for name = {rawDataContents.name}
     % Loop only over background files
     filename = cell2mat(name);
-    if isempty(regexpi(filename,'background.dat','match'))
+    if isempty(regexpi(filename,'background.img','match'))
         continue
     end
     
