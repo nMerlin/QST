@@ -23,7 +23,7 @@ rawDataContents = dir('raw-data');
 for name = {rawDataContents.name}
     % Loop only over Signal files
     filename = cell2mat(name);
-    if not(isempty(regexpi(filename,'background.dat','match')))...
+    if not(isempty(regexpi(filename,'background_1.txt','match')))...
             || isempty(regexpi(filename,'.txt','match'))
         continue
     end
