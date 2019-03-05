@@ -1,7 +1,17 @@
-function plotStreaksPowerSeries
+function plotStreaksPowerSeries(varargin)
 % for a series of streak measurements located in folder 'raw-data' as .dat
 % files.
+%   Input Arguments:
+%       'Plottype','lin': linear time- and intensity scale for integrated plot
+%       'Plottype','log': logarithmic intensity scale for integrated plot
 
+%% Validate and parse input arguments
+parser = inputParser;
+defaultPlottype = 'lin'; 
+addParameter(parser,'Plottype',defaultPlottype);
+parse(parser,varargin{:});
+c = struct2cell(parser.Results);
+[plottype] = c{:};
 
 %% Create data overview
 dataStruct = struct('filename',{},'Power',{},'decaytime',{});
@@ -60,7 +70,7 @@ for number = 1:size(dataStruct,2)
     BGnumber = min(BGnumbers(BGnumbers>=number)); %background was measured after signal
     filenameBG = dataStructBackground(BGnumber).filename;
 
-    [decaytime, ~] = plotStreak( filenameSIG, filenameBG );
+    [decaytime, ~] = plotStreak( filenameSIG, filenameBG,'Plottype',plottype );
      
     dataStruct(number).decaytime = decaytime; 
        
