@@ -90,7 +90,7 @@ fontsize = 24;
     l = legend('Location','northeast');
     l.FontSize = 22;
     ylim([0 Max*1.1]);
-    %xlim([peak-0.5, peak+0.5]);
+    xlim([peak-0.5, peak+0.5]);
     ylabel('Counts');
     xlabel('Wavelength (nm)');
     fontName = 'Times New Roman';
