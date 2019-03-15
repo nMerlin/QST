@@ -26,7 +26,7 @@ c = struct2cell(p.Results);
 [debug,ignore,periodsPerSeg,plotArg] = c{:};
 
 %% Reconstruct the phase for each piezo segment
-ys = smoothCrossCorr(Xa,Xb,'Type','spline','Param',1e-15);
+ys = smoothCrossCorr(Xa,Xb,'Type','spline','Param',1e-11); %was 1e-15 before, but this was not sufficient for boundary maxima.
 [nPoints,nSegments] = size(ys);
 
 periodLength = length(ys)*periodsPerSeg;
