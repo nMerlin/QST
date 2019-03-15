@@ -156,7 +156,7 @@ if strcmp(saveOption,'yes')
     dispstat('Saving ...','timestamp','keepthis',0);
     dateString = datestr(datetime('now'),'yyyymmddTHHMMSS');
     save(['quadratureDataset-', strrep(num2str(filenameSIG),...
-        '.raw','') dateString '.mat'], 'X1','X2','X3');
+        '.raw','') dateString '.mat'], 'X1','X2','X3','piezoSign');
 end
 
 
