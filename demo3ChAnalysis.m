@@ -13,7 +13,7 @@
 % modulation of 2w and X2 of w (e.g. w=25Hz).
 % piezoSign is 1 or -1 depending on the direction of the first segment of
 % the channel with the highest modulation frequency.
-[X1,X2,X3,piezoSign] = prepare3ChData(filenameLO, filenameSIG);
+[X1,X2,X3,piezoSign] = prepareData(filenameLO, filenameSIG,'Channels',1:3,'Offset','local','Piezo','yes' );
 
 %% Plotting Cross-Correlations
 % For a first overview of your dataset it can be helpful to plot the 3
