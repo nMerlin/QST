@@ -13,6 +13,7 @@ function [Max, integratedInt, peak, FWHM, Q] = plotSpectrumAndFit(filenameSIG,fi
 %       'Interpolate': Decide with 'yes', if the data should be
 %       interpolated with a spline. This interpolation will also be used
 %       for the fit.
+%       'XLim': limits for x-axis around the peak.
 
 %% Validate and parse input arguments
 parser = inputParser;
@@ -24,9 +25,11 @@ defaultInterpolate = 'yes';
 addParameter(parser,'Interpolate',defaultInterpolate);
 defaultSubtract = 'yes'; %
 addParameter(parser,'Subtract',defaultSubtract);
+defaultXLim = 0.5; %
+addParameter(parser,'XLim',defaultXLim,@isnumeric);
 parse(parser,varargin{:});
 c = struct2cell(parser.Results);
-[fitoption,intp,save,subtract] = c{:};
+[fitoption,intp,save,subtract,xLim] = c{:};
 
 %%
 fontsize = 24;
@@ -60,9 +63,13 @@ fontsize = 24;
         Intfit = ip';
         wfit = xx';
         plot(xx,ip,'LineWidth',1,'DisplayName','Interp.'); hold on;
+        plot(w,Int,'bo','LineWidth',2,'DisplayName','Data');
+        hold on;
     else
         Intfit = Int;
         wfit = w;
+        plot(w,Int,'b-','LineWidth',2,'DisplayName','Data');
+        hold on;
     end    
     
 %% make Gauss Fit if wished
@@ -82,15 +89,16 @@ fontsize = 24;
         text(peak-0.45, Max/4,...
             ['FWHM = ' num2str(FWHM,'%.3f') ' $\pm$ ' num2str(FWHMerror,'%.4f') ' nm' char(10) ...
             'Q = ' num2str(Q,'%.0f')],'FontSize',fontsize-4);
+    else
+        FWHM = 0;
+        Q = 0;
     end
     
 %% plot
-    plot(w,Int,'bo','LineWidth',2,'DisplayName','Data');
-    hold on;
     l = legend('Location','northeast');
     l.FontSize = 22;
     ylim([0 Max*1.1]);
-    xlim([peak-0.5, peak+0.5]);
+    xlim([peak-xLim, peak+xLim]);
     ylabel('Counts');
     xlabel('Wavelength (nm)');
     fontName = 'Times New Roman';
