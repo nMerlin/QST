@@ -3,14 +3,28 @@ function plotSpectraAndFitPowerSeries(varargin)
 % The data should be in folder 'raw-data'.
 % With 'Subtract', you can choose whether there are background measurements
 % that should be subtracted. 
+%       'Fit': Decide with 'yes', if the data should be
+%       fitted with a gaussian.
+%       'Interpolate': Decide with 'yes', if the data should be
+%       interpolated with a spline. This interpolation will also be used
+%       for the fit.
+%       'XLim': limits for x-axis around the peak.
 
 %% Validate and parse input arguments
 parser = inputParser;
+defaultFit = 'yes'; %
+addParameter(parser,'Fit',defaultFit);
+defaultSave = 'yes'; %
+addParameter(parser,'Save',defaultSave);
+defaultInterpolate = 'yes';
+addParameter(parser,'Interpolate',defaultInterpolate);
 defaultSubtract = 'yes'; %
 addParameter(parser,'Subtract',defaultSubtract);
+defaultXLim = 0.5; %
+addParameter(parser,'XLim',defaultXLim,@isnumeric);
 parse(parser,varargin{:});
 c = struct2cell(parser.Results);
-[subtract] = c{:};
+[fitoption,intp,save,subtract,xLim] = c{:};
 
 %% Create data overview
 dataStruct = struct('filename',{},'number',{}, 'Power',{}, 'Max', {}, 'Integrated',{},...
@@ -68,11 +82,11 @@ for number = 1:size(dataStruct,2)
     if strcmp(subtract, 'yes')
         BGnumber = min(BGnumbers(BGnumbers>=number)); %background was measured after signal
         filenameBG = dataStructBackground(BGnumber).filename;
-        %[Max, peak, FWHM, Q] = 
         [Max,integratedInt, peak, FWHM, Q] = plotSpectrumAndFit( filenameSIG, filenameBG,...
-            'Subtract','yes','Interpolate','yes','Fit','yes','Save','yes'); %%change this!
+            'Subtract',subtract,'Interpolate',intp,'Fit',fitoption,'Save',save,'XLim',xLim); 
     else
-        [Max,integratedInt, peak, FWHM, Q] = plotSpectrumAndFit( filenameSIG, filenameSIG, 'Subtract','no');
+        [Max,integratedInt, peak, FWHM, Q] = plotSpectrumAndFit( filenameSIG, filenameSIG,...
+            'Subtract',subtract,'Interpolate',intp,'Fit',fitoption,'Save',save,'XLim',xLim); 
     end
     dataStruct(number).Max = Max;
     dataStruct(number).Integrated = integratedInt;
