@@ -1,4 +1,4 @@
-function [theta, ys] = computePhase(Xa,Xb,piezoSign,varargin)
+function [theta, theta0, ys] = computePhase(Xa,Xb,piezoSign,varargin)
 %COMPUTEPHASE Reconstruct phase between Xa and Xb which can be obtained
 % with prepare3ChData.
 %
@@ -33,6 +33,7 @@ periodLength = length(ys)*periodsPerSeg;
 theta = zeros(nPoints,nSegments);
 for iSeg = 1:nSegments
     y = ys(:,iSeg);
+    y = y-mean(y);
     
     %% Ignore segments listed in _ignore_
     if sum(ignore==iSeg)>0
@@ -74,14 +75,24 @@ for iSeg = 1:nSegments
     [~,minlocs] = findpeaks(-y,peakOptsMin);
     maxpks = y(maxlocs);
     minpks = y(minlocs);
-    assert(abs(length(maxpks)-length(minpks))<2,...
-            strcat('Too many maxima or minima detected in Segment', ...
-            num2str(iSeg),'!'));
+    if abs(length(maxpks)-length(minpks))>2
+        theta(:,iSeg) = NaN(nPoints,1);
+        continue
+    end
+    
+%     assert(abs(length(maxpks)-length(minpks))<2,...
+%             strcat('Too many maxima or minima detected in Segment', ...
+%             num2str(iSeg),'!'));
     
     %% Sort peaks (assumption: we only see "global" maxima and minima)
     [locs, I] = sort([maxlocs;minlocs]);
     pks = [maxpks;minpks];
     pks = pks(I);
+    
+    if length(pks)<2
+        theta(:,iSeg) = NaN(nPoints,1);
+        continue
+    end
     
     
     %% Account for wrongly detected peaks close to the boundaries
@@ -113,9 +124,15 @@ for iSeg = 1:nSegments
         end
     end    
     nTurningPoints = length(locs);
-    assert(nTurningPoints>1, ...
-        ['Not enough turning points encountered in Segment ', ...
-        num2str(iSeg),'!']);
+    
+    if nTurningPoints<1
+        theta(:,iSeg) = NaN(nPoints,1);
+        continue
+    end
+    
+%     assert(nTurningPoints>1, ...
+%         ['Not enough turning points encountered in Segment ', ...
+%         num2str(iSeg),'!']);
     
     %% Account for extrema lying directly on a boundary (1)
     % If an extremal point is the first or last point in the data set, then
@@ -223,10 +240,11 @@ for iSeg = 1:nSegments
         selSeg(iSeg) = false;
         continue
     end
-    assert(isreal(theta),...
-        ['Not all phase values are real in Segment ' num2str(iSeg) '.']);
+%     assert(isreal(theta),...
+%         ['Not all phase values are real in Segment ' num2str(iSeg) '.']);
 end % iSeg
 
+theta0 = theta;
 theta = mod(theta,2*pi);
 
 end % function
