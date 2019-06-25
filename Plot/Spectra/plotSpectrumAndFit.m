@@ -14,6 +14,7 @@ function [Max, integratedInt, peak, FWHM, Q] = plotSpectrumAndFit(filenameSIG,fi
 %       interpolated with a spline. This interpolation will also be used
 %       for the fit.
 %       'XLim': limits for x-axis around the peak.
+%       'XUnit': x unit can be nm (wavelength) or Hz (frequency).
 
 %% Validate and parse input arguments
 parser = inputParser;
@@ -27,12 +28,15 @@ defaultSubtract = 'yes'; %
 addParameter(parser,'Subtract',defaultSubtract);
 defaultXLim = 0.5; %
 addParameter(parser,'XLim',defaultXLim,@isnumeric);
+defaultXUnit = 'nm';
+addParameter(parser,'XUnit',defaultXUnit);
 parse(parser,varargin{:});
 c = struct2cell(parser.Results);
-[fitoption,intp,save,subtract,xLim] = c{:};
+[fitoption,intp,save,subtract,xLim,xUnit] = c{:};
 
 %%
 fontsize = 24;
+lightVelocity = 299792458;
 
 %% load data
     cd('raw-data')
@@ -56,9 +60,15 @@ fontsize = 24;
     integratedInt = sum(Int);
     peak = w(I);
     
+    if strcmp(xUnit,'Hz')
+        xLim = lightVelocity*xLim*10^-9./(peak*10^-9)^2;
+        w = lightVelocity./(w*10^-9);
+        peak = w(I);
+    end
+    
 %% interpolate data, if wished
     if strcmp(intp, 'yes')
-        xx= peak-2:0.001:peak+2;
+        xx= peak-xLim:xLim/1000:peak+xLim;%xx= peak-xLim:0.001:peak+xLim;
         ip = spline(w, Int, xx);
         Intfit = ip';
         wfit = xx';
@@ -75,7 +85,7 @@ fontsize = 24;
 %% make Gauss Fit if wished
     if strcmp(fitoption, 'yes')
         %gaussCustom = 'a1*exp(-((x-b1)/c1)^2)+d1';
-        [f,gof,~] = fit(wfit,Intfit,'gauss1', 'StartPoint', [Max, peak, 0.5] ); %f(x) =  a1*exp(-((x-b1)/c1)^2)
+        [f,gof,~] = fit(wfit,Intfit,'gauss1', 'StartPoint', [Max, peak, xLim] ); %f(x) =  a1*exp(-((x-b1)/c1)^2)
         FWHM = 2*f.c1*sqrt(log(2));
         level = 2*tcdf(-1,gof.dfe);
         m = confint(f,level); 
@@ -83,11 +93,11 @@ fontsize = 24;
         FWHMerror = std * 2*sqrt(log(2));
         %relative width
         Q = f.b1/FWHM;
-        x = peak-2:0.001:peak+2;
+        x= peak-xLim:xLim/1000:peak+xLim; %x = peak-xLim:0.001:peak+xLim;
         plot(x,f(x),'r','LineWidth',1.5,'DisplayName','Fit');
         set(gca,'DefaultTextInterpreter','latex');
         text(peak-0.45, Max/4,...
-            ['FWHM = ' num2str(FWHM,'%.3f') ' $\pm$ ' num2str(FWHMerror,'%.4f') ' nm' char(10) ...
+            ['FWHM = ' num2str(FWHM,'%.3f') ' $\pm$ ' num2str(FWHMerror,'%.4f') ' ' xUnit char(10) ...
             'Q = ' num2str(Q,'%.0f')],'FontSize',fontsize-4);
     else
         FWHM = 0;
@@ -100,21 +110,25 @@ fontsize = 24;
     ylim([0 Max*1.1]);
     xlim([peak-xLim, peak+xLim]);
     ylabel('Counts');
-    xlabel('Wavelength (nm)');
+    if strcmp(xUnit, 'nm')
+        xlabel('Wavelength (nm)');    
+    elseif strcmp(xUnit, 'Hz')
+        xlabel('Frequency (Hz)');   
+    end
     fontName = 'Times New Roman';
     set(gca,'LineWidth',3,'XColor',[0 0 0], 'YColor', [0 0 0],'Box','on',...
         'FontSize',22,'FontName',fontName,...
         'TickDir','Out');
     set(gca,'DefaultTextInterpreter','latex');
-    text(peak-0.45, Max/2,['peak at ' num2str(peak,'%.2f') ' nm' char(10) ...
+    text(peak-0.45, Max/2,['peak at ' num2str(peak,'%.2f') ' ' xUnit char(10) ...
         'max Int ' num2str(Max,'%.0f') ' counts' char(10) ...
         'integr. Int ' num2str(integratedInt,'%.0f') ' counts' char(10)],...
         'FontSize',fontsize-4);
     hold off;
     cd('..')
     if strcmp(save, 'yes')
-        savefig([filenameSIG '-subtractedBackground-plot.fig']);
-        print([filenameSIG '-subtractedBackground-plot.png'],'-dpng','-r300');
+        savefig([filenameSIG '-subtractedBackground-plot-' xUnit '.fig']);
+        print([filenameSIG '-subtractedBackground-plot-' xUnit '.png'],'-dpng','-r300');
     end
 
 end
