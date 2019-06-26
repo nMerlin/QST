@@ -128,7 +128,7 @@ for iCh = channels
     elseif strcmp(offset,'global') % remove global offset
         dispstat(['Removing global offset from channel ',num2str(iCh), ...
             ' ...'],'timestamp','keepthis',0);
-        Xrem = X(:,:,iCh) - mean(mean(X(:,:,iCh)));
+        Xrem = X(:,:,iCh) - mean(mean(X(:,:,iCh)));       
     end
     
 %% Cut the raw data into segments of equal length according to piezo, if piezo modulation was used
@@ -136,7 +136,13 @@ for iCh = channels
     if strcmp(piezo,'yes')
         dispstat(['Reshaping channel ',num2str(iCh), ...
             ' into piezo segments ...'],'timestamp','keepthis',0);
-        [Xrem,piezoSign] = piezoSegments(timestamps,Xrem,'cut');
+        [Xrem,piezoSign] = piezoSegments(timestamps,Xrem,'cut');       
+        if strcmp(offset,'global')
+            %compute offset from mean maxima and minima to prevent they are
+            %biased
+            biase = (mean(max(max(max(Xrem,1))))+mean(min(min(min(Xrem,1)))))/2;
+            Xrem = Xrem - biase;
+        end
     end
      
 %% asign channels
