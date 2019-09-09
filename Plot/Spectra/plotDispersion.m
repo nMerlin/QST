@@ -12,7 +12,7 @@ function [E0] = plotDispersion(filenameSIG, filenameBG,varargin)
 
 %% Validate and parse input arguments
 parser = inputParser;
-defaultSubtract = 'yes'; 
+defaultSubtract = 'no'; 
 addParameter(parser,'Subtract',defaultSubtract);
 defaultPlottype = 'lin'; 
 addParameter(parser,'Plottype',defaultPlottype);
@@ -59,12 +59,13 @@ e0 = 1.602176634e-19;
  energy = h*c0/e0*1./(w*10^-9);
  energy = fliplr(energy');
 
-% find energy of intensity maxima over the energy axis
-[~,Index] = max(Int);
+% find energy of intensity maxima over the energy axis in the spectral
+% range where we expect the polariton
+[~,Index] = max(Int(energy<1.63,:));
 Emaxs = energy(Index);
 minE = Emaxs(minX);
 % guess value for slope
-aStart = (Emaxs(length(Emaxs)*0.75) - minE)/(x(length(x)*0.75)-minX)^2;
+aStart = (Emaxs(round(length(Emaxs)*0.75)) - minE)/(x(round(length(x)*0.75))-minX)^2;
 Emaxs=Emaxs(Emaxs>=minE);
 xFit=x(Emaxs>=minE);
     
@@ -81,7 +82,7 @@ theta = (x - minX)*2*theta_max/xAperture;
 k = E0*e0*2*pi/(h*c0) * sin(theta);
  
 %% make plot
-surf(k, energy, Int);
+surf(k, energy, log(Int));
 colorbar;
 view(180,-90);
 shading flat;
