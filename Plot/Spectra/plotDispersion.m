@@ -12,13 +12,13 @@ function [E0] = plotDispersion(filenameSIG, filenameBG,varargin)
 
 %% Validate and parse input arguments
 parser = inputParser;
-defaultSubtract = 'yes'; 
+defaultSubtract = 'no'; 
 addParameter(parser,'Subtract',defaultSubtract);
 defaultPlottype = 'lin'; 
 addParameter(parser,'Plottype',defaultPlottype);
 parse(parser,varargin{:});
 c = struct2cell(parser.Results);
-[subtract] = c{:};
+[plottype,subtract] = c{:};
 
 %% fourier pixel
 % take values from calibration measurement
@@ -59,12 +59,13 @@ e0 = 1.602176634e-19;
  energy = h*c0/e0*1./(w*10^-9);
  energy = fliplr(energy');
 
-% find energy of intensity maxima over the energy axis
-[~,Index] = max(Int);
+% find energy of intensity maxima over the energy axis in the spectral
+% range where we expect the polariton
+[~,Index] = max(Int(energy<1.63,:));
 Emaxs = energy(Index);
 minE = Emaxs(minX);
 % guess value for slope
-aStart = (Emaxs(length(Emaxs)*0.75) - minE)/(x(length(x)*0.75)-minX)^2;
+aStart = (Emaxs(round(length(Emaxs)*0.75)) - minE)/(x(round(length(x)*0.75))-minX)^2;
 Emaxs=Emaxs(Emaxs>=minE);
 xFit=x(Emaxs>=minE);
     
@@ -79,9 +80,14 @@ x0 = f.x0;
 theta_max = asin(NA);
 theta = (x - minX)*2*theta_max/xAperture;
 k = E0*e0*2*pi/(h*c0) * sin(theta);
+k = k *1e-6; %k in 1/micrometer
  
-%% make plot
-surf(k, energy, Int);
+%% make 2D surface plot
+if strcmp(plottype, 'lin')
+    surf(k, energy, Int);
+else
+    surf(k, energy, log(Int));
+end
 colorbar;
 view(180,-90);
 shading flat;
@@ -100,6 +106,83 @@ cd('..');
 print([filenameSIG '-2Dsurfplot.png'],'-dpng','-r300');
 savefig([filenameSIG '-2Dsurfplot.fig']);
 clf();
-    
+
+%% make integrated plot 
+%range for integration
+range = length(x)/8;
+subInt = Int(:,minX-range:minX+range);
+
+intInt = sum(subInt,2);
+if strcmp(subtract,'no')
+    intInt = intInt - intInt(end); %subtract underground; this should be done with a underground measurement
+end
+
+if strcmp(plottype,'lin')
+    plot(energy, intInt, 'linewidth',2);
+    set(gca, 'Ylim',[0 max(intInt)+10000]);
+    hold on;
+%         %% fit the falling slope
+%         [Max, maxIndex] = max(intInt);
+%         timeFit = time(maxIndex:end)- time(maxIndex);
+%         IntFit = intInt(maxIndex:end);
+%         [f,gof,~] = fit(timeFit,IntFit,'exp1', 'StartPoint',[Max, -0.005]); 
+%         %f(x) =  a*exp(b*x)
+%         h = plot(timeFit+time(maxIndex), f.a*exp(f.b*timeFit));
+%         h.LineWidth = 1.5;
+%         h.Color = 'r' ; %[0 1 1]
+%         l = legend('Data','Fit');
+%         l.FontSize = 22;
+%         decaytime = -1/f.b;
+%         level = 2*tcdf(-1,gof.dfe);
+%         m = confint(f,level); 
+%         std = m(end,end) - f.b;
+%         decaytimeError = 1/f.b^2 * std;
+%         hold off;
+%         set(gca,'DefaultTextInterpreter','latex');
+%         text(0.4, 0.5, ['$\tau = $ ' num2str(decaytime,'%.1f') ' $\pm$ ' ...
+%             num2str(decaytimeError,'%.1f') ' ps'],...
+%             'FontSize',fontsize-4,...
+%             'Units','normalized','Interpreter','latex');
+
+elseif strcmp(plottype,'log')
+    semilogy(energy(intInt>0), intInt(intInt>0), 'linewidth',2);
+    hold on;
+    %% fit the falling slope
+%         [Max, maxIndex] = max(intInt);
+%         IntFit0 = intInt(maxIndex:end);
+%         IntFit = log(IntFit0(IntFit0>0));
+%         range = max(IntFit)-min(IntFit);
+%         level = range - 1;
+%         levelIndex = find(max(IntFit)-IntFit>level,1,'first');
+%         %IntFit = IntFit(1:levelIndex); %use only values before too much noise
+%         timeFit = time(maxIndex:end)- time(maxIndex);
+%         timeFit = timeFit(IntFit0>0);
+%         %timeFit = timeFit(1:levelIndex);
+%         [f,gof,~] = fit(timeFit,IntFit,'poly1'); %fity = p1*fitx + p2
+%         b = f.p1; decaytime = -1/b;
+%         level = 2*tcdf(-1,gof.dfe);
+%         m = confint(f,level); 
+%         std = m(end,1) - b;
+%         decaytimeError = 1/b^2 * std;
+%         h = plot(timeFit+time(maxIndex), exp(f.p2)*exp(b*timeFit));
+%         h.LineWidth = 1.5;
+%         h.Color = 'r' ; %[0 1 1]
+%         l = legend('Data','Fit');
+%         l.FontSize = 22;
+%         hold off;
+%         set(gca,'DefaultTextInterpreter','latex');
+%         text(0.4,0.5, ['$\tau = $ ' num2str(decaytime,'%.1f') ' $\pm$ ' ...
+%             num2str(decaytimeError,'%.1f') ' ps'],...
+%             'FontSize',fontsize-4,...
+%             'Units','normalized','Interpreter','latex');         
+end
+ylabel('Integrated Intensity (a.u.)','FontSize',fontsize,'FontName',fontName);
+xlabel('Energy (eV)','FontSize',fontsize,'FontName',fontName);
+set(gca,'LineWidth',3,'XColor',[0 0 0], 'YColor', [0 0 0],'Box','on',...
+'FontSize',22,'FontName',fontName,...
+'TickDir','In');
+print([filenameSIG '-IntegratedPlot-' plottype '.png'],'-dpng','-r300');
+savefig([filenameSIG '-IntegratedPlot-' plottype '.fig']);
+clf();
     
 end

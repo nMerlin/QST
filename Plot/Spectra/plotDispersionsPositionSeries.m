@@ -8,9 +8,11 @@ function plotDispersionsPositionSeries(varargin)
 parser = inputParser;
 defaultSubtract = 'no'; %
 addParameter(parser,'Subtract',defaultSubtract);
+defaultPlottype = 'lin'; 
+addParameter(parser,'Plottype',defaultPlottype);
 parse(parser,varargin{:});
 c = struct2cell(parser.Results);
-[subtract] = c{:};
+[plottype,subtract] = c{:};
 
 %% Create data overview
 dataStruct = struct('filename',{},'number',{}, 'Position',{}, 'E0', {});
@@ -70,7 +72,7 @@ for number = 1:size(dataStruct,2)
     else
         filenameBG = filenameSIG;
     end
-    E0 = plotDispersion(filenameSIG, filenameBG,'Subtract',subtract);
+    E0 = plotDispersion(filenameSIG, filenameBG,'Subtract',subtract,'Plottype',plottype);
     dataStruct(number).E0 = E0;
        
 end
