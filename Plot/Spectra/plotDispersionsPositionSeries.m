@@ -3,6 +3,7 @@ function plotDispersionsPositionSeries(varargin)
 % The data should be in folder 'raw-data'.
 % With 'Subtract', you can choose whether there are background measurements
 % that should be subtracted. 
+% ZeroPosition: The position of the left edge of sample in mm. 
 
 %% Validate and parse input arguments
 parser = inputParser;
@@ -10,9 +11,11 @@ defaultSubtract = 'no'; %
 addParameter(parser,'Subtract',defaultSubtract);
 defaultPlottype = 'lin'; 
 addParameter(parser,'Plottype',defaultPlottype);
+defaultZeroPosition = 3.67; 
+addParameter(parser,'ZeroPosition',defaultZeroPosition,@isnumeric);
 parse(parser,varargin{:});
 c = struct2cell(parser.Results);
-[plottype,subtract] = c{:};
+[plottype,subtract,zeroPos] = c{:};
 
 %% Create data overview
 dataStruct = struct('filename',{},'number',{}, 'Position',{}, 'E0', {});
@@ -78,6 +81,7 @@ for number = 1:size(dataStruct,2)
 end
 
 position = cell2mat({dataStruct.Position});
+position = position - zeroPos;
 E0 = cell2mat({dataStruct.E0});
 
 %% write them in excel table
@@ -86,7 +90,7 @@ writetable(T,'positionSeries.xls');
 
 %% make plot
 plot(position,E0);
-xlabel('sample position (mm)');
+xlabel('sample position relative to left edge (mm)');
 ylabel('minimum energy E_{LP}(k_{||}=0)(eV)');
 graphicsSettings;
 grid();
