@@ -30,9 +30,11 @@ defaultXLim = 0.5; %
 addParameter(parser,'XLim',defaultXLim,@isnumeric);
 defaultXUnit = 'nm';
 addParameter(parser,'XUnit',defaultXUnit);
+defaultXrange = [];
+addParameter(parser,'Xrange',defaultXrange);
 parse(parser,varargin{:});
 c = struct2cell(parser.Results);
-[fitoption,intp,save,subtract,xLim,xUnit] = c{:};
+[fitoption,intp,save,subtract,xLim,xRange,xUnit] = c{:};
 
 %%
 fontsize = 24;
@@ -43,7 +45,14 @@ lightVelocity = 299792458;
     data = textread(filenameSIG);
     
     w = data(:,1); % wavelength
-    Int = data(:,2); % Intensity
+    %Int = data(:,2); % Intensity
+    Int = data(:,3); % Intensity --> sometimes the intensity is in the 3rd column 
+    
+%% confine data in wavelength range if wished
+if not(isempty(xRange))
+    Int = Int((w>= min(xRange)) & (w<= max(xRange))); 
+    w = w((w>= min(xRange)) & (w<= max(xRange)));
+end
     
 %% subtract background
     if strcmp(subtract, 'yes')
@@ -108,7 +117,11 @@ lightVelocity = 299792458;
     l = legend('Location','northeast');
     l.FontSize = 22;
     ylim([0 Max*1.1]);
-    xlim([peak-xLim, peak+xLim]);
+    if not(isempty(xRange))
+       xlim([min(xRange) max(xRange)]);
+    else
+        xlim([peak-xLim, peak+xLim]);
+    end
     ylabel('Counts');
     if strcmp(xUnit, 'nm')
         xlabel('Wavelength (nm)');    
