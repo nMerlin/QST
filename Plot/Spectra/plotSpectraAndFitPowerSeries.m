@@ -22,9 +22,13 @@ defaultSubtract = 'yes'; %
 addParameter(parser,'Subtract',defaultSubtract);
 defaultXLim = 0.5; %
 addParameter(parser,'XLim',defaultXLim,@isnumeric);
+defaultXUnit = 'nm';
+addParameter(parser,'XUnit',defaultXUnit);
+defaultXrange = [];
+addParameter(parser,'Xrange',defaultXrange);
 parse(parser,varargin{:});
 c = struct2cell(parser.Results);
-[fitoption,intp,save,subtract,xLim] = c{:};
+[fitoption,intp,save,subtract,xLim,xRange,xUnit] = c{:};
 
 %% Create data overview
 dataStruct = struct('filename',{},'number',{}, 'Power',{}, 'Max', {}, 'Integrated',{},...
@@ -83,17 +87,60 @@ for number = 1:size(dataStruct,2)
         BGnumber = min(BGnumbers(BGnumbers>=number)); %background was measured after signal
         filenameBG = dataStructBackground(BGnumber).filename;
         [Max,integratedInt, peak, FWHM, Q] = plotSpectrumAndFit( filenameSIG, filenameBG,...
-            'Subtract',subtract,'Interpolate',intp,'Fit',fitoption,'Save',save,'XLim',xLim); 
+            'Subtract',subtract,'Interpolate',intp,'Fit',fitoption,'Save',save,'XLim',xLim,'XRange',xRange,'XUnit',xUnit); 
     else
         [Max,integratedInt, peak, FWHM, Q] = plotSpectrumAndFit( filenameSIG, filenameSIG,...
-            'Subtract',subtract,'Interpolate',intp,'Fit',fitoption,'Save',save,'XLim',xLim); 
+            'Subtract',subtract,'Interpolate',intp,'Fit',fitoption,'Save',save,'XLim',xLim,'XRange',xRange,'XUnit',xUnit); 
     end
     dataStruct(number).Max = Max;
     dataStruct(number).Integrated = integratedInt;
+    dataStruct(number).peak = peak;
        
 end
+
+powers = cell2mat({dataStruct.Power});
+maxs = cell2mat({dataStruct.Max});
+Integrateds = cell2mat({dataStruct.Integrated});
+peaks = cell2mat({dataStruct.peak});
 
 %% write them in excel table
 T = struct2table(dataStruct);
 writetable(T,'powerSeries.xls');
+
+%% make plots
+loglog(powers,maxs,'o','LineWidth',2,'DisplayName','maximum peak Intensity');
+l = legend('Location','northwest');
+l.FontSize = 22;
+title('PowerSeries-max');
+ylabel('Counts');
+xlabel('Excitation Power (mW)');
+graphicsSettings;
+grid();
+savefig('PowerSeries-max.fig');
+print('PowerSeries-max.png','-dpng','-r300');
+
+loglog(powers,Integrateds,'o','LineWidth',2,'DisplayName','Int. Intensity');
+l = legend('Location','northwest');
+l.FontSize = 22;
+title('PowerSeries-Integrated');
+ylabel('Counts');
+xlabel('Excitation Power (mW)');
+graphicsSettings;
+grid();
+savefig('PowerSeries-Integrated.fig');
+print('PowerSeries-Integrated.png','-dpng','-r300');
+clf();
+
+semilogx(powers,peaks,'o','LineWidth',2,'DisplayName','peak position');
+l = legend('Location','northwest');
+l.FontSize = 22;
+title('PowerSeries-peaks');
+ylabel('Wavelength (nm)');
+xlabel('Excitation Power (mW)');
+graphicsSettings;
+grid();
+savefig('PowerSeries-peaks.fig');
+print('PowerSeries-peaks.png','-dpng','-r300');
+
+
 end
