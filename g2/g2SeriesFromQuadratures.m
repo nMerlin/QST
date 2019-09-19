@@ -44,11 +44,7 @@ for iStruct =  1:length(Contents)
     %plot g2
     cd('..');
     cd('Plots');
-<<<<<<< HEAD
     plotG2Stuff(times, g2vec, ada, [strrep(filename,'.mat','') '-Res-' num2str(nResolution) ]);
-=======
-    plotG2MA(times, g2vec, ada, [strrep(filename,'.mat','') '-Res-' num2str(nResolution) ]);
->>>>>>> 5e75538418e750b193e6f60dc5970f49db854b79
     cd('..');
     cd('g2Data');
     save([strrep(filename,'.mat','') '-G2-nResolution-' num2str(nResolution) '.mat'],...
