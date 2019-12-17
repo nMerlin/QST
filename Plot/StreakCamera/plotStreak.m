@@ -1,4 +1,4 @@
-function [decaytime, decaytimeError] = plotStreak(filenameSIG, filenameBG,varargin)
+function [decaytime, decaytimeError, Max,Sum] = plotStreak(filenameSIG, filenameBG,varargin)
 %PLOTSTREAK plots the picture of a streak camera. It also plots a sum over
 %the space over time and makes an exponential decay fit. 
 %
@@ -38,6 +38,7 @@ c = struct2cell(parser.Results);
     axis tight;
 
     fontsize = 24;
+    fontName = 'Times New Roman';
     graphicsSettings;
     set(gca,'XGrid','on','YGrid','on');
     xlabel('x (pixel)','FontSize',fontsize,'FontName',fontName);
@@ -57,7 +58,7 @@ c = struct2cell(parser.Results);
 %% make integrated plot 
     Int = sum(M,2);
     if strcmp(subtract,'no')
-        Int = Int - Int(end); %subtract underground; this should be done with a underground measurement
+        Int = Int - Int(1); %subtract underground; this should be done with a underground measurement
     end
     
     if strcmp(plottype,'lin')
@@ -126,5 +127,11 @@ c = struct2cell(parser.Results);
     'TickDir','In');
     print([filenameSIG '-IntegratedPlot-' plottype '.png'],'-dpng','-r300');
     savefig([filenameSIG '-IntegratedPlot-' plottype '.fig']);
+    
+    %% save the integrated data
+    mkdir ('integrated-data');
+    cd('integrated-data');
+    save([filenameSIG '-IntegratedData.mat'],'time','Int');
+    cd('..');
     
 end
