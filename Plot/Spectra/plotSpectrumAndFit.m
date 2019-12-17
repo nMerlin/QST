@@ -42,11 +42,13 @@ lightVelocity = 299792458;
 
 %% load data
     cd('raw-data')
-    data = textread(filenameSIG);
+    %data = textread(filenameSIG);
+    %data = textread(filenameSIG,'','delimiter',','); 
+    data = textread(filenameSIG,'','delimiter',',','headerlines',1); 
     
     w = data(:,1); % wavelength
-    %Int = data(:,2); % Intensity
-    Int = data(:,3); % Intensity --> sometimes the intensity is in the 3rd column 
+    Int = data(:,2); % Intensity
+    %Int = data(:,3); % Intensity --> sometimes the intensity is in the 3rd column 
     
 %% confine data in wavelength range if wished
 if not(isempty(xRange))
