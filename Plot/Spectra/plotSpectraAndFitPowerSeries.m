@@ -41,8 +41,13 @@ rawDataContents = dir('raw-data');
 for name = {rawDataContents.name}
     % Loop only over Signal files
     filename = cell2mat(name);
-    if not(isempty(regexpi(filename,'background_1.txt','match')))...
-            || isempty(regexpi(filename,'.txt','match'))
+%     if not(isempty(regexpi(filename,'background_1.txt','match')))...
+%             || isempty(regexpi(filename,'.txt','match'))
+%         continue
+%     end
+    
+    if not(isempty(regexpi(filename,'background_1.csv','match')))...
+            || isempty(regexpi(filename,'.csv','match'))
         continue
     end
     
@@ -52,7 +57,9 @@ for name = {rawDataContents.name}
     dataStruct(number).filename = filename;
     
     % Fetch excitation power
-    powerToken = regexpi(filename,'-([0123456789.]*)mW','tokens');
+    %powerToken = regexpi(filename,'-([0123456789.]*)mW','tokens');
+    %powerToken = regexpi(filename,'OPO-([0123456789.]*)mW','tokens');
+    powerToken = regexpi(filename,'MIRA-([0123456789.]*)mW','tokens');
     power = str2double(cell2mat(powerToken{1}));
     dataStruct(number).Power = power;
     
