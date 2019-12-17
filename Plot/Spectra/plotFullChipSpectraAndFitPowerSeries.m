@@ -1,4 +1,4 @@
-function plotSpectraAndFitPowerSeries(varargin)
+function plotFullChipSpectraAndFitPowerSeries(varargin)
 % this script makes spectrum plots for a series of spectrum measurements.
 % The data should be in folder 'raw-data'.
 % With 'Subtract', you can choose whether there are background measurements
@@ -31,8 +31,7 @@ c = struct2cell(parser.Results);
 [fitoption,intp,save,subtract,xLim,xRange,xUnit] = c{:};
 
 %% Create data overview
-dataStruct = struct('filename',{},'number',{}, 'Power',{}, 'Max', {}, 'Integrated',{},...
-    'peak', {}, 'FWHM', {}, 'Q', {});
+dataStruct = struct('filename',{},'number',{}, 'Power',{}, 'Max', {}, 'Integrated',{});
 dataStructBackground = struct('filename',{},'number',{});
 
 rawDataContents = dir('raw-data');
@@ -93,22 +92,20 @@ for number = 1:size(dataStruct,2)
     if strcmp(subtract, 'yes')
         BGnumber = min(BGnumbers(BGnumbers>=number)); %background was measured after signal
         filenameBG = dataStructBackground(BGnumber).filename;
-        [Max,integratedInt, peak, FWHM, Q] = plotSpectrumAndFit( filenameSIG, filenameBG,...
+        [Max,integratedInt] = plotFullChipSpectrumAndFit( filenameSIG, filenameBG,...
             'Subtract',subtract,'Interpolate',intp,'Fit',fitoption,'Save',save,'XLim',xLim,'XRange',xRange,'XUnit',xUnit); 
     else
-        [Max,integratedInt, peak, FWHM, Q] = plotSpectrumAndFit( filenameSIG, filenameSIG,...
+        [Max,integratedInt] = plotFullChipSpectrumAndFit( filenameSIG, filenameSIG,...
             'Subtract',subtract,'Interpolate',intp,'Fit',fitoption,'Save',save,'XLim',xLim,'XRange',xRange,'XUnit',xUnit); 
     end
     dataStruct(number).Max = Max;
     dataStruct(number).Integrated = integratedInt;
-    dataStruct(number).peak = peak;
        
 end
 
 powers = cell2mat({dataStruct.Power});
 maxs = cell2mat({dataStruct.Max});
 Integrateds = cell2mat({dataStruct.Integrated});
-peaks = cell2mat({dataStruct.peak});
 
 %% write them in excel table
 T = struct2table(dataStruct);
@@ -137,17 +134,5 @@ grid();
 savefig('PowerSeries-Integrated.fig');
 print('PowerSeries-Integrated.png','-dpng','-r300');
 clf();
-
-semilogx(powers,peaks,'o','LineWidth',2,'DisplayName','peak position');
-l = legend('Location','northwest');
-l.FontSize = 22;
-title('PowerSeries-peaks');
-ylabel('Wavelength (nm)');
-xlabel('Excitation Power (mW)');
-graphicsSettings;
-grid();
-savefig('PowerSeries-peaks.fig');
-print('PowerSeries-peaks.png','-dpng','-r300');
-
 
 end
