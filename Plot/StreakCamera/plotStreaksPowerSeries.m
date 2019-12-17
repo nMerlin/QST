@@ -4,17 +4,20 @@ function plotStreaksPowerSeries(varargin)
 %   Input Arguments:
 %       'Plottype','lin': linear time- and intensity scale for integrated plot
 %       'Plottype','log': logarithmic intensity scale for integrated plot
+%       'Subtract','yes': subtract background data
 
 %% Validate and parse input arguments
 parser = inputParser;
+defaultSubtract = 'yes'; 
+addParameter(parser,'Subtract',defaultSubtract);
 defaultPlottype = 'lin'; 
 addParameter(parser,'Plottype',defaultPlottype);
 parse(parser,varargin{:});
 c = struct2cell(parser.Results);
-[plottype] = c{:};
+[plottype,subtract] = c{:};
 
 %% Create data overview
-dataStruct = struct('filename',{},'Power',{},'decaytime',{});
+dataStruct = struct('filename',{},'Power',{},'decaytime',{},'decaytimeError',{}, 'Max', {}, 'Sum', {});
 dataStructBackground = struct('filename',{},'number',{});
 
 rawDataContents = dir('raw-data');
@@ -34,8 +37,8 @@ for name = {rawDataContents.name}
     dataStruct(number).filename = filename;
     
      % Fetch excitation power
-    powerToken = regexpi(filename,'-([0123456789.]*)mW','tokens'); %mira
-    %powerToken = regexpi(filename,'mW-([0123456789]*)mW','tokens'); %opo
+    %powerToken = regexpi(filename,'-([0123456789.]*)mW','tokens'); %mira
+    powerToken = regexpi(filename,'MIRA-([0123456789.]*)mW','tokens'); %mira
     power = str2double(cell2mat(powerToken{1}));
     dataStruct(number).Power = power;
     
@@ -66,14 +69,21 @@ for number = 1:size(dataStruct,2)
         continue
     end    
    
-    %find adequate BG-file
-    BGnumber = min(BGnumbers(BGnumbers>=number)); %background was measured after signal
-    filenameBG = dataStructBackground(BGnumber).filename;
+   
+    %find adequate BG-file, if this option is chosen
+    if strcmp(subtract, 'yes')
+        BGnumber = min(BGnumbers(BGnumbers>=number)); %background was measured after signal
+        filenameBG = dataStructBackground(BGnumber).filename;
+    else
+        filenameBG = filenameSIG;
+    end
 
-    [decaytime, ~] = plotStreak( filenameSIG, filenameBG,'Plottype',plottype );
+    [decaytime, decaytimeError, Max, Sum] = plotStreak( filenameSIG, filenameBG,'Plottype',plottype,'Subtract',subtract );
      
     dataStruct(number).decaytime = decaytime; 
-       
+    dataStruct(number).decayError = decaytimeError;
+    dataStruct(number).Max = Max;
+    dataStruct(number).Sum = Sum;
 end
 
 %% write them in excel table
