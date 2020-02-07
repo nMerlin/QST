@@ -1,4 +1,4 @@
-function [Max, integratedInt, peak, FWHM, Q] = plotSpectrumAndFit(filenameSIG,filenameBG,varargin)
+function [Max, integratedInt, peak, FWHM, Q, duration] = plotSpectrumAndFit(filenameSIG,filenameBG,varargin)
 %% PLOTSPECTRUM plots an optical spectrum, subtracts background, 
 % fits a Gaussian to the peak. 
 %
@@ -44,7 +44,8 @@ lightVelocity = 299792458;
     cd('raw-data')
     %data = textread(filenameSIG);
     %data = textread(filenameSIG,'','delimiter',','); 
-    data = textread(filenameSIG,'','delimiter',',','headerlines',1); 
+    %data = textread(filenameSIG,'','delimiter',',','headerlines',1);
+    data = textread(filenameSIG,'','headerlines',1);
     
     w = data(:,1); % wavelength
     Int = data(:,2); % Intensity
@@ -104,12 +105,13 @@ end
         FWHMerror = std * 2*sqrt(log(2));
         %relative width
         Q = f.b1/FWHM;
+        duration= 2*log(2)/pi *(peak*1e-9)^2 / lightVelocity / (FWHM*1e-9) * 1e15; %time in femtoseconds
         x= peak-xLim:xLim/1000:peak+xLim; %x = peak-xLim:0.001:peak+xLim;
         plot(x,f(x),'r','LineWidth',1.5,'DisplayName','Fit');
         set(gca,'DefaultTextInterpreter','latex');
         text(peak-0.45, Max/4,...
             ['FWHM = ' num2str(FWHM,'%.3f') ' $\pm$ ' num2str(FWHMerror,'%.4f') ' ' xUnit char(10) ...
-            'Q = ' num2str(Q,'%.0f')],'FontSize',fontsize-4);
+            'Q = ' num2str(Q,'%.0f') char(10) '$\Delta t$ = ' num2str(duration,'%.1f') ' fs'],'FontSize',fontsize-4);
     else
         FWHM = 0;
         Q = 0;
@@ -142,8 +144,8 @@ end
     hold off;
     cd('..')
     if strcmp(save, 'yes')
-        savefig([filenameSIG '-subtractedBackground-plot-' xUnit '.fig']);
-        print([filenameSIG '-subtractedBackground-plot-' xUnit '.png'],'-dpng','-r300');
+         savefig([filenameSIG '-plot-' xUnit '.fig']);
+         print([filenameSIG '-plot-' xUnit '.png'],'-dpng','-r300');
     end
 
 end
