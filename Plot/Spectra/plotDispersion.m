@@ -1,4 +1,4 @@
-function [E0] = plotDispersion(filenameSIG, filenameBG,varargin)
+function [E0,Emax,Intmax, SumInt] = plotDispersion(filenameSIG, filenameBG,varargin)
 %PLOTSTREAK plots the dispersion of polaritons obtained with spectrometer
 %and fourier lens and makes a parabolic fit. 
 %
@@ -9,6 +9,9 @@ function [E0] = plotDispersion(filenameSIG, filenameBG,varargin)
 %       'Subtract','yes': subtract background data
 %
 % Output: E0: minimum energy of dispersion. 
+% Emax: energy where the maximum of integrated intensity lies. 
+% Intmax: maximum of integrated intensity.
+% SumInt: Overall Sum of intensity.
 
 %% Validate and parse input arguments
 parser = inputParser;
@@ -33,7 +36,8 @@ e0 = 1.602176634e-19;
 
 %% load data
     cd('raw-data');
-    data = textread(filenameSIG);
+    %data = textread(filenameSIG);
+    data = textread(filenameSIG,'','headerlines',1); 
     W = data(:,1); % wavelength
     X = data(:,2); % pixel position
     M = data(:,3); %intensity
@@ -48,7 +52,13 @@ e0 = 1.602176634e-19;
         %M = M-bg;
     end
     
+    %% set negative values to zero
+    M(M<0) = 0;
+    
 %% sort data
+if X(1) == 0
+    X=X+1;
+end
  n = length(X)/max(X);
  w = W(1:n);
  x = 1:max(X);
@@ -58,7 +68,7 @@ e0 = 1.602176634e-19;
 %% compute energy in eV from wavelength
  energy = h*c0/e0*1./(w*10^-9);
  energy = fliplr(energy');
-
+ 
 % find energy of intensity maxima over the energy axis in the spectral
 % range where we expect the polariton
 [~,Index] = max(Int(energy<1.63,:));
@@ -86,14 +96,17 @@ k = k *1e-6; %k in 1/micrometer
 if strcmp(plottype, 'lin')
     surf(k, energy, Int);
 else
-    surf(k, energy, log(Int));
+    logInt = log(Int);
+    logInt(Int==0) = 0;
+    surf(k, energy, logInt);
 end
 colorbar;
 view(180,-90);
 shading flat;
 axis tight;
 hold on;
-plot(k,f(x),'r-','LineWidth',1.5);
+Efit = f(x);
+plot(k(Efit<=max(energy)),Efit(Efit<=max(energy)),'r-','LineWidth',1.5);
 
 fontsize = 24;
 graphicsSettings;
@@ -102,9 +115,16 @@ set(gca,'XGrid','on','YGrid','on');
 xlabel('k (\mum ^{-1})','FontSize',fontsize,'FontName',fontName);
 ylabel('Energy (eV)','FontSize',fontsize,'FontName',fontName);
 
+%write overall maximum and sum
+Max = max(max(Int));
+SumInt = sum(sum(Int));
+text(0.1, 0.1, ['max Int ' num2str(Max,'%.0f') ' counts' char(10) ...
+    'integr. Int ' num2str(SumInt,'%.0f') ' counts'],'FontSize',fontsize-4,...
+    'Units','normalized','Color','w');
+
 cd('..');
-print([filenameSIG '-2Dsurfplot.png'],'-dpng','-r300');
-savefig([filenameSIG '-2Dsurfplot.fig']);
+print([filenameSIG '-2Dsurfplot-' plottype '.png'],'-dpng','-r300');
+savefig([filenameSIG '-2Dsurfplot-' plottype '.fig']);
 clf();
 
 %% make integrated plot 
@@ -113,6 +133,9 @@ range = length(x)/8;
 subInt = Int(:,minX-range:minX+range);
 
 intInt = sum(subInt,2);
+[Intmax,index]=max(intInt);
+Emax = energy(index);
+
 if strcmp(subtract,'no')
     intInt = intInt - intInt(end); %subtract underground; this should be done with a underground measurement
 end
@@ -121,60 +144,12 @@ if strcmp(plottype,'lin')
     plot(energy, intInt, 'linewidth',2);
     set(gca, 'Ylim',[0 max(intInt)+10000]);
     hold on;
-%         %% fit the falling slope
-%         [Max, maxIndex] = max(intInt);
-%         timeFit = time(maxIndex:end)- time(maxIndex);
-%         IntFit = intInt(maxIndex:end);
-%         [f,gof,~] = fit(timeFit,IntFit,'exp1', 'StartPoint',[Max, -0.005]); 
-%         %f(x) =  a*exp(b*x)
-%         h = plot(timeFit+time(maxIndex), f.a*exp(f.b*timeFit));
-%         h.LineWidth = 1.5;
-%         h.Color = 'r' ; %[0 1 1]
-%         l = legend('Data','Fit');
-%         l.FontSize = 22;
-%         decaytime = -1/f.b;
-%         level = 2*tcdf(-1,gof.dfe);
-%         m = confint(f,level); 
-%         std = m(end,end) - f.b;
-%         decaytimeError = 1/f.b^2 * std;
-%         hold off;
-%         set(gca,'DefaultTextInterpreter','latex');
-%         text(0.4, 0.5, ['$\tau = $ ' num2str(decaytime,'%.1f') ' $\pm$ ' ...
-%             num2str(decaytimeError,'%.1f') ' ps'],...
-%             'FontSize',fontsize-4,...
-%             'Units','normalized','Interpreter','latex');
+
 
 elseif strcmp(plottype,'log')
     semilogy(energy(intInt>0), intInt(intInt>0), 'linewidth',2);
     hold on;
-    %% fit the falling slope
-%         [Max, maxIndex] = max(intInt);
-%         IntFit0 = intInt(maxIndex:end);
-%         IntFit = log(IntFit0(IntFit0>0));
-%         range = max(IntFit)-min(IntFit);
-%         level = range - 1;
-%         levelIndex = find(max(IntFit)-IntFit>level,1,'first');
-%         %IntFit = IntFit(1:levelIndex); %use only values before too much noise
-%         timeFit = time(maxIndex:end)- time(maxIndex);
-%         timeFit = timeFit(IntFit0>0);
-%         %timeFit = timeFit(1:levelIndex);
-%         [f,gof,~] = fit(timeFit,IntFit,'poly1'); %fity = p1*fitx + p2
-%         b = f.p1; decaytime = -1/b;
-%         level = 2*tcdf(-1,gof.dfe);
-%         m = confint(f,level); 
-%         std = m(end,1) - b;
-%         decaytimeError = 1/b^2 * std;
-%         h = plot(timeFit+time(maxIndex), exp(f.p2)*exp(b*timeFit));
-%         h.LineWidth = 1.5;
-%         h.Color = 'r' ; %[0 1 1]
-%         l = legend('Data','Fit');
-%         l.FontSize = 22;
-%         hold off;
-%         set(gca,'DefaultTextInterpreter','latex');
-%         text(0.4,0.5, ['$\tau = $ ' num2str(decaytime,'%.1f') ' $\pm$ ' ...
-%             num2str(decaytimeError,'%.1f') ' ps'],...
-%             'FontSize',fontsize-4,...
-%             'Units','normalized','Interpreter','latex');         
+       
 end
 ylabel('Integrated Intensity (a.u.)','FontSize',fontsize,'FontName',fontName);
 xlabel('Energy (eV)','FontSize',fontsize,'FontName',fontName);
