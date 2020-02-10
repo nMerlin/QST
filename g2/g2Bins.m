@@ -1,4 +1,4 @@
-function [g2, ada, meang2] = g2Bins(X, nResolution, varBins)
+function [g2vec, ada, meang2] = g2Bins(X, nResolution, varBins, filename)
 % This function first computes the photon numbers from X with the
 %resolution nResolution. Then it sorts the photon numbers into bins. Then
 %it computes g2 for each bin, i.e. for each mean photon number seperately.
@@ -49,22 +49,22 @@ end
 %Piecewise <a^+ a^+ a a>, in the following adadaa, and g2(t,t)´
 ada = mean(XOut.^2,'omitnan')-0.5;
 adadaa = 2/3*mean(XOut.^4,'omitnan')-2*ada-0.5;
-g2 = adadaa./ada.^2;
-g2 = g2';
-g2 = g2(~isnan(g2));
-ada = ada(~isnan(g2));
-N=N(~isnan(g2));
+g2vec = adadaa./ada.^2;
+g2vec = g2vec';
+g2vec = g2vec(~isnan(g2vec));
+ada = ada(~isnan(g2vec));
+N=N(~isnan(g2vec));
 
 %% Compute the mean g2 in the middle of the range
-if length(g2) > 1
-    meang2 = mean(g2( round(length(g2)*2/6) : round(length(g2)*4/6)));
+if length(g2vec) > 1
+    meang2 = mean(g2vec( round(length(g2vec)*2/6) : round(length(g2vec)*4/6)));
 else
-    meang2 = mean(g2);
+    meang2 = mean(g2vec);
 end
 
 %% plot evaluation
 subplot(2,1,1);
-plot(ada,g2,'o');
+plot(ada,g2vec,'o');
 ylim([-0.5 3]);
 xlabel('mean nPhotons');
 ylabel('g2');
@@ -74,7 +74,7 @@ subplot(2,1,2);
 plot(ada, N,'o');
 xlabel('mean nPhotons');
 ylabel('number of values');
-savefig(['g2-Binned-nRes-' num2str(nResolution) '-Bins-' num2str(varBins) '.fig']);
+savefig([filename '-g2-Binned-nRes-' num2str(nResolution) '-Bins-' num2str(varBins) '.fig']);
 clf();
 
 end

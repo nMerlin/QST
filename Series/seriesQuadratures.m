@@ -95,6 +95,7 @@ for number = 1:size(dataStruct,2)
         end
         
         theta1 = computePhase(X,ones(size(X)),piezoSign1,'Period',period1); 
+        mkdir('Quadratures');
         cd('Quadratures');
         save(strcat(filenameSIG, '.mat'),'X','piezoSign1','theta1');
         cd('..');
@@ -110,7 +111,7 @@ for number = 1:size(dataStruct,2)
                 X = X3;
             end
    
-       
+       mkdir('Quadratures');
          cd('Quadratures');
         save(strcat(filenameSIG, '.mat'),'X');
         cd('..');
