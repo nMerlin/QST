@@ -90,8 +90,8 @@ nAvs = cell2mat({dataStruct.nAv});
 g2Avs = cell2mat({dataStruct.g2Av});
 g2Stds = cell2mat({dataStruct.g2Std});
 
-save(['AverageNandG2-' g2method '.mat'],'Is','nAvs','g2Avs','g2Stds');
-xlswrite(['Averages-' g2method '.xls'],[Is' nAvs' g2Avs' g2Stds' ]);
-plotNandG2Av(g2method);
+save(['AverageNandG2-' g2method '-weight-' weight '.mat'],'Is','nAvs','g2Avs','g2Stds');
+xlswrite(['Averages-' g2method '-weight-' weight '.xls'],[Is' nAvs' g2Avs' g2Stds' ]);
+plotNandG2Av([g2method '-weight-' weight]);
 end % function
 
