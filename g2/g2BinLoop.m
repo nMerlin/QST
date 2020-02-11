@@ -1,4 +1,4 @@
-function [] = g2BinLoop(X, BinVector, ResFix, ResVector, BinFix)
+function [] = g2BinLoop(X, BinVector, ResFix, ResVector, BinFix, filename)
 %This function evaluates the function g2Bins for various amounts of bins
 %and various resolutions. 
 %
@@ -21,7 +21,7 @@ function [] = g2BinLoop(X, BinVector, ResFix, ResVector, BinFix)
 meang2VectorBins = zeros(size(BinVector));
  i = 1;
 for varBins = BinVector 
-    [~, ~, meang2] = g2Bins(X, ResFix, varBins);
+    [~, ~, meang2] = g2Bins(X, ResFix, varBins, filename);
     meang2VectorBins(i) = meang2;
     i = i + 1;
 end
@@ -30,7 +30,7 @@ end
 meang2VectorRes = zeros(size(ResVector));
  i = 1;
 for Resolution = ResVector 
-    [~, ~, meang2] = g2Bins(X, Resolution, BinFix);
+    [~, ~, meang2] = g2Bins(X, Resolution, BinFix, filename);
     meang2VectorRes(i) = meang2;
     i = i + 1;
 end
@@ -57,8 +57,8 @@ semilogx(fVector,meang2VectorRes,'o');
 xlabel('Frequency (Hz)');
 ylabel('mean g2 in the middle of range');
 text(0.5, 0.75, ['Fixed Number of Bins: ' num2str(BinFix,'%.0f')],'Units','normalized');
-savefig('g2-Binned-loop.fig');
-save('BinSeriesData.mat','BinVector','meang2VectorBins','ResVector','ResVector','meang2VectorRes');
+savefig([filename '-g2-Binned-loop.fig']);
+save([filename '-BinSeriesData.mat'],'BinVector','meang2VectorBins','ResVector','ResVector','meang2VectorRes');
 clf();
 
 end
