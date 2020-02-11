@@ -2,7 +2,9 @@ function [ dataStruct, Is, nAvs, g2Avs , g2Stds] = g2SeriesFromQuadratures( nRes
 %DLSERIES Batch processing of series of g2 measurements, with already
 %computed quadratures that are in the folder 'Quadratures'
 %Computes g2 either time resolved (set 'G2method', 'time') or photon number
-%resolved (set 'G2method', 'bins')
+%resolved (set 'G2method', 'bins').
+%   'Weight': If set 'yes', g2 from the time resolved method is weighted 
+%   with the respective photon numbers. 
 
 % Optional input arguments
 %% Validate and parse input arguments
@@ -11,9 +13,11 @@ defaultG2method = 'time'; % time or bins
 addParameter(p,'G2method',defaultG2method);
 defaultBins = 100; % to be used with the method 'bins'
 addParameter(p,'Bins',defaultBins,@isnumeric);
+defaultWeight = 'no'; % to be used with the method 'time'
+addParameter(p,'Weight',defaultWeight);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[bins,g2method] = c{:};
+[bins,g2method,weight] = c{:};
 
 %% Variables
 dataStruct = struct('filename',{},'I',{},'nAv',{},'g2Av',{}, 'g2Std',{});
@@ -47,10 +51,13 @@ for iStruct =  1:length(Contents)
     
     if strcmp(g2method,'time'); 
         [g2vec, ada, times] = g2(X, nResolution);
-        g2Av = mean(g2vec);
-        g2Std = sqrt(var(g2vec));
-        % Mean photon number  
-        nAv = mean(ada);
+        nAv = mean(ada);  % Mean photon number  
+        if strcmp(weight, 'yes')
+            g2Av = g2vec'*ada'/sum(ada);
+        else
+            g2Av = mean(g2vec);    
+        end
+        g2Std = sqrt(var(g2vec)); 
         %plot g2
         cd('..');
         mkdir('Plots');
@@ -68,8 +75,7 @@ for iStruct =  1:length(Contents)
         [g2vec, ada, meang2] = g2Bins(X, nResolution, bins, filename); 
         g2Av = meang2;
         g2Std = sqrt(var(g2vec,'omitnan'));  %?? use this or only variance in the middle range?     
-        % Mean photon number  
-        nAv = mean(ada,'omitnan');
+        nAv = mean(ada,'omitnan'); % Mean photon number  
         cd('..');
         
     end
