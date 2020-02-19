@@ -6,12 +6,12 @@ function [] = g22ChvsDelayPhaseAveraged(channela, channelb)
 dataStruct = struct('filename',{},'Delay', {},'NPhotonsCh1', {},'G2Ch1',{},'NPhotonsCh2',{},'G2Ch2',{},'G2Ch1Ch2',{});
 dataStructLOonly = struct('filename',{},'number',{});
 
-%read delays from excel file
-delays = xlsread('2017-11-23-results','B2:B27');
-
-for i = 1:size(delays)
-    dataStruct(i).Delay = delays(i);
-end
+% %read delays from excel file
+% delays = xlsread('2017-11-23-results','B2:B27');
+% 
+% for i = 1:size(delays)
+%     dataStruct(i).Delay = delays(i);
+% end
 
 %% Create data overview
 dispstat('','init','notquiet');
@@ -22,7 +22,7 @@ rawDataContents = dir('raw-data');
 for name = {rawDataContents.name}
     % Loop only over *LOwithDL.raw files
     filename = cell2mat(name);
-    if not(isempty(regexpi(filename,'.raw.','match')))...
+    if not(isempty(regexpi(filename,'.stamp','match'))) || not(isempty(regexpi(filename,'.cfg','match')))...
             ||(isempty(regexpi(filename,'LOwithDL','match')))
         continue
     end
@@ -34,7 +34,8 @@ for name = {rawDataContents.name}
     
     % Get Delay
     %delayToken = regexpi(filename,'DL-([0123456789,]*)','tokens');
-    %dataStruct(number).Delay = str2double(strrep(cell2mat(delayToken{1}),',','.'));
+    delayToken = regexpi(filename,'raw([0123456789,]*)','tokens');
+    dataStruct(number).Delay = str2double(strrep(cell2mat(delayToken{1}),',','.'));
 end
 
 % LOonly-files
@@ -88,8 +89,9 @@ for number = 1:size(dataStruct,2)
          dispstat(['PrepareData number ' num2str(number)],...
             'timestamp','keepthis','notquiet');
         %prepare data
-        [X1,X2,X3,~] = prepare3ChData(filenameLO, filenameSIG);
-        save(['quadratureDataset-' strrep(num2str(filenameSIG),'.raw','.mat')], 'X1','X2','X2');
+        [X1, X2, X3, ~,~] = prepareData(filenameLO, filenameSIG, 'Channels',[channela channelb],'Offset','local','Piezo','yes');        
+%         [X1,X2,X3,~] = prepare3ChData(filenameLO, filenameSIG);
+        save(['quadratureDataset-' strrep(num2str(filenameSIG),'.raw','.mat')], 'X1','X2','X3');
         %save quadratures
     end
     
@@ -104,6 +106,7 @@ for number = 1:size(dataStruct,2)
     end
     Xa = Xa(:);
     [g2values,nPhotons] = g2(Xa,length(Xa));
+
     disp(['Delay: ',num2str(dataStruct(number).Delay)]) 
     disp(['First g2 of Channel 1: ',num2str(g2values)])
     disp(['First nPhotons: ',num2str(nPhotons)])

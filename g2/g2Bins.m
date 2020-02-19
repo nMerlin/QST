@@ -1,4 +1,4 @@
-function [g2vec, ada, meang2] = g2Bins(X, nResolution, varBins, filename)
+function [g2vec, ada, meang2, g2Std, XOut, Indices, n] = g2Bins(X, nResolution, varBins, filename,varargin)
 % This function first computes the photon numbers from X with the
 %resolution nResolution. Then it sorts the photon numbers into bins. Then
 %it computes g2 for each bin, i.e. for each mean photon number seperately.
@@ -14,6 +14,14 @@ function [g2vec, ada, meang2] = g2Bins(X, nResolution, varBins, filename)
 %   g2: g2(0) values sorted according to increasing photon number
 %   ada: number of photons, sorted according to increasing photon number
 %   meang2: the mean value of g2 in the middle range of photon numbers
+
+%% Validate and parse input arguments
+p = inputParser;
+defaultPlotoption = 'yes'; 
+addParameter(p,'Plot',defaultPlotoption);
+parse(p,varargin{:});
+c = struct2cell(p.Results);
+[plotoption] = c{:};
 
 %% Reshaping X according to the starting resolution NRESOLUTION
 X = X(:);
@@ -38,11 +46,12 @@ n = n(:);
 [~,I] = sort(bin);
 X = X(I);
 
-XOut = NaN(max(N), varBins);
+[XOut,Indices] = deal(NaN(max(N), varBins));
 for iInterval = 1 : varBins
     start = 1+sum(N(1:iInterval-1));
     stop = start+N(iInterval)-1;
     XOut(1:N(iInterval),iInterval) = X(start:stop);
+    Indices(1:N(iInterval),iInterval) = I(start:stop);
 end
 
 %% Compute g2 seperately for each bin:
@@ -58,24 +67,28 @@ N=N(~isnan(g2vec));
 %% Compute the mean g2 in the middle of the range
 if length(g2vec) > 1
     meang2 = mean(g2vec( round(length(g2vec)*2/6) : round(length(g2vec)*4/6)));
+    g2Std = sqrt(var(g2vec( round(length(g2vec)*2/6) : round(length(g2vec)*4/6))));
 else
     meang2 = mean(g2vec);
+    g2Std = sqrt(var(g2vec));
 end
 
 %% plot evaluation
-subplot(2,1,1);
-plot(ada,g2vec,'o');
-ylim([-0.5 3]);
-xlabel('mean nPhotons');
-ylabel('g2');
-text(0.5, 0.75, ['mean g2 around the middle: ' num2str(meang2,'%.2f')],'Units','normalized');  
-hold on;
-subplot(2,1,2);
-plot(ada, N,'o');
-xlabel('mean nPhotons');
-ylabel('number of values');
-savefig([filename '-g2-Binned-nRes-' num2str(nResolution) '-Bins-' num2str(varBins) '.fig']);
-clf();
+if strcmp(plotoption,'yes')
+    subplot(2,1,1);
+    plot(ada,g2vec,'o');
+    ylim([-0.5 3]);
+    xlabel('mean nPhotons');
+    ylabel('g2');
+    text(0.5, 0.75, ['mean g2 around the middle: ' num2str(meang2,'%.2f')],'Units','normalized');  
+    hold on;
+    subplot(2,1,2);
+    plot(ada, N,'o');
+    xlabel('mean nPhotons');
+    ylabel('number of values');
+    savefig([filename '-g2-Binned-nRes-' num2str(nResolution) '-Bins-' num2str(varBins) '.fig']);
+    clf();
+end
 
 end
 
