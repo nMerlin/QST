@@ -15,9 +15,13 @@ defaultBins = 100; % to be used with the method 'bins'
 addParameter(p,'Bins',defaultBins,@isnumeric);
 defaultWeight = 'no'; % to be used with the method 'time'
 addParameter(p,'Weight',defaultWeight);
+defaultX = 'X'; % which quadrature array from data should be used
+addParameter(p,'UseX',defaultX);
+defaultParameter = 'power'; % which parameter was changed during the series
+addParameter(p,'Parameter',defaultParameter);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[bins,g2method,weight] = c{:};
+[bins,g2method,parameter,useX,weight] = c{:};
 
 %% Variables
 dataStruct = struct('filename',{},'I',{},'nAv',{},'g2Av',{}, 'g2Std',{});
@@ -40,6 +44,7 @@ for iStruct =  1:length(Contents)
 %     currentToken = regexpi(filename,'mW-([0123456789.]*)mW','tokens');
      currentToken = regexpi(filename,'([0123456789,]*)mW-5mW','tokens');
      %currentToken = regexpi(filename,'([0123456789,]*)mW','tokens'); 
+    % currentToken = regexpi(filename,'mat([0123456789,]*)','tokens');
      currentToken{1}=strrep(currentToken{1},',','.');
     dataStruct(iStruct).I = str2double(cell2mat(currentToken{1}));
     
@@ -48,6 +53,16 @@ for iStruct =  1:length(Contents)
     load(filename);
     
     % Compute g2 values according to g2method
+    
+    switch useX
+        case 'X'
+        case 'X1'
+            X = X1;
+        case 'X2'
+            X = X2;
+        case 'X3'
+            X = X2;
+    end
     
     if strcmp(g2method,'time'); 
         [g2vec, ada, times] = g2(X, nResolution);
@@ -60,21 +75,22 @@ for iStruct =  1:length(Contents)
         g2Std = sqrt(var(g2vec)); 
         %plot g2
         cd('..');
-        mkdir('Plots');
-        cd('Plots');
+        mkdir(['Plots-' useX]);
+        cd(['Plots-' useX]);
         plotG2Stuff(times, g2vec, ada, [strrep(filename,'.mat','') '-Res-' num2str(nResolution) ]);
         cd('..');
-        cd('g2Data');
+        mkdir(['g2data-' useX]);
+        cd(['g2Data-' useX]);
         save([strrep(filename,'.mat','') '-G2-nResolution-' num2str(nResolution) '-' g2method '.mat'],...
             'times','g2vec','ada');
         cd('..');
     else
         cd('..');
-        mkdir('Plots');
-        cd('Plots');
-        [g2vec, ada, meang2] = g2Bins(X, nResolution, bins, filename); 
+        mkdir(['Plots-' useX]);
+        cd(['Plots-' useX]);
+        [g2vec, ada, meang2, g2Std] = g2Bins(X, nResolution, bins, filename); 
         g2Av = meang2;
-        g2Std = sqrt(var(g2vec,'omitnan'));  %?? use this or only variance in the middle range?     
+        %g2Std = sqrt(var(g2vec,'omitnan'));  %?? use this or only variance in the middle range?     
         nAv = mean(ada,'omitnan'); % Mean photon number  
         cd('..');
         
@@ -90,8 +106,8 @@ nAvs = cell2mat({dataStruct.nAv});
 g2Avs = cell2mat({dataStruct.g2Av});
 g2Stds = cell2mat({dataStruct.g2Std});
 
-save(['AverageNandG2-' g2method '-weight-' weight '.mat'],'Is','nAvs','g2Avs','g2Stds');
-xlswrite(['Averages-' g2method '-weight-' weight '.xls'],[Is' nAvs' g2Avs' g2Stds' ]);
-plotNandG2Av([g2method '-weight-' weight]);
+save(['AverageNandG2-' useX '-' g2method '-weight-' weight '.mat'],'Is','nAvs','g2Avs','g2Stds');
+xlswrite(['Averages-' useX '-' g2method '-weight-' weight '.xls'],[Is' nAvs' g2Avs' g2Stds' ]);
+plotNandG2Av([useX '-' g2method '-weight-' weight],parameter);
 end % function
 
