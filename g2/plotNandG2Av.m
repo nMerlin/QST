@@ -1,4 +1,4 @@
-function [] = plotNandG2Av(filename)
+function [] = plotNandG2Av(filename,parameter)
     %load('AverageNandG2.mat');
     load(['AverageNandG2-' filename '.mat']);
     plot(min(Is)-2:1:max(Is)+2, ones(length(min(Is)-2:1:max(Is)+2)),'-','linewidth',2,...
@@ -11,8 +11,15 @@ function [] = plotNandG2Av(filename)
 
     fontsize =22;
     ylabel('$ \langle g^{(2)}(0) \rangle $','FontSize',fontsize, 'Interpreter','latex');
-    %xlabel('$I$ (mA)','FontSize',fontsize,'Interpreter','latex');
-    xlabel('Excitation Power (mW)','FontSize',fontsize,'Interpreter','latex');
+    switch parameter
+        case 'current'
+            xlabel('$I$ (mA)','FontSize',fontsize,'Interpreter','latex');
+        case 'power'
+            xlabel('Excitation Power (mW)','FontSize',fontsize,'Interpreter','latex');
+        case 'delay'
+            xlabel('delay','FontSize',fontsize,'Interpreter','latex');
+    end
+   
     graphicsSettings;
     grid on; 
     ylim([0.5 2.5]);
@@ -25,7 +32,14 @@ function [] = plotNandG2Av(filename)
     % 
     loglog(Is, nAvs,'o','LineWidth',2);
     ylabel('{<n>}');
-    xlabel('Excitation Power (mW)','FontSize',fontsize,'Interpreter','latex');
+    switch parameter
+        case 'current'
+            xlabel('$I$ (mA)','FontSize',fontsize,'Interpreter','latex');
+        case 'power'
+            xlabel('Excitation Power (mW)','FontSize',fontsize,'Interpreter','latex');
+        case 'delay'
+            xlabel('delay','FontSize',fontsize,'Interpreter','latex');
+    end
     graphicsSettings;
     grid on; 
     print(['NoverPower-' filename],'-dpng');
