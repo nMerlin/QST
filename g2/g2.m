@@ -1,4 +1,4 @@
-function [g2, ada, times] = g2(X, nResolution, varargin)
+function [g2vec, ada, times] = g2(X, nResolution, varargin)
 %G2 Creates a plot showing the g2(0) behavior over time
 %
 % Usage:
@@ -39,11 +39,11 @@ ada = mean(X.^2)-0.5;
 
 %% Piecewise <a^+ a^+ a a>, in the following adadaa, and g2(t,t)
 adadaa = 2/3*mean(X.^4)-2*ada-0.5;
-g2 = adadaa./ada.^2;
-g2 = g2';
+g2vec = adadaa./ada.^2;
+g2vec = g2vec';
 
 %% Time axis
-times = (0.5:1:length(g2))*1/samplerate*nResolution/1000000; % seconds
+times = (0.5:1:length(g2vec))*1/samplerate*nResolution/1000000; % seconds
 
 end
 
