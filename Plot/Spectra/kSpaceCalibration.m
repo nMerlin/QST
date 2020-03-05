@@ -1,7 +1,8 @@
+function [] = kSpaceCalibration(filename)
 %% load data
     cd('raw-data');
-    filename = '02-noslit-0nm-Fourierlens-calibrationCircle.csv';
     data = textread(filename,'','delimiter',',','headerlines',1);
+    %data = textread(filename,'','headerlines',1);
     X = data(:,1); % wavelength
     Y = data(:,2); % pixel position
     Int = data(:,3); %intensity
@@ -24,3 +25,4 @@ view(180,-90);
 shading flat;
 
 savefig(strrep(filename,'csv','fig'));
+end
