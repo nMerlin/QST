@@ -1,4 +1,4 @@
-function plotG2Stuff(times, g2vec, ada, filename)
+function plotG2vsTime(times, g2vec, ada, filename)
 
 %   FILENAME - this string will be included in the filename of 
 %       the png-file
