@@ -1,5 +1,5 @@
 function [g2vec, ada, meang2, g2Std, XOut, Indices, n] = g2Bins(X, nResolution, varBins, filename,varargin)
-% This function first computes the photon numbers from X with the
+% This function first computes the photon numbers from the quadratures X with the
 %resolution nResolution. Then it sorts the photon numbers into bins. Then
 %it computes g2 for each bin, i.e. for each mean photon number seperately.
 %
@@ -9,19 +9,26 @@ function [g2vec, ada, meang2, g2Std, XOut, Indices, n] = g2Bins(X, nResolution, 
 %   NRESOLUTION - Number of Quadratures used to compute the mean photon
 %   number
 %   varBins - Amount of Bins into which the photon numbers are sorted
+%   range - meang2 will be computed in a range of photon numbers around the
+%   middle bin 
 %
 % Output Arguments:
-%   g2: g2(0) values sorted according to increasing photon number
+%   g2vec: g2(0) values sorted according to increasing photon number
 %   ada: number of photons, sorted according to increasing photon number
-%   meang2: the mean value of g2 in the middle range of photon numbers
+%   meang2: the mean value of g2 in the chosen range of photon numbers
+%   g2Std: the standard deviation of the g2 values in the chosen range of photon numbers
+%   XOut, Indices, n: Quadratures binned according to photon number and their
+%   indices, vector of n for each quadrature
 
 %% Validate and parse input arguments
 p = inputParser;
 defaultPlotoption = 'yes'; 
 addParameter(p,'Plot',defaultPlotoption);
+defaultRange = 1/3; 
+addParameter(p,'Range',defaultRange, @isnumeric);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[plotoption] = c{:};
+[plotoption,range] = c{:};
 
 %% Reshaping X according to the starting resolution NRESOLUTION
 X = X(:);
@@ -66,8 +73,8 @@ N=N(~isnan(g2vec));
 
 %% Compute the mean g2 in the middle of the range
 if length(g2vec) > 1
-    meang2 = mean(g2vec( round(length(g2vec)*2/6) : round(length(g2vec)*4/6)));
-    g2Std = sqrt(var(g2vec( round(length(g2vec)*2/6) : round(length(g2vec)*4/6))));
+    meang2 = mean(g2vec( round(length(g2vec)*(1-range)/2) : round(length(g2vec)*(1+range)/2)));
+    g2Std = sqrt(var(g2vec( round(length(g2vec)*(1-range)/2) : round(length(g2vec)*(1+range)/2))));
 else
     meang2 = mean(g2vec);
     g2Std = sqrt(var(g2vec));
@@ -86,7 +93,8 @@ if strcmp(plotoption,'yes')
     plot(ada, N,'o');
     xlabel('mean nPhotons');
     ylabel('number of values');
-    savefig([filename '-g2-Binned-nRes-' num2str(nResolution) '-Bins-' num2str(varBins) '.fig']);
+    savefig([filename '-g2-Binned-nRes-' num2str(nResolution) '-Bins-'...
+        num2str(varBins) '-Range-' num2str(range) '.fig']);
     clf();
 end
 

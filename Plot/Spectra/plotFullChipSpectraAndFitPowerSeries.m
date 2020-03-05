@@ -20,7 +20,7 @@ defaultInterpolate = 'yes';
 addParameter(parser,'Interpolate',defaultInterpolate);
 defaultSubtract = 'yes'; %
 addParameter(parser,'Subtract',defaultSubtract);
-defaultXLim = 0.5; %
+defaultXLim = []; %
 addParameter(parser,'XLim',defaultXLim,@isnumeric);
 defaultXUnit = 'nm';
 addParameter(parser,'XUnit',defaultXUnit);
@@ -45,7 +45,7 @@ for name = {rawDataContents.name}
 %         continue
 %     end
     
-    if not(isempty(regexpi(filename,'background_1.csv','match')))...
+    if not(isempty(regexpi(filename,'background','match')))...
             || isempty(regexpi(filename,'.csv','match'))
         continue
     end
@@ -56,9 +56,9 @@ for name = {rawDataContents.name}
     dataStruct(number).filename = filename;
     
     % Fetch excitation power
-    %powerToken = regexpi(filename,'-([0123456789.]*)mW','tokens');
+    powerToken = regexpi(filename,'-([0123456789.]*)mW','tokens');
     %powerToken = regexpi(filename,'OPO-([0123456789.]*)mW','tokens');
-    powerToken = regexpi(filename,'MIRA-([0123456789.]*)mW','tokens');
+    %powerToken = regexpi(filename,'MIRA-([0123456789.]*)mW','tokens');
     power = str2double(cell2mat(powerToken{1}));
     dataStruct(number).Power = power;
     
@@ -68,7 +68,7 @@ end
 for name = {rawDataContents.name}
     % Loop only over background files
     filename = cell2mat(name);
-    if isempty(regexpi(filename,'background_1.txt','match'))
+    if isempty(regexpi(filename,'background.txt','match'))
         continue
     end
     

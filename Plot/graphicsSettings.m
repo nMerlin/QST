@@ -6,4 +6,7 @@ function [] = graphicsSettings
         'TickDir','Out');
     set(gca,'DefaultTextInterpreter','latex');
     grid;
+    dcmObj = datacursormode;  % Turn on data cursors and return the
+                          %   data cursor mode object
+    set(dcmObj, 'UpdateFcn', @dataTipUpdateFcn); % increases the displayed digits of data tips 
 end

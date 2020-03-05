@@ -1,4 +1,4 @@
-function [g2vec, ada, times] = g2(X, nResolution, varargin)
+function [g2vec, ada, times, meanfastg2, slowg2] = g2fastslow(X, nResolution, varargin)
 %G2 Creates a plot showing the g2(0) behavior over time
 %
 % Usage:
@@ -45,5 +45,8 @@ g2vec = g2vec';
 %% Time axis
 times = (0.5:1:length(g2vec))*1/samplerate*nResolution/1000000; % seconds
 
+%% mean g2 values
+meanfastg2=sum(ada.^2.*g2vec')/sum(ada.^2);
+slowg2=mean(ada.^2)/mean(ada).^2;
 end
 

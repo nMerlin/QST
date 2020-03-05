@@ -1,4 +1,4 @@
-function [] = g2BinLoop(X, BinVector, ResFix, ResVector, BinFix, filename)
+function [] = g2BinLoop(X, BinVector, ResFix, ResVector, BinFix, filename,varargin)
 %This function evaluates the function g2Bins for various amounts of bins
 %and various resolutions. 
 %
@@ -9,7 +9,8 @@ function [] = g2BinLoop(X, BinVector, ResFix, ResVector, BinFix, filename)
 %   resolution ResFix
 %   ResVector: Contains the resolutions to be used, while using a fixed
 %   amounnt of bins BinFix
-
+%   range - meang2 will be computed in a range of photon numbers around the
+%   middle bin 
 
 % Make a resolution vector which is logarithmic over all frequencys:
 % f = 0:0.3:17;
@@ -17,11 +18,21 @@ function [] = g2BinLoop(X, BinVector, ResFix, ResVector, BinFix, filename)
 % ResVector = 75.4e6 ./ g;
 % ResVector = round(ResVector);
 
+%% Validate and parse input arguments
+p = inputParser;
+defaultPlotoption = 'yes'; 
+addParameter(p,'Plot',defaultPlotoption);
+defaultRange = 1/3; 
+addParameter(p,'Range',defaultRange, @isnumeric);
+parse(p,varargin{:});
+c = struct2cell(p.Results);
+[plotoption,range] = c{:};
+
 %% loop over different amounts of Bins 
 meang2VectorBins = zeros(size(BinVector));
  i = 1;
 for varBins = BinVector 
-    [~, ~, meang2] = g2Bins(X, ResFix, varBins, filename);
+    [~, ~, meang2] = g2Bins(X, ResFix, varBins, filename,'Range',range,'Plot',plotoption);
     meang2VectorBins(i) = meang2;
     i = i + 1;
 end
@@ -30,7 +41,7 @@ end
 meang2VectorRes = zeros(size(ResVector));
  i = 1;
 for Resolution = ResVector 
-    [~, ~, meang2] = g2Bins(X, Resolution, BinFix, filename);
+    [~, ~, meang2] = g2Bins(X, Resolution, BinFix, filename,'Range',range,'Plot',plotoption);
     meang2VectorRes(i) = meang2;
     i = i + 1;
 end
