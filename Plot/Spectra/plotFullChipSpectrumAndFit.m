@@ -38,7 +38,8 @@ lightVelocity = 299792458;
 %% load data
     cd('raw-data')
     %data = textread(filenameSIG);
-    data = textread(filenameSIG,'','delimiter',',','headerlines',1); 
+    %data = textread(filenameSIG,'','delimiter',',','headerlines',1);
+    data = textread(filenameSIG,'','headerlines',1);
     
     X = data(:,1); % wavelength
     Y = data(:,2); % pixel position
