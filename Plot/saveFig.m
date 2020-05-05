@@ -11,6 +11,8 @@ if ~isempty(filename)
         case '.pdf'
             filenamePdf = [path,name,'.pdf'];
             export_fig(sprintf('%s',filenamePdf),'-pdf','-painters');
+        case '.fig'
+            savefig(filename);
     end
 end
 
