@@ -39,7 +39,8 @@ for name = {rawDataContents.name}
     % Loop only over Signal files
     filename = cell2mat(name);
     if not(isempty(regexpi(filename,'background_1.txt','match')))...
-            || isempty(regexpi(filename,'.txt','match'))
+            || isempty(regexpi(filename,'.txt','match'))...
+            || isempty(regexpi(filename,'.csv','match'))
         continue
     end
     
