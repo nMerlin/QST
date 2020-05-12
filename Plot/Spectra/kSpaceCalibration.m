@@ -23,6 +23,8 @@ surf(X, Y, log(Int));
 colorbar;
 view(180,-90);
 shading flat;
+axis tight;
+
 
 savefig(strrep(filename,'csv','fig'));
 end
