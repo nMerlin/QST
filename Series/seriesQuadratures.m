@@ -37,7 +37,7 @@ rawDataContents = dir('raw-data');
 for name = {rawDataContents.name}
     % Loop only over *LOwithDL.raw files
     filename = cell2mat(name);
-    if not(isempty(regexpi(filename,'.raw.','match')))...
+    if not(isempty(regexpi(filename,'.stamp','match'))) || not(isempty(regexpi(filename,'.cfg','match')))...
             ||(isempty(regexpi(filename,'LOwithDL','match')))
         continue
     end
