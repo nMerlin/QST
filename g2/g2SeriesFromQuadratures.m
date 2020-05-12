@@ -4,7 +4,7 @@ function [ dataStruct, Is, nAvs, g2Avs , g2Stds] = g2SeriesFromQuadratures( nRes
 %Computes g2 either time resolved (set 'G2method', 'time') or photon number
 %resolved (set 'G2method', 'bins').
 %   'Weight': If set 'yes', g2 from the time resolved method is weighted 
-%   with the respective photon numbers. 
+%   with the respective squared photon numbers. 
 
 % Optional input arguments
 %% Validate and parse input arguments
@@ -68,7 +68,8 @@ for iStruct =  1:length(Contents)
         [g2vec, ada, times] = g2(X, nResolution);
         nAv = mean(ada);  % Mean photon number  
         if strcmp(weight, 'yes')
-            g2Av = g2vec'*ada'/sum(ada);
+            g2Av = g2vec'*ada.^2'/sum(ada.^2);
+    
         else
             g2Av = mean(g2vec);    
         end
@@ -77,7 +78,7 @@ for iStruct =  1:length(Contents)
         cd('..');
         mkdir(['Plots-' useX]);
         cd(['Plots-' useX]);
-        plotG2Stuff(times, g2vec, ada, [strrep(filename,'.mat','') '-Res-' num2str(nResolution) ]);
+        plotG2vsTime(times, g2vec, ada, [strrep(filename,'.mat','') '-Res-' num2str(nResolution) ]);
         cd('..');
         mkdir(['g2data-' useX]);
         cd(['g2Data-' useX]);
