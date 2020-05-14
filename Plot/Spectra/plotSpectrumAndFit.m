@@ -44,8 +44,8 @@ lightVelocity = 299792458;
     cd('raw-data')
     %data = textread(filenameSIG);
     %data = textread(filenameSIG,'','delimiter',','); 
-    %data = textread(filenameSIG,'','delimiter',',','headerlines',1);
-    data = textread(filenameSIG,'','headerlines',1);
+    data = textread(filenameSIG,'','delimiter',',','headerlines',1);
+%     data = textread(filenameSIG,'','headerlines',1);
     
     w = data(:,1); % wavelength
     Int = data(:,2); % Intensity
