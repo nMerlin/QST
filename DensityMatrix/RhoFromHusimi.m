@@ -1,11 +1,12 @@
 function [rho,rhoX] = RhoFromHusimi(HS,varargin)
+% DOES NOT WORK CORRECTLY!!!
 % computes the density matrix from the Husimi Q function (HS). HS must
 % be a quadratic matrix. 
 % Formula from equation (7) and (8) from V. A. Andreev: A TRANSFORMATIONAL
 % PROPERTY..., Theoretical and Mathematical Physics, 166(3): 356–368 (2011)
 % https://link.springer.com/content/pdf/10.1007/s11232-011-0028-8.pdf
 % Optional Input Arguments:
-%   'PQ': Specify q axis, which is also x axis. Default is -20:0.125:20, 
+% 'PQ': Specify q axis, which is also x axis. Default is -20:0.125:20, 
 % as this is used in mainWigner. It must have the same length as the HS
 % matrix.
 % 'nMax': maximum photon number for fock base.
