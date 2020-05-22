@@ -57,9 +57,9 @@ e0 = 1.602176634e-19;
 
 %% load data
     cd('raw-data');
-    data = textread(filenameSIG);
+    %data = textread(filenameSIG);
     %data = textread(filenameSIG,'','headerlines',1); 
-    %data = textread(filenameSIG,'','delimiter',',','headerlines',1); 
+    data = textread(filenameSIG,'','delimiter',',','headerlines',1); 
     W = data(:,1); % wavelength
     Y = data(:,2); % pixel position
     M = data(:,3); %intensity
