@@ -1,6 +1,7 @@
 %% How to analyse a 3-Channel dataset
 % Data from a 3-Channel homodyne quantum state measurement has its own
 % functions for evaluation which will be presented here.
+% Here: Ch1 and Ch2 postselection, Ch3 target
 
 %% Loading a single data-file
 % For each dataset you need to specify two files: The file _filenameSIG_
