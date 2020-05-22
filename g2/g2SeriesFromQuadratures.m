@@ -29,27 +29,30 @@ dataStruct = struct('filename',{},'I',{},'nAv',{},'g2Av',{}, 'g2Std',{});
 %% Create data overview
 dispstat('','init');
 dispstat('Checking filenames ...','timestamp','keepthis');
-Contents = dir('Quadratures');
+%Contents = dir('Quadratures');
+Contents = dir('mat-data');
 name = {Contents.name};
 
 for iStruct =  1:length(Contents) 
     %get filename
     filename = cell2mat(name(iStruct));
-    if strcmp(filename,'.') || strcmp(filename,'..')
+    if strcmp(filename,'.') || strcmp(filename,'..') || strcmp(filename,'.txt')
         continue
     end
     dataStruct(iStruct).filename = filename;
     % get current or power
     %currentToken = regexpi(filename,'-([0123456789.]*)mA','tokens');
 %     currentToken = regexpi(filename,'mW-([0123456789.]*)mW','tokens');
-     currentToken = regexpi(filename,'([0123456789,]*)mW-5mW','tokens');
+%      currentToken = regexpi(filename,'([0123456789,]*)mW-5mW','tokens');
+    currentToken = regexpi(filename,'([0123456789,]*)mW-4mW','tokens');
      %currentToken = regexpi(filename,'([0123456789,]*)mW','tokens'); 
     % currentToken = regexpi(filename,'mat([0123456789,]*)','tokens');
      currentToken{1}=strrep(currentToken{1},',','.');
     dataStruct(iStruct).I = str2double(cell2mat(currentToken{1}));
     
     %%% Load data
-    cd('Quadratures');
+    %cd('Quadratures');
+    cd('mat-data');
     load(filename);
     
     % Compute g2 values according to g2method
@@ -61,7 +64,7 @@ for iStruct =  1:length(Contents)
         case 'X2'
             X = X2;
         case 'X3'
-            X = X2;
+            X = X3;
     end
     
     if strcmp(g2method,'time'); 
