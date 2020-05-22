@@ -17,11 +17,13 @@ defaultChannels = 1;
 addParameter(p,'Channels',defaultChannels,@isnumeric);
 defaultPeriod1 = 2;
 addParameter(p,'Period',defaultPeriod1,@isnumeric);
-defaultPhase = 'random';
-addParameter(p,'Phase',defaultPhase);
+defaultOffset = 'local'; % vs 'global'
+addParameter(p,'Offset',defaultOffset);
+defaultPiezo = 'yes'; 
+addParameter(p,'Piezo',defaultPiezo);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[channels,period1,phase] = c{:};
+[channels,offset,period1,piezo] = c{:};
 
 %% create data structs
 %dataStruct = struct('filename',{},'Delay', {},'nPhMean', {},'G2',{});
@@ -83,37 +85,19 @@ for number = 1:size(dataStruct,2)
      dispstat(['PrepareData number ' num2str(number)],...
         'timestamp','keepthis','notquiet');
     
-    if strcmp(phase,'nonrandom')   
-%        One channel with non random phase 
-        [X1, X2, X3, piezoSign1, ~] = prepareData(filenameLO,filenameSIG,'Channels',channels,'Offset','global','Piezo','yes');
-        if any(any(X1))
-            X = X1;
-        elseif any(any(X2))
-            X = X2;
-        elseif any(any(X3))
-            X = X3;
-        end
-        
-        theta1 = computePhase(X,ones(size(X)),piezoSign1,'Period',period1); 
-        mkdir('Quadratures');
-        cd('Quadratures');
-        save(strcat(filenameSIG, '.mat'),'X','piezoSign1','theta1');
+    if strcmp(piezo,'yes')  
+        [X1, X2, X3, piezoSign, ~] = prepareData(filenameLO,filenameSIG,'Channels',channels,'Offset',offset,'Piezo',piezo);        
+%         theta1 = computePhase(X,ones(size(X)),piezoSign1,'Period',period1); 
+        mkdir('mat-data');
+        cd('mat-data');
+        save(strcat(filenameSIG, '.mat'),'X1','X2','X3','piezoSign');
         cd('..');
 
-    elseif strcmp(phase,'random')
-   % One channel with random phase 
-       [X1, X2, X3, ~, ~] = prepareData(filenameLO,filenameSIG,'Channels',channels,'Offset','local','Piezo','no');
-            if any(any(X1))
-                X = X1;
-            elseif any(any(X2))
-                X = X2;
-            elseif any(any(X3))
-                X = X3;
-            end
-   
-       mkdir('Quadratures');
-         cd('Quadratures');
-        save(strcat(filenameSIG, '.mat'),'X');
+    else
+       [X1, X2, X3, ~, ~] = prepareData(filenameLO,filenameSIG,'Channels',channels,'Offset',offset,'Piezo',piezo);   
+        mkdir('mat-data');
+        cd('mat-data');
+        save(strcat(filenameSIG, '.mat'),'X1','X2','X3');
         cd('..');
     end
      

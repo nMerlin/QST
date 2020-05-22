@@ -40,6 +40,7 @@ X = Xres(:);
 %% Piecewise photon number <a^+ a>
 Xres = Xres - mean(mean(Xres));
 ada = mean(Xres.^2)-0.5;
+ada(ada<0) = 0; %set photon numbers < 0 to 0.
 
 %% concatenate them so that we have each element nRes times ... 
 n = zeros(size(Xres));
