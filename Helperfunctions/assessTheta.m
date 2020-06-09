@@ -126,8 +126,11 @@ end
 %% Output to File
 if strcmp(output,'print')
     fig.PaperPositionMode = 'auto';
-    print([filename '-Variance-',num2str(varBins),'-varBins-',num2str(phaseBins), ...
+    print([filename, '-Variance-',num2str(varBins),'-varBins-',num2str(phaseBins), ...
         '-phaseBins','.pdf'],'-dpdf');
+elseif  strcmp(output,'figure')
+    savefig([filename, '-Variance-',num2str(varBins),'-varBins-',num2str(phaseBins), ...
+        '-phaseBins','.fig']);
 end
 
 %% Create output table

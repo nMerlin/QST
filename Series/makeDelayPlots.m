@@ -8,9 +8,24 @@ addParameter(p,'Figurepath',defaultFigurepath,@isstr);
 defaultSelectionParameters = struct('Type','fullcircle', ...
     'Position',[2.5 0.5]);
 addParameter(p,'SelectionParameters',defaultSelectionParameters,@isstruct);
+defaultRecomputeTheta = false;
+addParameter(p,'RecomputeTheta',defaultRecomputeTheta,@islogical);
+defaultSavePostselection = false;
+addParameter(p,'SavePostselection',defaultSavePostselection,@islogical);
+defaultSaveTheta = false;
+addParameter(p,'SaveTheta',defaultSaveTheta,@islogical);
+defaultGetDelay = false;
+addParameter(p,'GetDelay',defaultGetDelay,@islogical);
+defaultRemoveModulation = false;
+addParameter(p,'RemoveModulation',defaultRemoveModulation,@islogical);
+defaultRange = 0.3;
+addParameter(p,'Range',defaultRange,@isnumeric);
+defaultXUnit = 'fs';
+addParameter(p,'XUnit',defaultXUnit,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[figurepath,selParams] = c{:};
+[figurepath,getDelay,range,recomputeTheta,remMod,saveps, ...
+    savetheta,selParams,xUnit] = c{:};
 
 % Constants
 pdfpath = 'figures-pdf/';
@@ -29,12 +44,16 @@ switch type
     case 'all'
         delayMeanVarX = true;
         delayDiscAmpl = true;
+        delayG2 = true;
+        delayN = true;
         movieWigner2D = true;
         movieWigner3D = true;
         pdfs = true;
     case 'plots'
         delayMeanVarX = true;
         delayDiscAmpl = true;
+        delayG2 = true;
+        delayN = true;
         pdfs = true;
     case 'pdfs'
         pdfs = true;
@@ -78,7 +97,8 @@ dispstat('','init','timestamp','keepthis',0);
 datestring = datestr(date,'yyyy-mm-dd');
 if makeTable
     dispstat('Making 3-channel table ...','timestamp','keepthis');
-    T = series3Ch('SelectionParameters',selParams);
+    T = series3Ch('SelectionParameters',selParams,'RecomputeTheta',recomputeTheta,'Range',range,...
+        'SavePostselection',saveps,'SaveTheta',savetheta,'GetDelay',getDelay,'RemoveModulation',remMod);    
 else
     T = seriesRead3ChTable(selParams);
 end
@@ -91,12 +111,22 @@ end
 if delayMeanVarX
     dispstat('Making DelayMeanVarX plot ...','timestamp','keepthis');
     filenameFig = [figurepath,datestring,'-DelayMeanVarX-',selStr,'.fig'];
-    plotSeries3Ch(T,'Type','DelayMeanVarX','Filename',filenameFig);
+    plotSeries3Ch(T,'Type','DelayMeanVarX','Filename',filenameFig,'XUnit',xUnit);
 end
 if delayDiscAmpl
     dispstat('Making DelayDiscAmpl plot ...','timestamp','keepthis');
     plotSeries3Ch(T,'Type','DelayDiscAmpl','Filename', ...
-        [figurepath,datestring,'-DelayDiscAmpl-',selStr,'.fig']);
+        [figurepath,datestring,'-DelayDiscAmpl-',selStr,'.fig'],'XUnit',xUnit);
+end
+if delayG2
+    dispstat('Making DelayG2 plot ...','timestamp','keepthis');
+    plotSeries3Ch(T,'Type','g2','Filename', ...
+        [figurepath,datestring,'-DelayG2-',selStr,'.fig'],'XUnit',xUnit);
+end
+if delayN
+    dispstat('Making DelayN plot ...','timestamp','keepthis');
+    plotSeries3Ch(T,'Type','meanN','Filename', ...
+        [figurepath,datestring,'-DelayN-',selStr,'.fig'],'XUnit',xUnit);    
 end
 if movieWigner2D || movieWigner3D
     dispstat('Making Wigner functions ...','timestamp','keepthis');

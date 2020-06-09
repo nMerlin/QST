@@ -7,15 +7,17 @@ defaultFilename = '';
 addParameter(p,'Filename',defaultFilename,@isstr);
 defaultType = 'Amplitude';
 addParameter(p,'Type',defaultType,@isstr);
+defaultXUnit = 'fs';
+addParameter(p,'XUnit',defaultXUnit,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[filename,typestr] = c{:};
+[filename,typestr,xUnit] = c{:};
 
 % Constants
 figurepath = 'figures-fig/';
 
 %% Gather data
-[X,Yr,Yt,discAmpl,discMeanVar,discN,g2vals,g2std] = deal([]);
+[delay,Yr,Yt,discAmpl,discMeanVar,discN,g2vals,g2std] = deal([]);
 sigmas = zeros(length(listOfParams),1);
 sigmaConf = zeros(length(listOfParams),2);
 for iParams = 1:length(listOfParams)
@@ -26,8 +28,8 @@ for iParams = 1:length(listOfParams)
     H = height(A);
     Radii = ones(H,1) * selParams.Position(1);
     Thicknesses = ones(H,1) * selParams.Position(2);
-    X(iParams,:) = A.Delay;
-    [X(iParams,:),I] = sort(X(iParams,:)); % Sort for Delays
+    delay(iParams,:) = A.Delay;
+    [delay(iParams,:),I] = sort(delay(iParams,:)); % Sort for Delays
     Yr(iParams,:) = Radii;
     Yt(iParams,:) = Thicknesses;
     discAmpl(iParams,:) = A.discAmpl;
@@ -61,10 +63,10 @@ for iParams = 1:length(listOfParams)
     
     % From DelayDiscAmpl Plots
 end
-[~,I] = sort(X(:,1)); % Sort for Radii
-X = X(I,:);
-Yr = Yr(I,:);
-Yt = Yt(I,:);
+[~,I] = sort(delay(:,1)); % Sort for Radii
+delay = delay(I,:); %delays
+Yr = Yr(I,:); %Radii
+Yt = Yt(I,:); %thicknesses
 discAmpl = discAmpl(I,:);
 discMeanVar = discMeanVar(I,:);
 discN = discN(I,:);
@@ -73,44 +75,60 @@ g2std = g2std(I,:);
 
 %% Create figure
 fig = figure;
-formatFigA5(fig);
+%formatFigA5(fig);
 switch typestr
     case 'Amplitude'
-        waterfall(X,Yr,discAmpl);
-        view(-20,20);
-        xlabel('Delay (fs)');
-        zlabel('Coherent Amplitude');
+        for i = 1:length(I)
+            plot(delay(i,:),discAmpl(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+            hold on;
+        end;
+        hold off;
+        legend('location','northwest');
+        xlabel(['Delay (' xUnit ')']); 
+        ylabel('Coherent Amplitude'); 
         title('Coherent Amplitude vs. Radius of Postselected Fullcircle');
     case 'MeanVar'
-        surf(X,Yr,discMeanVar);
-        view(-50,20);
-        xlabel('Delay (fs)');
-        zlabel('Average Variance');
+        for i = 1:length(I)
+            plot(delay(i,:),discMeanVar(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+            hold on;
+        end;
+        hold off;
+        legend('location','southeast');
+        ylabel('Average Variance');
+        xlabel(['Delay (' xUnit ')']);
         title('Variance vs. Radius of Postselected Fullcircle');
     case 'MeanVarSigma'
         errorbar(Yr(:,1),sigmas,abs(sigmas-sigmaConf(:,1)), ...
-            abs(sigmas-sigmaConf(:,2)),'o','DisplayName', ...
+            abs(sigmas-sigmaConf(:,2)),'o-','DisplayName', ...
             'Standard Deviation of Gaussian with 95% confidence intervals');
         xlabel('Ring Radius');
         ylabel('Temporal Width of Minimum Variance');
         title('Width of Minimum Variance vs. Postselected Radius');
         legend('show');
     case 'DiscN'
-        waterfall(X,Yr,discN);
-        view(-20,20);
-        xlabel('Delay (fs)');
-        zlabel('Photon Number');
+        for i = 1:length(I)
+            plot(delay(i,:),discN(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+            hold on;
+        end;
+        hold off;
+        legend('location','northwest');
+        xlabel(['Delay (' xUnit ')']);
+        ylabel('Photon Number');
         title('Photon Number vs. Radius of Postselected Fullcircle');
     case 'G2'
-        waterfall(X,Yr,g2vals);
-        view(3);
-        xlabel('Delay (fs)');
-        zlabel('g^{(2)}');
-        title('Photon Number vs. Radius of Postselected Fullcircle');
+        for i = 1:length(I)
+            plot(delay(i,:),g2vals(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+            hold on;
+        end;
+        hold off;
+        legend('location','northeast');
+        xlabel(['Delay (' xUnit ')']);
+        ylabel('g^{(2)}(0)');
+        title('G2 vs. Radius of Postselected Fullcircle');
     case 'ThicknessMeanVar'
-        surf(X,Yt,discMeanVar);
+        surf(delay,Yt,discMeanVar);
         view(-50,20);
-        xlabel('Delay (fs)');
+        xlabel(['Delay (' xUnit ')']);
         zlabel('Average Variance');
         title('Variance vs. Thickness of Postselected Fullcircle');
     case 'ThicknessMeanVarSigma'
@@ -128,17 +146,18 @@ switch typestr
         ylabel('Minimum of Postselected Variance');
         title('Minimum Variance vs. Thickness of Postselected Fullcircle');
     case 'ThicknessG2'
-        surf(X,Yt,g2vals);
+        surf(delay,Yt,g2vals);
         view(3);
-        xlabel('Delay (fs)');
+        xlabel(['Delay (' xUnit ')']);
         zlabel('g^{(2)}');
         title('Photon Number vs. Thickness of Postselected Fullcircle');
 end
 set(fig,'Color','w');
-
+graphicsSettings;
 %% Write figure to file and close it
 if ~isempty(filename)
     savefig(fig,filename);
+    print([filename '.png'],'-dpng');
     close all;
 end
 

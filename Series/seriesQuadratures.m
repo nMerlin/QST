@@ -85,17 +85,19 @@ for number = 1:size(dataStruct,2)
      dispstat(['PrepareData number ' num2str(number)],...
         'timestamp','keepthis','notquiet');
     
+    if ~exist('mat-data','dir')
+    mkdir('mat-data')
+    end
+    
     if strcmp(piezo,'yes')  
         [X1, X2, X3, piezoSign, ~] = prepareData(filenameLO,filenameSIG,'Channels',channels,'Offset',offset,'Piezo',piezo);        
 %         theta1 = computePhase(X,ones(size(X)),piezoSign1,'Period',period1); 
-        mkdir('mat-data');
         cd('mat-data');
         save(strcat(filenameSIG, '.mat'),'X1','X2','X3','piezoSign');
         cd('..');
 
     else
        [X1, X2, X3, ~, ~] = prepareData(filenameLO,filenameSIG,'Channels',channels,'Offset',offset,'Piezo',piezo);   
-        mkdir('mat-data');
         cd('mat-data');
         save(strcat(filenameSIG, '.mat'),'X1','X2','X3');
         cd('..');

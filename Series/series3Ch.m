@@ -1,5 +1,8 @@
 function T = series3Ch(varargin)
 %SERIES3CH is used to batch process 3-Channel data already converted to mat
+%  X2 is the channel that is piezo modulated and used for orthogonal selection as well as for 
+%  the relative phase computation between X2 and X1. 
+%   X3 is only used for orthogonal selection. X1 is the target channel.
 %
 % Functionality:
 %   Looks for *.mat files in the folder 'mat-data', computes multiple
@@ -34,8 +37,17 @@ function T = series3Ch(varargin)
 %   *** Other ***
 %   'SaveTheta': Default is 'false'. Choose true if you want the function
 %       to update the *.mat file with the computed theta vector.
+%   'RecomputeTheta': Default is 'false'. Choose 'true' if you do not want
+%       to read the theta from disk but a new calculation, which is not saved. 
 %   'NDisc': Default is 100. Number of bins to discretize theta for
 %       computing expectation values with 'computeExpectations'.
+%   'GetDelay': Default is 'false'. Choose true if the delay can be retrieved
+%       from the file name with format xx-yymm, where yy is the delay.
+%   'RemoveModulation': Default is 'false'. Choose true if only data should
+%       be selected where the photon number lies in a certain range below the
+%       maximum. 
+%   'range': the range for selecting only photon numbers > n_max(1-range)
+%       in removeNBelowLimit
 %
 %   *** Developer Only ***
 %   'FileRange': Default is [] and loops over all found files. In any other
@@ -54,6 +66,8 @@ defaultRewriteRho = false;
 addParameter(p,'RewriteRho',defaultRewriteRho,@islogical);
 defaultRewriteWigner = false;
 addParameter(p,'RewriteWigner',defaultRewriteWigner,@islogical);
+defaultRecomputeTheta = false;
+addParameter(p,'RecomputeTheta',defaultRecomputeTheta,@islogical);
 defaultRhoParams = struct;
 addParameter(p,'RhoParams',defaultRhoParams,@isstruct);
 defaultSavePostselection = false;
@@ -64,11 +78,17 @@ defaultSaveTheta = false;
 addParameter(p,'SaveTheta',defaultSaveTheta,@islogical);
 defaultSaveWigner = false;
 addParameter(p,'SaveWigner',defaultSaveWigner,@islogical);
+defaultGetDelay = false;
+addParameter(p,'GetDelay',defaultGetDelay,@islogical);
+defaultRemoveModulation = false;
+addParameter(p,'RemoveModulation',defaultRemoveModulation,@islogical);
 defaultSelParams = struct('Type','fullcircle','Position',[2.5,0.5]);
 addParameter(p,'SelectionParameters',defaultSelParams,@isstruct);
+defaultRange = 0.3;
+addParameter(p,'Range',defaultRange,@isnumeric);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[filerange,fitexp,nDisc,rewriteRho,rewriteWigner,rhoParams,saveps, ...
+[filerange,fitexp,getDelay,nDisc,range,recomputeTheta,remMod,rewriteRho,rewriteWigner,rhoParams,saveps, ...
     saverho,savetheta,saveWigner,selParams] = c{:};
 
 % Dependencies among optional input arguments
@@ -102,8 +122,25 @@ for ii = 1:length(filerange)
     clear rho WF;
     C = strsplit(files{i},'.');
     filename = C{1};
+    
+    if getDelay
+        % get delay from the file name with format xx-yymm, where xx is the
+        % filenumber and yy is the delay which can also be negative and start
+        % with a minus sign
+        delayToken = regexpi(filename,'([-0123456789,-]*)mm','tokens');
+        delay = cell2mat(delayToken{1});
+        numberToken = regexpi(delay,'^([0123456789,]*)-','tokens'); 
+        number = cell2mat(numberToken{1});
+        delay = strrep(delay,[number '-'],'');
+        delay = strrep(delay,',','.');
+        delay = str2double(delay);
+        c = 299792458; % in m/s
+        delay = 2*delay/1000/c*10^12; %delay in ps
+        quantities.Delay(i) = delay;
+    end
+    
     if ~saveps
-        postFilename = ['post-data/',filename,'-',selStr,'.mat'];
+        postFilename =  ['post-data/',filename,'-',selStr,'-remMod-',num2str(remMod),'-range-',num2str(range),'.mat'];
         try
             load(postFilename);
         catch
@@ -115,10 +152,14 @@ for ii = 1:length(filerange)
     else
         load(['mat-data/',files{i}]);
     end
+    
+    if remMod %rescales the Xi according to time dependent photon numbers
+            [X1,X2,X3,n1vec,n2vec,n3vec] = removeModulation(X1,X2,X3); 
+    end; 
 
     %% Compute Phase and Postselected Variables
     if ~exist('selX','var') % run only if postselection file was not loaded
-        if ~exist('theta','var') % run only if theta is not available
+        if (~exist('theta','var')) || recomputeTheta % run only if theta is not available or should be rewritten
             try
                 [theta,~] = computePhase(X1,X2,piezoSign);
             catch
@@ -127,8 +168,21 @@ for ii = 1:length(filerange)
                 theta = rand(size(X1,1)*size(X1,2),size(X1,3))*2*pi;
             end
         end
-        [O1,O2,O3,oTheta] = selectOrthogonal(X2,X3,X1,theta,piezoSign);
-        [selX,selTheta] = selectRegion(O1,O2,O3,oTheta,selParams);
+       
+        if remMod %removes the edges of the piezo segments, where the photon number vectors make jumps
+            [X1,X2,X3,theta,n1vec,n2vec,n3vec] = removeSegmentEdges(X1,X2,X3,theta,n1vec,n2vec,n3vec);
+        end
+            
+        [O1,O2,O3,oTheta,iOrth] = selectOrthogonal(X2,X3,X1,theta,piezoSign);
+        
+        if remMod %removes those Oi where the photon number is below a limit of n_max*(1-range)
+            n1vec = n1vec(iOrth);
+            n2vec = n2vec(iOrth);
+            n3vec = n3vec(iOrth);
+            [O3,O1,O2,oTheta] = removeNBelowLimit(O3,O1,O2,oTheta,n1vec,n2vec,n3vec,range);
+        end
+        
+        [selX,selTheta] = selectRegion(O1,O2,O3,oTheta,selParams);%,'Plot','show','Filename',[filename '-assessTheta']
         close all;
         
         % Compute photon numbers for each channel
@@ -165,25 +219,28 @@ for ii = 1:length(filerange)
         expP2(round(nDisc/2)) - 1);
     
     % g2 estimation
-    g2values = zeros(10,1);
+    [g2values,nValues] = deal(zeros(10,1));
     for iG2=1:10
         uniformX = seriesUniformSampling(selX,selTheta,'NBins',100);
-        g2values(iG2) = g2(uniformX,length(uniformX));
+        [g2values(iG2),nValues(iG2)] = g2(uniformX,length(uniformX));
     end
     quantities.g2(i) = mean(g2values);
     quantities.g2std(i) = std(g2values);
+    quantities.n(i) = mean(nValues);
+    meang2 = mean(g2values);
+    meanVar = mean(expQ2(:)-(expQ(:)).^2);
     
     %% Save workspace variables (because recomputing them takes time)
     % Save Theta
-    if savetheta
-        save(['mat-data/',files{i}],'X1','X2','X3','theta','piezoSign');
+    if savetheta 
+        save(['mat-data/',files{i}],'theta','-append');
     end
     
     % Save postselected variables
     if saveps || tempsaveps
-        postFilename = ['post-data/',filename,'-',selStr,'.mat'];
+        postFilename = ['post-data/',filename,'-',selStr,'-remMod-',num2str(remMod),'-range-',num2str(range),'.mat'];
         save(postFilename,'O1','O2','O3','oTheta', ...
-            'selX','selTheta','selParams');
+            'selX','selTheta','selParams','meang2','meanVar');
         tempsaveps = false;
         if exist('rho','var')
             save(postFilename,'rho','rhoParams','-append');
@@ -197,14 +254,14 @@ for ii = 1:length(filerange)
     % Compute the density matrix
     if (saverho && (~exist('rho','var'))) || rewriteRho
         rho = computeDensityMatrix(selX,selTheta,rhoParams);
-        save(['post-data/',filename,'-',selStr,'.mat'], ...
+        save(['post-data/',filename,'-',selStr,'-remMod-',num2str(remMod),'-range-',num2str(range),'.mat'], ...
             'rho','rhoParams','-append');
     end
     
     % Compute Wigner function
     if (saveWigner && ~exist('WF','var')) || rewriteWigner
         WF = mainWignerFromRho(rho);
-        save(['post-data/',filename,'-',selStr,'.mat'], ...
+        save(['post-data/',filename,'-',selStr,'-remMod-',num2str(remMod),'-range-',num2str(range),'.mat'], ...
             'WF','-append');
     end
 end
@@ -228,7 +285,9 @@ for iField = 1:numel(fields)
 end
 
 % Remove '.mat' in filenames and write results to a new table file
+files = strrep(files,',','.');
 [~,T.Filename]=cellfun(@fileparts,files','UniformOutput',false);
-writetable(T,[datestr(date,'yyyy-mm-dd-'),'series3Ch-',selStr,'.txt']);
+writetable(T,[datestr(date,'yyyy-mm-dd-'),'series3Ch-',selStr,'-remMod-',...
+    num2str(remMod),'-range-',num2str(range),'.txt']);
 
 end
