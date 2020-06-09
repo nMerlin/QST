@@ -13,7 +13,7 @@ selStr = 'type=fullcircle-radius=2.5-thickness=0.5';
 if nargin > 0
     selStr = selParamsToStr(selParams);
 end
-filestruct = dir(['*-series3Ch-',selStr,'.txt']);
+filestruct = dir(['*-series3Ch-',selStr,'-remMod-0-range-0.3.txt']);%changethis!!!
 if ~isempty(filestruct)
     filestring = strjoin({filestruct.name});
     filedates = regexp(filestring,['([^ ]*)','-series3Ch-',selStr] ...

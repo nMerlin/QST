@@ -1,10 +1,6 @@
 function [ dataStruct] = plotCrossCorrelationDelaySeries(varargin)
-%DLSERIES Batch processing of series of g2 measurements, with already
-%computed quadratures that are in the folder 'Quadratures'
-%Computes g2 either time resolved (set 'G2method', 'time') or photon number
-%resolved (set 'G2method', 'bins').
-%   'Weight': If set 'yes', g2 from the time resolved method is weighted 
-%   with the respective squared photon numbers. 
+%DLSERIES Pots the crosscorrelations of a 3 Channel series, with already
+%computed quadratures that are in the folder 'mat-data'
 
 % Optional input arguments
 %% Validate and parse input arguments
@@ -24,6 +20,10 @@ dispstat('Checking filenames ...','timestamp','keepthis');
 %Contents = dir('Quadratures');
 Contents = dir('mat-data');
 name = {Contents.name};
+
+if ~exist('crosscorrelations','dir')
+    mkdir('crosscorrelations')
+    end
 
 for iStruct =  1:length(Contents) 
     %get filename
@@ -51,7 +51,9 @@ for iStruct =  1:length(Contents)
     
     % Plot crosscorrelation
     dispstat('Plot cross corr ...','timestamp','keepthis');
+    cd('crosscorrelations');
     [A12,A13,A23] = plotCrossCorrelation(X1, X2, X3, filename, 'Nsegments',nsegments);
+    cd('..');
     
     dataStruct(iStruct).A12 = A12;
     dataStruct(iStruct).A13 = A13;
@@ -65,6 +67,8 @@ A23 = cell2mat({dataStruct.A23});
 
 c = 299792458; % in m/s
 time = 2*delay/1000/c; %delay in mm
+
+cd('crosscorrelations');
 save('CrossCorrDelaySeries.mat','delay','time','A12','A13','A23');
 
 plot(delay,A12,'o-','linewidth',3); hold on;
@@ -73,7 +77,7 @@ plot(delay,A23,'o-','linewidth',3);
 legend('X1*X2','X1*X3','X2*X3');
 graphicsSettings;
 xlabel('delay (mm)');
-ylabel('visibility');
+ylabel('Amplitude');
 savefig('Cross-Correlations-vs-Delay.fig');
 print('Cross-Correlations-vs-Delay.png','-dpng','-r300');
 clf();
@@ -88,6 +92,7 @@ ylabel('visibility');
 savefig('Cross-Correlations-vs-time.fig');
 print('Cross-Correlations-vs-time.png','-dpng','-r300');
 clf();
+cd('..');
 
 end % function
 

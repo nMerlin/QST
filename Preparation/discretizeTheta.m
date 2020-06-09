@@ -6,9 +6,9 @@ XOut = NaN(ceil(3*nRows/nIntervals), nIntervals, nSegments);
 thetaOut = XOut;
 maxCount = 0; % Keeps track of longest interval
 for iSeg = 1 : nSegments
-    % Remove NaN entries
-    thetaSegment = theta(~isnan(theta(:,iSeg)),iSeg);
-    XSegment = X(~isnan(X(:,iSeg)),iSeg);
+    % Remove NaN entries    
+    thetaSegment = theta(~(isnan(theta(:,iSeg))) & ~(isnan(X(:,iSeg))),iSeg);
+    XSegment = X(~(isnan(theta(:,iSeg))) & ~(isnan(X(:,iSeg))),iSeg);
     
     % Sorting theta and X into intervals with MatLab functions 
     [N,~,bin] = histcounts(thetaSegment,nIntervals);
