@@ -5,14 +5,16 @@ function plotSeries3Ch(T,varargin)
 p = inputParser;
 defaultFilename = '';
 addParameter(p,'Filename',defaultFilename,@isstr);
+defaultXUnit = 'fs';
+addParameter(p,'XUnit',defaultXUnit,@isstr);
 defaultType = 'Delay';
 addParameter(p,'Type',defaultType,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[filename,typestr] = c{:};
+[filename,typestr,xUnit] = c{:};
 
 fig = figure;
-formatFigA5(fig);
+%formatFigA5(fig);
 legendLocation = 'northeast';
 hideLegend = false;
 hold on;
@@ -24,16 +26,16 @@ switch typestr
         varX = T.discMeanVar;
         plot(xAxis,varX,'o','DisplayName','(\Delta Q)^2');
         ax = get(fig,'CurrentAxes');
-        xlabel(ax,'Delay (fs)');
+        xlabel(ax,['Delay (' xUnit ')']);
         
         % Fit with Gaussian
         fo = fitoptions('Method','NonlinearLeastSquares', ...
-            'StartPoint',[-5 0 600 8.3]);
+            'StartPoint',[-5 200 200 8.3]); %[-5 0 600 8.3])
         ft = fittype('a*exp(-(x-b)^2/(2*s^2))+c','options',fo);
         res = fit(xAxis,varX,ft);
         plot(ax,min(xAxis):1:max(xAxis),res(min(xAxis):1:max(xAxis)),'r', ...
             'DisplayName',['Gaussian with \sigma=', ...
-            num2str(round(res.s)),' fs']);
+            num2str(round(res.s)),' ',xUnit]);
         xlim(ax,[min(xAxis) max(xAxis)]);
         
         % Add fit results
@@ -57,19 +59,44 @@ switch typestr
         yAxis = T.discAmpl;
         plot(xAxis,yAxis,'o','DisplayName','|\alpha|');
         ax = get(fig,'CurrentAxes');
-        xlabel(ax,'Delay (fs)');
+        xlabel(ax,['Delay (' xUnit ')']);
         ylabel(ax,'Coherent Amplitude');
         xlim(ax,[min(xAxis) max(xAxis)]);
         
         % Fit with Gaussian
         fo = fitoptions('Method','NonlinearLeastSquares', ...
-            'StartPoint',[-5 0 600 8.3]);
+            'StartPoint',[2 200 50 0]); %[-5 0 600 8.3])
         ft = fittype('a*exp(-(x-b)^2/(2*s^2))+c','options',fo);
         res = fit(xAxis,yAxis,ft);
         fitx = min(xAxis):1:max(xAxis);
         fity = res(min(xAxis):1:max(xAxis));
         plot(ax,fitx,fity,'r','DisplayName',['Gaussian; \sigma=', ...
-            num2str(round(abs(res.s))),' fs']);
+            num2str(round(abs(res.s))),' ',xUnit]);
+        
+        % Add fit results
+        fitString = evalc('disp(res)');
+        text(min(xlim),mean(ylim),fitString);
+        
+    case 'g2'
+        %% Create plot delays versus g2
+        xAxis = T.Delay;
+        yAxis = T.g2;
+        plot(xAxis,yAxis,'o','DisplayName','g^{2}(0)');
+        ax = get(fig,'CurrentAxes');
+        xlabel(ax,['Delay (' xUnit ')']);
+        ylabel(ax,'g^{2}(0)');
+        xlim(ax,[min(xAxis) max(xAxis)]);
+        ylim(ax,[1 2]);
+        
+        % Fit with Gaussian
+        fo = fitoptions('Method','NonlinearLeastSquares', ...
+            'StartPoint',[-5 200 200 8.3]); %[-5 0 600 8.3])
+        ft = fittype('a*exp(-(x-b)^2/(2*s^2))+c','options',fo);
+        res = fit(xAxis,yAxis,ft);
+        fitx = min(xAxis):1:max(xAxis);
+        fity = res(min(xAxis):1:max(xAxis));
+        plot(ax,fitx,fity,'r','DisplayName',['Gaussian; \sigma=', ...
+            num2str(round(abs(res.s))),' ',xUnit]);
         
         % Add fit results
         fitString = evalc('disp(res)');
@@ -101,6 +128,31 @@ switch typestr
         legendLocation = 'NorthWest';
         hideLegend = true;
         ax.FontSize = 22;
+    case 'meanN'
+        %% Create plot delays versus postselected mean photon number
+        xAxis = T.Delay;
+        yAxis = T.n;
+        plot(xAxis,yAxis,'o','DisplayName','<n>_c');
+        ax = get(fig,'CurrentAxes');
+        xlabel(ax,['Delay (' xUnit ')']);
+        ylabel(ax,'<n>_c');
+        xlim(ax,[min(xAxis) max(xAxis)]);
+        ylim(ax,[0 max(yAxis)+2]);
+        
+        % Fit with Gaussian
+        fo = fitoptions('Method','NonlinearLeastSquares', ...
+            'StartPoint',[2 200 50 0]); %[-5 0 600 8.3])
+        ft = fittype('a*exp(-(x-b)^2/(2*s^2))+c','options',fo);
+        res = fit(xAxis,yAxis,ft);
+        fitx = min(xAxis):1:max(xAxis);
+        fity = res(min(xAxis):1:max(xAxis));
+        plot(ax,fitx,fity,'r','DisplayName',['Gaussian; \sigma=', ...
+            num2str(round(abs(res.s))),' ',xUnit]);
+        
+        % Add fit results
+        fitString = evalc('disp(res)');
+        text(min(xlim),mean(ylim),fitString);
+        
 end
 
 %% Common figure manipulation
@@ -117,10 +169,12 @@ if ~isempty(filename)
     end
 end
 hold off;
+graphicsSettings;
 
 %% Write figure to file and close it
 if ~isempty(filename)
-    savefig(fig,filename);
+    savefig(fig,[filename '.fig']);
+    print([filename '.png'],'-dpng');
     close all;
 end
 
