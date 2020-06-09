@@ -28,7 +28,8 @@ ys23 = smoothCrossCorr(X2(:,:,1:nsegments),X3(:,:,1:nsegments));
         minpks = -minpks;
         maxP = mean(maxpks);
         minP = mean(minpks);
-        A = (maxP - minP)/(maxP + minP);
+        %A = (maxP - minP)/(maxP + minP);
+        A = (maxP - minP);
     end
 
 
