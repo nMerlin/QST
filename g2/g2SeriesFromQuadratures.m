@@ -50,6 +50,13 @@ for iStruct =  1:length(Contents)
      currentToken{1}=strrep(currentToken{1},',','.');
     dataStruct(iStruct).I = str2double(cell2mat(currentToken{1}));
     
+    if ~exist(['Plots-' useX],'dir')
+    mkdir(['Plots-' useX])
+    end
+    if ~exist(['g2data-' useX],'dir')
+    mkdir(['g2data-' useX])
+    end
+    
     %%% Load data
     %cd('Quadratures');
     cd('mat-data');
@@ -72,25 +79,23 @@ for iStruct =  1:length(Contents)
         nAv = mean(ada);  % Mean photon number  
         if strcmp(weight, 'yes')
             g2Av = g2vec'*ada.^2'/sum(ada.^2);
-    
+        elseif strcmp(weight, 'slow') 
+            g2Av = mean(ada.^2)/mean(ada).^2;
         else
             g2Av = mean(g2vec);    
-        end
+        end      
         g2Std = sqrt(var(g2vec)); 
         %plot g2
         cd('..');
-        mkdir(['Plots-' useX]);
         cd(['Plots-' useX]);
         plotG2vsTime(times, g2vec, ada, [strrep(filename,'.mat','') '-Res-' num2str(nResolution) ]);
         cd('..');
-        mkdir(['g2data-' useX]);
         cd(['g2Data-' useX]);
         save([strrep(filename,'.mat','') '-G2-nResolution-' num2str(nResolution) '-' g2method '.mat'],...
             'times','g2vec','ada');
         cd('..');
     else
         cd('..');
-        mkdir(['Plots-' useX]);
         cd(['Plots-' useX]);
         [g2vec, ada, meang2, g2Std] = g2Bins(X, nResolution, bins, filename); 
         g2Av = meang2;
