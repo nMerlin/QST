@@ -1,4 +1,4 @@
-function [O1,O2,O3,oTheta] = selectOrthogonal(X1,X2,X3,theta,piezoSign,varargin)
+function [O1,O2,O3,oTheta,iOrth] = selectOrthogonal(X1,X2,X3,theta,piezoSign,varargin)
 %SELECTORTHOGONAL Select all data points where X1 and X2 are orthogonal
 %
 % Input Arguments:
@@ -6,7 +6,7 @@ function [O1,O2,O3,oTheta] = selectOrthogonal(X1,X2,X3,theta,piezoSign,varargin)
 %   reshaped into piezo-segments with offset already removed)
 %   X1 is the channel that is used for orthogonal selection as well as for 
 %   the relative phase computation between X1 and X3. 
-%   X2 is only used for orthogonal selection.
+%   X2 is only used for orthogonal selection. X3 is the target channel.
 %   theta - reconstructed phase for X3, prepared with COMPUTEPHASE
 %   piezoSign - starting sign of the piezo movement
 %
