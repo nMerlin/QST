@@ -1,4 +1,4 @@
-function [varX,delX] = plotThetaX(theta,X, ys, filename, varargin)
+function [varX,delX,ThetaLine,Xline] = plotThetaX(theta,X, ys, filename, varargin)
 
 %theta, X, ys should contain only one segment
 
