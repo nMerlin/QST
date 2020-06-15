@@ -153,6 +153,31 @@ switch typestr
         fitString = evalc('disp(res)');
         text(min(xlim),mean(ylim),fitString);
         
+        case 'discN'
+        %% Create plot delays versus postselected mean photon number
+        xAxis = T.Delay;
+        yAxis = T.discN;
+        plot(xAxis,yAxis,'o','DisplayName','<n>_c');
+        ax = get(fig,'CurrentAxes');
+        xlabel(ax,['Delay (' xUnit ')']);
+        ylabel(ax,'<n>_c');
+        xlim(ax,[min(xAxis) max(xAxis)]);
+        ylim(ax,[0 max(yAxis)+2]);
+        
+        % Fit with Gaussian
+        fo = fitoptions('Method','NonlinearLeastSquares', ...
+            'StartPoint',[2 200 50 0]); %[-5 0 600 8.3])
+        ft = fittype('a*exp(-(x-b)^2/(2*s^2))+c','options',fo);
+        res = fit(xAxis,yAxis,ft);
+        fitx = min(xAxis):1:max(xAxis);
+        fity = res(min(xAxis):1:max(xAxis));
+        plot(ax,fitx,fity,'r','DisplayName',['Gaussian; \sigma=', ...
+            num2str(round(abs(res.s))),' ',xUnit]);
+        
+        % Add fit results
+        fitString = evalc('disp(res)');
+        text(min(xlim),mean(ylim),fitString);
+        
 end
 
 %% Common figure manipulation

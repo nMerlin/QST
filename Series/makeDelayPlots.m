@@ -125,7 +125,7 @@ if delayG2
 end
 if delayN
     dispstat('Making DelayN plot ...','timestamp','keepthis');
-    plotSeries3Ch(T,'Type','meanN','Filename', ...
+    plotSeries3Ch(T,'Type','discN','Filename', ...
         [figurepath,datestring,'-DelayN-',selStr,'.fig'],'XUnit',xUnit);    
 end
 if movieWigner2D || movieWigner3D

@@ -43,13 +43,28 @@ for iStruct =  1:length(Contents)
     % get current or power
     %currentToken = regexpi(filename,'-([0123456789.]*)mA','tokens');
 %     currentToken = regexpi(filename,'mW-([0123456789.]*)mW','tokens');
-%      currentToken = regexpi(filename,'([0123456789,]*)mW-5mW','tokens');
-    currentToken = regexpi(filename,'([0123456789,]*)mW-4mW','tokens');
+%      currentToken = regexpi(filename,'([0123456789,]*)mW-5mW','tokens');    
      %currentToken = regexpi(filename,'([0123456789,]*)mW','tokens'); 
     % currentToken = regexpi(filename,'mat([0123456789,]*)','tokens');
-     currentToken{1}=strrep(currentToken{1},',','.');
-    dataStruct(iStruct).I = str2double(cell2mat(currentToken{1}));
     
+    switch parameter
+        case 'power'    
+            currentToken = regexpi(filename,'([0123456789,]*)mW-4mW','tokens');
+             currentToken{1}=strrep(currentToken{1},',','.');
+             dataStruct(iStruct).I = str2double(cell2mat(currentToken{1}));
+        case 'delay'
+            delayToken = regexpi(filename,'([-0123456789,-]*)mm','tokens');
+            delay = cell2mat(delayToken{1});
+            numberToken = regexpi(delay,'^([0123456789,]*)-','tokens'); 
+            number = cell2mat(numberToken{1});
+            delay = strrep(delay,[number '-'],'');
+            delay = strrep(delay,',','.');
+            delay = str2double(delay);
+            c = 299792458; % in m/s
+            delay = 2*delay/1000/c*10^12; %delay in ps   
+            dataStruct(iStruct).I = delay;
+    end
+         
     if ~exist(['Plots-' useX],'dir')
     mkdir(['Plots-' useX])
     end
