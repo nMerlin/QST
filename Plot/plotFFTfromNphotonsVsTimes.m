@@ -1,4 +1,4 @@
-function [] = plotFFTfromNphotonsVsTimes(ada,times,filename)
+function [] = plotFFTfromNphotonsVsTimes(ada,times,filename,varargin)
 %% PLOTFFT plots the fourier transformation of the time dependent photon number ada.
 %
 %   Input Arguments:
@@ -6,6 +6,14 @@ function [] = plotFFTfromNphotonsVsTimes(ada,times,filename)
 %       [g2vec, ada, times] = g2(X,nResolution, varargin) from the quadratures X
 %       times: time vector
 %       filename: name for the saved figure
+
+%% Validate and parse input arguments
+p = inputParser;
+defaultAxis = [0 7000 0 0.5];
+addParameter(p,'Axis',defaultAxis);
+parse(p,varargin{:});
+c = struct2cell(p.Results);
+[Ax] = c{:};
 
     T = mean(diff(times));
     samplerate = 1/T;
@@ -25,7 +33,7 @@ function [] = plotFFTfromNphotonsVsTimes(ada,times,filename)
     title('Single-Sided Amplitude Spectrum');
     xlabel('f (Hz)');
     ylabel('|P1(f)|');
-    axis([0 7000 0 0.5]);
+    axis(Ax);
 
     % Saving 
     savefig(['plotFFT-' filename '.fig']);
