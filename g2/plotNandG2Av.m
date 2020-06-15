@@ -17,7 +17,7 @@ function [] = plotNandG2Av(filename,parameter)
         case 'power'
             xlabel('Excitation Power (mW)','FontSize',fontsize,'Interpreter','latex');
         case 'delay'
-            xlabel('delay','FontSize',fontsize,'Interpreter','latex');
+            xlabel('delay (mm)','FontSize',fontsize,'Interpreter','latex');
     end
    
     graphicsSettings;
@@ -38,7 +38,7 @@ function [] = plotNandG2Av(filename,parameter)
         case 'power'
             xlabel('Excitation Power (mW)','FontSize',fontsize,'Interpreter','latex');
         case 'delay'
-            xlabel('delay','FontSize',fontsize,'Interpreter','latex');
+            xlabel('delay (mm)','FontSize',fontsize,'Interpreter','latex');
     end
     graphicsSettings;
     grid on; 
