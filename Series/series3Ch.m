@@ -48,6 +48,8 @@ function T = series3Ch(varargin)
 %       maximum. 
 %   'range': the range for selecting only photon numbers > n_max(1-range)
 %       in removeNBelowLimit
+%   'VaryAPS': Default is 'false'. choose the postselection radius according to 
+%       photon numbers, while keeping the conditional radius as fixed parameter
 %
 %   *** Developer Only ***
 %   'FileRange': Default is [] and loops over all found files. In any other
@@ -82,6 +84,8 @@ defaultGetDelay = false;
 addParameter(p,'GetDelay',defaultGetDelay,@islogical);
 defaultRemoveModulation = false;
 addParameter(p,'RemoveModulation',defaultRemoveModulation,@islogical);
+defaultVaryAPS = false;
+addParameter(p,'VaryAPS',defaultVaryAPS,@islogical);
 defaultSelParams = struct('Type','fullcircle','Position',[2.5,0.5]);
 addParameter(p,'SelectionParameters',defaultSelParams,@isstruct);
 defaultRange = 0.3;
@@ -89,7 +93,7 @@ addParameter(p,'Range',defaultRange,@isnumeric);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
 [filerange,fitexp,getDelay,nDisc,range,recomputeTheta,remMod,rewriteRho,rewriteWigner,rhoParams,saveps, ...
-    saverho,savetheta,saveWigner,selParams] = c{:};
+    saverho,savetheta,saveWigner,selParams,varyAPS] = c{:};
 
 % Dependencies among optional input arguments
 if saveWigner || rewriteWigner
@@ -122,6 +126,8 @@ for ii = 1:length(filerange)
     clear rho WF;
     C = strsplit(files{i},'.');
     filename = C{1};
+    postFilename =  ['post-data/',filename,'-',selStr,'-remMod-',...
+            num2str(remMod),'-range-',num2str(range),'-varyAPS-',num2str(varyAPS),'.mat'];
     
     if getDelay
         % get delay from the file name with format xx-yymm, where xx is the
@@ -140,7 +146,6 @@ for ii = 1:length(filerange)
     end
     
     if ~saveps
-        postFilename =  ['post-data/',filename,'-',selStr,'-remMod-',num2str(remMod),'-range-',num2str(range),'.mat'];
         try
             load(postFilename);
         catch
@@ -182,15 +187,22 @@ for ii = 1:length(filerange)
             [O3,O1,O2,oTheta] = removeNBelowLimit(O3,O1,O2,oTheta,n1vec,n2vec,n3vec,range);
         end
         
-        [selX,selTheta] = selectRegion(O1,O2,O3,oTheta,selParams);%,'Plot','show','Filename',[filename '-assessTheta']
-        close all;
-        
         % Compute photon numbers for each channel
         [n1,n2,n3] = nPhotons(X1,X2,X3);
         quantities.nX1(i) = n1;
         quantities.nX2(i) = n2;
         quantities.nX3(i) = n3;
         quantities.minVar(i) = compute3ChLimit(n2,n3,n1);
+        
+        selParamsUse = selParams;
+        if varyAPS    %choose the postselection radius according to photon numbers
+           selParamsUse.Position(1) = selParams.Position(1) * (1+n2+n3)/sqrt(2*n1*(n2+n3));
+           quantities.APS(i) = selParamsUse.Position(1);
+        end
+               
+        [selX,selTheta] = selectRegion(O1,O2,O3,oTheta,selParamsUse);%,'Plot','show','Filename',[filename '-assessTheta']
+        close all;
+        
     end
     
     %% Get quantities of interest
@@ -238,7 +250,6 @@ for ii = 1:length(filerange)
     
     % Save postselected variables
     if saveps || tempsaveps
-        postFilename = ['post-data/',filename,'-',selStr,'-remMod-',num2str(remMod),'-range-',num2str(range),'.mat'];
         save(postFilename,'O1','O2','O3','oTheta', ...
             'selX','selTheta','selParams','meang2','meanVar');
         tempsaveps = false;
@@ -254,15 +265,13 @@ for ii = 1:length(filerange)
     % Compute the density matrix
     if (saverho && (~exist('rho','var'))) || rewriteRho
         rho = computeDensityMatrix(selX,selTheta,rhoParams);
-        save(['post-data/',filename,'-',selStr,'-remMod-',num2str(remMod),'-range-',num2str(range),'.mat'], ...
-            'rho','rhoParams','-append');
+        save(postFilename,'rho','rhoParams','-append');
     end
     
     % Compute Wigner function
     if (saveWigner && ~exist('WF','var')) || rewriteWigner
         WF = mainWignerFromRho(rho);
-        save(['post-data/',filename,'-',selStr,'-remMod-',num2str(remMod),'-range-',num2str(range),'.mat'], ...
-            'WF','-append');
+        save(postFilename,'WF','-append');
     end
 end
 
@@ -288,6 +297,6 @@ end
 files = strrep(files,',','.');
 [~,T.Filename]=cellfun(@fileparts,files','UniformOutput',false);
 writetable(T,[datestr(date,'yyyy-mm-dd-'),'series3Ch-',selStr,'-remMod-',...
-    num2str(remMod),'-range-',num2str(range),'.txt']);
+    num2str(remMod),'-range-',num2str(range),'-varyAPS-',num2str(varyAPS),'.txt']);
 
 end

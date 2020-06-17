@@ -9,9 +9,11 @@ defaultType = 'Amplitude';
 addParameter(p,'Type',defaultType,@isstr);
 defaultXUnit = 'fs';
 addParameter(p,'XUnit',defaultXUnit,@isstr);
+defaultVaryAPS = false;
+addParameter(p,'VaryAPS',defaultVaryAPS,@islogical);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[filename,typestr,xUnit] = c{:};
+[filename,typestr,varyAPS,xUnit] = c{:};
 
 % Constants
 figurepath = 'figures-fig/';
@@ -24,7 +26,7 @@ for iParams = 1:length(listOfParams)
     selParams = listOfParams(iParams);
     
     % From tables
-    A = seriesRead3ChTable(selParams);
+    A = seriesRead3ChTable(selParams,'VaryAPS',varyAPS);
     H = height(A);
     Radii = ones(H,1) * selParams.Position(1);
     Thicknesses = ones(H,1) * selParams.Position(2);
@@ -86,7 +88,11 @@ switch typestr
         legend('location','northwest');
         xlabel(['Delay (' xUnit ')']); 
         ylabel('Coherent Amplitude'); 
-        title('Coherent Amplitude vs. Radius of Postselected Fullcircle');
+        if ~varyAPS
+            title('Coherent Amplitude vs. Radius of Postselected Fullcircle');
+        else
+            title('Coherent Amplitude vs. A_c');
+        end
     case 'MeanVar'
         for i = 1:length(I)
             plot(delay(i,:),discMeanVar(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
@@ -96,7 +102,11 @@ switch typestr
         legend('location','southeast');
         ylabel('Average Variance');
         xlabel(['Delay (' xUnit ')']);
-        title('Variance vs. Radius of Postselected Fullcircle');
+        if ~varyAPS
+            title('Variance vs. Radius of Postselected Fullcircle');
+        else
+            title('Variance vs. A_c');
+        end
     case 'MeanVarSigma'
         errorbar(Yr(:,1),sigmas,abs(sigmas-sigmaConf(:,1)), ...
             abs(sigmas-sigmaConf(:,2)),'o-','DisplayName', ...
@@ -114,7 +124,11 @@ switch typestr
         legend('location','northwest');
         xlabel(['Delay (' xUnit ')']);
         ylabel('Photon Number');
-        title('Photon Number vs. Radius of Postselected Fullcircle');
+        if ~varyAPS
+            title('Photon Number vs. Radius of Postselected Fullcircle');
+        else
+            title('Photon Number vs. A_c');
+        end
     case 'G2'
         for i = 1:length(I)
             plot(delay(i,:),g2vals(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
@@ -124,7 +138,11 @@ switch typestr
         legend('location','northeast');
         xlabel(['Delay (' xUnit ')']);
         ylabel('g^{(2)}(0)');
-        title('G2 vs. Radius of Postselected Fullcircle');
+        if ~varyAPS
+            title('G2 vs. Radius of Postselected Fullcircle');
+        else
+            title('G2 vs. A_c');
+        end
     case 'ThicknessMeanVar'
         surf(delay,Yt,discMeanVar);
         view(-50,20);
