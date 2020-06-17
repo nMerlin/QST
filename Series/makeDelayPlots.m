@@ -20,12 +20,14 @@ defaultRemoveModulation = false;
 addParameter(p,'RemoveModulation',defaultRemoveModulation,@islogical);
 defaultRange = 0.3;
 addParameter(p,'Range',defaultRange,@isnumeric);
+defaultVaryAPS = false;
+addParameter(p,'VaryAPS',defaultVaryAPS,@islogical);
 defaultXUnit = 'fs';
 addParameter(p,'XUnit',defaultXUnit,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
 [figurepath,getDelay,range,recomputeTheta,remMod,saveps, ...
-    savetheta,selParams,xUnit] = c{:};
+    savetheta,selParams,varyAPS,xUnit] = c{:};
 
 % Constants
 pdfpath = 'figures-pdf/';
@@ -88,7 +90,7 @@ end
 
 % Find dependencies that need to be created
 [makeTable] = deal(false);
-if isempty(seriesRead3ChTable(selParams))
+if isempty(seriesRead3ChTable(selParams,'VaryAPS',varyAPS))
     makeTable = true;
 end
 
@@ -98,9 +100,9 @@ datestring = datestr(date,'yyyy-mm-dd');
 if makeTable
     dispstat('Making 3-channel table ...','timestamp','keepthis');
     T = series3Ch('SelectionParameters',selParams,'RecomputeTheta',recomputeTheta,'Range',range,...
-        'SavePostselection',saveps,'SaveTheta',savetheta,'GetDelay',getDelay,'RemoveModulation',remMod);    
+        'SavePostselection',saveps,'SaveTheta',savetheta,'GetDelay',getDelay,'RemoveModulation',remMod,'VaryAPS',varyAPS);    
 else
-    T = seriesRead3ChTable(selParams);
+    T = seriesRead3ChTable(selParams,'VaryAPS',varyAPS);
 end
 if ~exist('figures-fig','dir')
     mkdir('figures-fig');
