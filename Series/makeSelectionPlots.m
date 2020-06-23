@@ -11,6 +11,10 @@ defaultSavePostselection = false;
 addParameter(p,'SavePostselection',defaultSavePostselection,@islogical);
 defaultSaveTheta = false;
 addParameter(p,'SaveTheta',defaultSaveTheta,@islogical);
+defaultRecomputeOrth = false;
+addParameter(p,'RecomputeOrth',defaultRecomputeOrth,@islogical);
+defaultSaveOrth = false;
+addParameter(p,'SaveOrth',defaultSaveOrth,@islogical);
 defaultGetDelay = false;
 addParameter(p,'GetDelay',defaultGetDelay,@islogical);
 defaultRemoveModulation = false;
@@ -23,8 +27,8 @@ defaultXUnit = 'fs';
 addParameter(p,'XUnit',defaultXUnit,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[getDelay,listOfParams,range,recomputeTheta,remMod,saveps, ...
-    savetheta,varyAPS,xUnit] = c{:};
+[getDelay,listOfParams,range,recomputeOrth,recomputeTheta,remMod, ...
+    saveOrth,saveps,savetheta,varyAPS,xUnit] = c{:};
 
 % Constants
 pdfpath = 'figures-pdf/';
@@ -44,16 +48,19 @@ end
     thicknessMeanVarMin,cleanThicknessMeanVarMin,radiusG2,cleanRadiusG2,...
     thicknessG2,cleanThicknessG2,radiusMeanVarSigma, ...
     cleanRadiusMeanVarSigma,thicknessMeanVarSigma, ...
-    cleanThicknessMeanVarSigma] = deal(false);
+    cleanThicknessMeanVarSigma,nWithoutPostselection,makeTable] = deal(false);
 switch type
     case 'all'
         delayPlots = true;
         radiusDiscAmpl = true;
         radiusMeanVar = true;
-        %radiusMeanVarSigma = true;
+        radiusMeanVarSigma = false;
         radiusDiscN = true;
         radiusG2 = true;
-        pdfs = true;
+        nWithoutPostselection = true;
+        pdfs = false;
+    case 'table' %only computes the series table without plotting
+        makeTable = true;
     case 'G2'
         radiusG2 = true;
     case 'radiusPlots'
@@ -62,6 +69,7 @@ switch type
         %radiusMeanVarSigma = true;
         radiusDiscN = true;
         radiusG2 = true;
+        nWithoutPostselection = true;
         %delayPlots = true;
     case 'cleanRadiusPlots'
         cleanRadiusDiscAmpl = true;
@@ -96,10 +104,20 @@ end
 
 %% Make stuff
 datestring = datestr(date,'yyyy-mm-dd');
+if makeTable
+    for iParams = 1:length(listOfParams)
+        makeDelayPlots('table','SelectionParameters',listOfParams(iParams),...
+        'RecomputeTheta',recomputeTheta,'RecomputeOrth',recomputeOrth,...
+        'SaveOrth',saveOrth,'SavePostselection',saveps,'SaveTheta',savetheta,'GetDelay',getDelay,...
+        'RemoveModulation',remMod,'XUnit',xUnit,'VaryAPS',varyAPS);  
+    end
+end
 if delayPlots
     for iParams = 1:length(listOfParams)
-        makeDelayPlots('plots','SelectionParameters',listOfParams(iParams),'RecomputeTheta',recomputeTheta,...
-        'SavePostselection',saveps,'SaveTheta',savetheta,'GetDelay',getDelay,'RemoveModulation',remMod,'XUnit',xUnit,'VaryAPS',varyAPS);  
+        makeDelayPlots('plots','SelectionParameters',listOfParams(iParams),...
+        'RecomputeTheta',recomputeTheta,'RecomputeOrth',recomputeOrth,...
+        'SaveOrth',saveOrth,'SavePostselection',saveps,'SaveTheta',savetheta,'GetDelay',getDelay,...
+        'RemoveModulation',remMod,'XUnit',xUnit,'VaryAPS',varyAPS);  
     end
 end
 if radiusDiscAmpl
@@ -126,7 +144,12 @@ if radiusG2
     filenameFig = [figurepath,datestring,'-RadiusG2.fig'];
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
         'Type','G2','XUnit',xUnit,'VaryAPS',varyAPS);
-end
+end    
+if nWithoutPostselection
+    filenameFig = [figurepath,datestring,'-nWithoutPostselection.fig'];
+    plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
+        'Type','nWithoutPostselection','XUnit',xUnit,'VaryAPS',varyAPS);
+end   
 if thicknessMeanVar
     filenameFig = [figurepath,datestring,'-ThicknessMeanVar.fig'];
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...

@@ -36,9 +36,15 @@ function T = series3Ch(varargin)
 %
 %   *** Other ***
 %   'SaveTheta': Default is 'false'. Choose true if you want the function
-%       to update the *.mat file with the computed theta vector.
+%       to update the *.mat file with the computed theta vector, and with 
+%       the orhtogonal variables O1,O2,O3,oTheta.
 %   'RecomputeTheta': Default is 'false'. Choose 'true' if you do not want
 %       to read the theta from disk but a new calculation, which is not saved. 
+%   'SaveOrth': Default is 'false'. Choose true if you want the function
+%       to update the *.mat file with the orthogonal variables O1,O2,O3,oTheta.
+%   'RecomputeOrth': Default is 'false'. Choose 'true' if you do not want
+%       to read the orthogonal variables O1,O2,O3,oTheta from disk but a new 
+%       calculation, which is not saved. 
 %   'NDisc': Default is 100. Number of bins to discretize theta for
 %       computing expectation values with 'computeExpectations'.
 %   'GetDelay': Default is 'false'. Choose true if the delay can be retrieved
@@ -70,6 +76,8 @@ defaultRewriteWigner = false;
 addParameter(p,'RewriteWigner',defaultRewriteWigner,@islogical);
 defaultRecomputeTheta = false;
 addParameter(p,'RecomputeTheta',defaultRecomputeTheta,@islogical);
+defaultRecomputeOrth = false;
+addParameter(p,'RecomputeOrth',defaultRecomputeOrth,@islogical);
 defaultRhoParams = struct;
 addParameter(p,'RhoParams',defaultRhoParams,@isstruct);
 defaultSavePostselection = false;
@@ -78,6 +86,8 @@ defaultSaveRho = false;
 addParameter(p,'SaveRho',defaultSaveRho,@islogical);
 defaultSaveTheta = false;
 addParameter(p,'SaveTheta',defaultSaveTheta,@islogical);
+defaultSaveOrth = false;
+addParameter(p,'SaveOrth',defaultSaveOrth,@islogical);
 defaultSaveWigner = false;
 addParameter(p,'SaveWigner',defaultSaveWigner,@islogical);
 defaultGetDelay = false;
@@ -92,8 +102,8 @@ defaultRange = 0.3;
 addParameter(p,'Range',defaultRange,@isnumeric);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[filerange,fitexp,getDelay,nDisc,range,recomputeTheta,remMod,rewriteRho,rewriteWigner,rhoParams,saveps, ...
-    saverho,savetheta,saveWigner,selParams,varyAPS] = c{:};
+[filerange,fitexp,getDelay,nDisc,range,recomputeOrth,recomputeTheta,remMod,rewriteRho,rewriteWigner,rhoParams, ...
+    saveOrth,saveps,saverho,savetheta,saveWigner,selParams,varyAPS] = c{:};
 
 % Dependencies among optional input arguments
 if saveWigner || rewriteWigner
@@ -172,13 +182,16 @@ for ii = 1:length(filerange)
                     ' Assigning random phase.']);
                 theta = rand(size(X1,1)*size(X1,2),size(X1,3))*2*pi;
             end
+            
         end
        
         if remMod %removes the edges of the piezo segments, where the photon number vectors make jumps
             [X1,X2,X3,theta,n1vec,n2vec,n3vec] = removeSegmentEdges(X1,X2,X3,theta,n1vec,n2vec,n3vec);
         end
-            
-        [O1,O2,O3,oTheta,iOrth] = selectOrthogonal(X2,X3,X1,theta,piezoSign);
+        
+        if (~exist('O1','var')) || recomputeOrth
+            [O1,O2,O3,oTheta,iOrth] = selectOrthogonal(X2,X3,X1,theta,piezoSign);
+        end
         
         if remMod %removes those Oi where the photon number is below a limit of n_max*(1-range)
             n1vec = n1vec(iOrth);
@@ -233,8 +246,20 @@ for ii = 1:length(filerange)
     % g2 estimation
     [g2values,nValues] = deal(zeros(10,1));
     for iG2=1:10
-        uniformX = seriesUniformSampling(selX,selTheta,'NBins',100);
-        [g2values(iG2),nValues(iG2)] = g2(uniformX,length(uniformX));
+        try
+            uniformX = seriesUniformSampling(selX,selTheta,'NBins',100);
+        catch
+            warning(['Problem with uniformSampling.', ...
+                'Use X without uniform sampling for g2.']);
+            uniformX = selX;
+        end    
+        try
+            [g2values(iG2),nValues(iG2)] = g2(uniformX,length(uniformX));
+        catch
+            warning('not enough X to compute g2. Set g2 = 2.');
+            g2values(iG2) = 2;
+            nValues(iG2) = 0;
+        end
     end
     quantities.g2(i) = mean(g2values);
     quantities.g2std(i) = std(g2values);
@@ -248,9 +273,13 @@ for ii = 1:length(filerange)
         save(['mat-data/',files{i}],'theta','-append');
     end
     
+    if saveOrth
+        save(['mat-data/',files{i}],'O1','O2','O3','oTheta','-append');
+    end
+    
     % Save postselected variables
     if saveps || tempsaveps
-        save(postFilename,'O1','O2','O3','oTheta', ...
+        save(postFilename, ...
             'selX','selTheta','selParams','meang2','meanVar');
         tempsaveps = false;
         if exist('rho','var')
