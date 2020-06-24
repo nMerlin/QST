@@ -25,9 +25,13 @@ defaultVaryAPS = false;
 addParameter(p,'VaryAPS',defaultVaryAPS,@islogical);
 defaultXUnit = 'fs';
 addParameter(p,'XUnit',defaultXUnit,@isstr);
+defaultFitType = 'gauss';
+addParameter(p,'FitType',defaultFitType,@isstr);
+defaultChannelAssignment = [1,2,3]; %[target,ps_piezo_fast,ps_piezo_slow]
+addParameter(p,'ChannelAssignment',defaultChannelAssignment,@isvector);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[getDelay,listOfParams,range,recomputeOrth,recomputeTheta,remMod, ...
+[chAssign,fitType,getDelay,listOfParams,range,recomputeOrth,recomputeTheta,remMod, ...
     saveOrth,saveps,savetheta,varyAPS,xUnit] = c{:};
 
 % Constants
@@ -109,7 +113,7 @@ if makeTable
         makeDelayPlots('table','SelectionParameters',listOfParams(iParams),...
         'RecomputeTheta',recomputeTheta,'RecomputeOrth',recomputeOrth,...
         'SaveOrth',saveOrth,'SavePostselection',saveps,'SaveTheta',savetheta,'GetDelay',getDelay,...
-        'RemoveModulation',remMod,'XUnit',xUnit,'VaryAPS',varyAPS);  
+        'RemoveModulation',remMod,'XUnit',xUnit,'VaryAPS',varyAPS,'ChannelAssignment',chAssign);  
     end
 end
 if delayPlots
@@ -117,58 +121,58 @@ if delayPlots
         makeDelayPlots('plots','SelectionParameters',listOfParams(iParams),...
         'RecomputeTheta',recomputeTheta,'RecomputeOrth',recomputeOrth,...
         'SaveOrth',saveOrth,'SavePostselection',saveps,'SaveTheta',savetheta,'GetDelay',getDelay,...
-        'RemoveModulation',remMod,'XUnit',xUnit,'VaryAPS',varyAPS);  
+        'RemoveModulation',remMod,'XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'ChannelAssignment',chAssign);  
     end
 end
 if radiusDiscAmpl
     filenameFig = [figurepath,datestring,'-RadiusDiscAmpl.fig'];
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
-        'Type','Amplitude','XUnit',xUnit,'VaryAPS',varyAPS);
+        'Type','Amplitude','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType);
 end
 if radiusMeanVar
     filenameFig = [figurepath,datestring,'-RadiusMeanVar.fig'];
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
-        'Type','MeanVar','XUnit',xUnit,'VaryAPS',varyAPS);
+        'Type','MeanVar','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType);
 end
 if radiusMeanVarSigma
     filenameFig = [figurepath,datestring,'-RadiusMeanVarSigma.fig'];
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
-        'Type','MeanVarSigma','XUnit',xUnit,'VaryAPS',varyAPS);
+        'Type','MeanVarSigma','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType);
 end
 if radiusDiscN
     filenameFig = [figurepath,datestring,'-RadiusDiscN.fig'];
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
-        'Type','DiscN','XUnit',xUnit,'VaryAPS',varyAPS);
+        'Type','DiscN','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType);
 end
 if radiusG2
     filenameFig = [figurepath,datestring,'-RadiusG2.fig'];
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
-        'Type','G2','XUnit',xUnit,'VaryAPS',varyAPS);
+        'Type','G2','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType);
 end    
 if nWithoutPostselection
     filenameFig = [figurepath,datestring,'-nWithoutPostselection.fig'];
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
-        'Type','nWithoutPostselection','XUnit',xUnit,'VaryAPS',varyAPS);
+        'Type','nWithoutPostselection','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType);
 end   
 if thicknessMeanVar
     filenameFig = [figurepath,datestring,'-ThicknessMeanVar.fig'];
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
-        'Type','ThicknessMeanVar','XUnit',xUnit,'VaryAPS',varyAPS);
+        'Type','ThicknessMeanVar','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType);
 end
 if thicknessMeanVarSigma
     filenameFig = [figurepath,datestring,'-ThicknessMeanVarSigma.fig'];
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
-        'Type','ThicknessMeanVarSigma','XUnit',xUnit,'VaryAPS',varyAPS);
+        'Type','ThicknessMeanVarSigma','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType);
 end
 if thicknessMeanVarMin
     filenameFig = [figurepath,datestring,'-ThicknessMeanVarMin.fig'];
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
-        'Type','ThicknessMeanVarMin','XUnit',xUnit,'VaryAPS',varyAPS);
+        'Type','ThicknessMeanVarMin','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType);
 end
 if thicknessG2
     filenameFig = [figurepath,datestring,'-ThicknessG2.fig'];
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
-        'Type','ThicknessG2','XUnit',xUnit,'VaryAPS',varyAPS);
+        'Type','ThicknessG2','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType);
 end
 if pdfs
     for iParams = 1:length(listOfParams)
