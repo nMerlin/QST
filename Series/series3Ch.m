@@ -1,8 +1,5 @@
 function T = series3Ch(varargin)
 %SERIES3CH is used to batch process 3-Channel data already converted to mat
-%  X2 is the channel that is piezo modulated and used for orthogonal selection as well as for 
-%  the relative phase computation between X2 and X1. 
-%   X3 is only used for orthogonal selection. X1 is the target channel.
 %
 % Functionality:
 %   Looks for *.mat files in the folder 'mat-data', computes multiple
@@ -17,6 +14,10 @@ function T = series3Ch(varargin)
 %       separate file.
 %   'SelectionParameters': Parameters for 'selectRegion'. Default is
 %       'Type'='fullcircle' and 'Position'=[2.5,0.5]
+%   'ChannelAssignment': default is [1,2,3]; This sets which channel is target, 
+%       which is the postselection channel that is piezo modulated fast for 
+%       the phase computation and which is the last postselection channel, 
+%       according to [target,ps_piezo_fast,ps_piezo_slow]
 %
 %   *** Density Matrix ***
 %   'RhoParams': Default is empty. Structure containing optional input
@@ -100,9 +101,11 @@ defaultSelParams = struct('Type','fullcircle','Position',[2.5,0.5]);
 addParameter(p,'SelectionParameters',defaultSelParams,@isstruct);
 defaultRange = 0.3;
 addParameter(p,'Range',defaultRange,@isnumeric);
+defaultChannelAssignment = [1,2,3]; %[target,ps_piezo_fast,ps_piezo_slow]
+addParameter(p,'ChannelAssignment',defaultChannelAssignment,@isvector);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[filerange,fitexp,getDelay,nDisc,range,recomputeOrth,recomputeTheta,remMod,rewriteRho,rewriteWigner,rhoParams, ...
+[chAssign,filerange,fitexp,getDelay,nDisc,range,recomputeOrth,recomputeTheta,remMod,rewriteRho,rewriteWigner,rhoParams, ...
     saveOrth,saveps,saverho,savetheta,saveWigner,selParams,varyAPS] = c{:};
 
 % Dependencies among optional input arguments
@@ -168,10 +171,19 @@ for ii = 1:length(filerange)
         load(['mat-data/',files{i}]);
     end
     
+    quadratures = zeros([size(X1) 3]);
+    quadratures(:,:,:,1) = X1;
+    quadratures(:,:,:,2) = X2;
+    quadratures(:,:,:,3) = X3;
+    X1 = quadratures(:,:,:,chAssign(1));  % this sets X1 to be the target channels etc
+    X2 = quadratures(:,:,:,chAssign(2));
+    X3 = quadratures(:,:,:,chAssign(3));
+    clear('quadratures');    
+    
     if remMod %rescales the Xi according to time dependent photon numbers
             [X1,X2,X3,n1vec,n2vec,n3vec] = removeModulation(X1,X2,X3); 
     end; 
-
+    
     %% Compute Phase and Postselected Variables
     if ~exist('selX','var') % run only if postselection file was not loaded
         if (~exist('theta','var')) || recomputeTheta % run only if theta is not available or should be rewritten

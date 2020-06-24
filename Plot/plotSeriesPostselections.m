@@ -9,11 +9,13 @@ defaultType = 'Amplitude';
 addParameter(p,'Type',defaultType,@isstr);
 defaultXUnit = 'fs';
 addParameter(p,'XUnit',defaultXUnit,@isstr);
+defaultFitType = 'gauss';
+addParameter(p,'FitType',defaultFitType,@isstr);
 defaultVaryAPS = false;
 addParameter(p,'VaryAPS',defaultVaryAPS,@islogical);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[filename,typestr,varyAPS,xUnit] = c{:};
+[filename,fitType,typestr,varyAPS,xUnit] = c{:};
 
 % Constants
 figurepath = 'figures-fig/';
@@ -85,42 +87,55 @@ g2std = g2std(I,:);
 nX1 = nX1(1,:);
 nX2 = nX2(1,:);
 nX3 = nX3(1,:);
-[fitWidth,fitPeak,FWHMerror] = deal(zeros(length(I),1));
+[fitTau,fitPeak,tauError] = deal(zeros(length(I),1));
 
 %% Create figure
 fig = figure;
 %formatFigA5(fig);
 switch typestr
     case 'Amplitude'
+        figure(1);
+        ax = gca;
         for i = 1:length(I)
-            plot(delay(i,:),discAmpl(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+            plot(ax,delay(i,:),discAmpl(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
-             % Fit with Gaussian
-%             fo = fitoptions('Method','NonlinearLeastSquares', ...
-%                 'StartPoint',[5 200 10 0]); %[-5 0 600 8.3])
-%             ft = fittype('a*exp(-(x-b)^2/(2*s^2))+c','options',fo);
             x = delay(i,:);
-%             xx= min(x):mean(diff(x))/100:max(x);
-%             %xx = x;
-%             ip = spline(x, discAmpl(i,:), xx);
-%             res = fit(xx',ip','gauss1');
             if ~any(~isnan(discAmpl(i,:))) %if there are only nans
                 discAmpl(i,:) = zeros(1,H);
             end
-
-            ys = transpose(csaps(x,discAmpl(i,:),0.001,x));
-            [res,gof,~] = fit(x',ys,'gauss1'); %f(x) =  a1*exp(-((x-b1)/c1)^2)
-            %res = fit(delay(i,:)',discAmpl(i,:)','gauss1'); %,ft
-            plot(min(delay(i,:)):1:max(delay(i,:)),res(min(delay(i,:)):1:max(delay(i,:))),'r','DisplayName','');
-            fitWidth(i) = 2*res.c1*sqrt(log(2));
-            level = 2*tcdf(-1,gof.dfe);
-            m = confint(res,level); 
-            std = m(end,end) - res.c1;
-            FWHMerror(i) = std * 2*sqrt(log(2)); 
-            fitPeak(i) = res(res.b1);                    
+            %ys = transpose(csaps(x,discAmpl(i,:),0.001,x));  
+            ys = discAmpl(i,:);
+            switch fitType
+                case 'gauss'
+                    [res,gof,~] = fit(x',ys,'gauss1'); %f(x) =  a1*exp(-((x-b1)/c1)^2)
+                    fitTau(i) = res.c1;
+                    level = 2*tcdf(-1,gof.dfe);
+                    m = confint(res,level); 
+                    tauError(i) = m(end,end) - res.c1;
+                    fitPeak(i) = res(res.b1);  
+                    plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(min(delay(i,:)):1:max(delay(i,:))),'r','DisplayName','');
+                case 'voigt' 
+%                     fo = fitoptions('Method','NonlinearLeastSquares', ...
+%                             'StartPoint',[50, 5]); %gamma, sigma
+%                     zeroDelay = 200;  %set this...  
+%                     ysFit = ys/max(ys);
+%                     ft = fittype( @(gam,sig,peakVal,x) myvoigt(x, peakVal, gam, sig) ,'problem','peakVal','options',fo);    
+%                     [res,gof,~] = fit(x',ysFit,ft,'problem',zeroDelay);
+%                     resPlot= res(min(delay(i,:)):1:max(delay(i,:)));
+%                     resPlot = resPlot * max(ys);
+%                     plot(ax,min(delay(i,:)):1:max(delay(i,:)),resPlot,'r','DisplayName','');
+                                      
+                    initGuess1 = [200,50, 5]; %peak x, gamma, sigma
+                    [estimates1, model1] = voigtfit(x, ys, initGuess1, [min(x), max(x)]);
+                    res = myvoigt(x, 200, estimates1(2), estimates1(3) );%estimates1(1)
+                    res = res';
+                    c = abs(res\ys');
+                    res = res*c;             
+                    plot(ax,x,res,'r','DisplayName','');
+            end;               
         end;
         hold off;
-        f=get(gca,'Children');
+        f=get(ax,'Children');
         index = length(f)-((1:length(I))-1).*2;
         legend(f(index),'location','northwest');
         xlabel(['Delay (' xUnit ')']); 
@@ -130,6 +145,7 @@ switch typestr
         else
             title('Coherent Amplitude vs. A_c');
         end
+        fig = figure(1);
     case 'MeanVar'
         for i = 1:length(I)
             plot(delay(i,:),discMeanVar(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
@@ -227,10 +243,10 @@ if ~isempty(filename)
 end
 
 %% plot fit results vs ring radius and thickness
-if any(fitWidth)
-    errorbar(Yr(:,1),fitWidth,FWHMerror,'o-','Linewidth',2);
+if any(fitTau)
+    errorbar(Yr(:,1),fitTau,tauError,'o-','Linewidth',2);
     xlabel('A_c set for postselection');
-    ylabel(['FWHM of Gaussian (' xUnit ')']);
+    ylabel(['\tau_c of Gaussian (' xUnit ')']);
     graphicsSettings;
     title([filename '-fitWidthsVsRadius']);
     savefig([filename '-fitWidthsVsRadius.fig']);
@@ -249,10 +265,10 @@ if any(fitPeak)
     close all;
 end
 
-if any(fitWidth)
-    errorbar(Yt(:,1),fitWidth,FWHMerror,'o-','Linewidth',2);
+if any(fitTau)
+    errorbar(Yt(:,1),fitTau,tauError,'o-','Linewidth',2);
     xlabel('Ring Thickness set for postselection');
-    ylabel(['FWHM of Gaussian (' xUnit ')']);
+    ylabel(['\tau_c of Gaussian (' xUnit ')']);
     graphicsSettings;
     title([filename '-fitWidthsVsThickness']);
     savefig([filename '-fitWidthsVsThickness.fig']);

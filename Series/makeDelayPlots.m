@@ -28,9 +28,11 @@ defaultVaryAPS = false;
 addParameter(p,'VaryAPS',defaultVaryAPS,@islogical);
 defaultXUnit = 'fs';
 addParameter(p,'XUnit',defaultXUnit,@isstr);
+defaultChannelAssignment = [1,2,3]; %[target,ps_piezo_fast,ps_piezo_slow]
+addParameter(p,'ChannelAssignment',defaultChannelAssignment,@isvector);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[figurepath,getDelay,range,recomputeOrth,recomputeTheta,remMod, ...
+[chAssign,figurepath,getDelay,range,recomputeOrth,recomputeTheta,remMod, ...
     saveOrth,saveps,savetheta,selParams,varyAPS,xUnit] = c{:};
 
 % Constants
@@ -106,7 +108,8 @@ if makeTable
     dispstat('Making 3-channel table ...','timestamp','keepthis');
     T = series3Ch('SelectionParameters',selParams,'RecomputeTheta',recomputeTheta,...
         'RecomputeOrth',recomputeOrth,'SaveOrth',saveOrth,'Range',range,...
-        'SavePostselection',saveps,'SaveTheta',savetheta,'GetDelay',getDelay,'RemoveModulation',remMod,'VaryAPS',varyAPS);    
+        'SavePostselection',saveps,'SaveTheta',savetheta,'GetDelay',getDelay,...
+        'RemoveModulation',remMod,'VaryAPS',varyAPS,'ChannelAssignment',chAssign);    
 else
     T = seriesRead3ChTable(selParams,'VaryAPS',varyAPS);
 end
