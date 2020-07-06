@@ -118,7 +118,7 @@ filestruct = dir('mat-data/*.mat');
 files = {filestruct.name};
 
 %% Create folder 'post-data'
-if ~exist('post-data','dir')
+if ~exist([pwd 'post-data'],'dir')
     mkdir('post-data')
 end
 
@@ -171,57 +171,73 @@ for ii = 1:length(filerange)
         load(['mat-data/',files{i}]);
     end
     
-    quadratures = zeros([size(X1) 3]);
-    quadratures(:,:,:,1) = X1;
-    quadratures(:,:,:,2) = X2;
-    quadratures(:,:,:,3) = X3;
-    X1 = quadratures(:,:,:,chAssign(1));  % this sets X1 to be the target channels etc
-    X2 = quadratures(:,:,:,chAssign(2));
-    X3 = quadratures(:,:,:,chAssign(3));
-    clear('quadratures');    
+    if exist('X1','var')
+        quadratures = zeros([size(X1) 3]);
+        quadratures(:,:,:,1) = X1;
+        quadratures(:,:,:,2) = X2;
+        quadratures(:,:,:,3) = X3;
+        Xtg = quadratures(:,:,:,chAssign(1));  % this sets X1 to be the target channels etc
+        XpsFast = quadratures(:,:,:,chAssign(2));
+        XpsSlow = quadratures(:,:,:,chAssign(3));
+        clear('quadratures'); 
+    end
+      
     
-    if remMod %rescales the Xi according to time dependent photon numbers
-            [X1,X2,X3,n1vec,n2vec,n3vec] = removeModulation(X1,X2,X3); 
-    end; 
+%     if remMod %rescales the Xi according to time dependent photon numbers
+%             [X1,X2,X3,n1vec,n2vec,n3vec] = removeModulation(X1,X2,X3);
+%             if (exist('thetaRemMod','var')) && (~recomputeTheta)
+%                 theta = thetaRemMod;
+%             end
+%     end; 
     
     %% Compute Phase and Postselected Variables
     if ~exist('selX','var') % run only if postselection file was not loaded
         if (~exist('theta','var')) || recomputeTheta % run only if theta is not available or should be rewritten
             try
-                [theta,~] = computePhase(X1,X2,piezoSign);
+                [theta,~] = computePhase(Xtg,XpsFast,piezoSign);
             catch
                 warning(['Problem using computePhase.', ...
                     ' Assigning random phase.']);
-                theta = rand(size(X1,1)*size(X1,2),size(X1,3))*2*pi;
+                theta = rand(size(Xtg,1)*size(Xtg,2),size(Xtg,3))*2*pi;
             end
             
         end
        
-        if remMod %removes the edges of the piezo segments, where the photon number vectors make jumps
-            [X1,X2,X3,theta,n1vec,n2vec,n3vec] = removeSegmentEdges(X1,X2,X3,theta,n1vec,n2vec,n3vec);
-        end
+%         if remMod %removes the edges of the piezo segments, where the photon number vectors make jumps
+%             [X1,X2,X3,theta,n1vec,n2vec,n3vec] = removeSegmentEdges(X1,X2,X3,theta,n1vec,n2vec,n3vec);
+%         end
         
-        if (~exist('O1','var')) || recomputeOrth
-            [O1,O2,O3,oTheta,iOrth] = selectOrthogonal(X2,X3,X1,theta,piezoSign);
+        if (~exist('O1','var')) || recomputeOrth  %%case, where remMod is done first?
+            [O1,O2,O3,oTheta,iOrth] = selectOrthogonal(XpsFast,XpsSlow,Xtg,theta,piezoSign);
         end
         
         if remMod %removes those Oi where the photon number is below a limit of n_max*(1-range)
-            n1vec = n1vec(iOrth);
-            n2vec = n2vec(iOrth);
-            n3vec = n3vec(iOrth);
-            [O3,O1,O2,oTheta] = removeNBelowLimit(O3,O1,O2,oTheta,n1vec,n2vec,n3vec,range);
+%             if (exist('O1remMod','var')) && (~recomputeOrth)
+%                 O1 = O1remMod;
+%                 O2 = O2remMod;
+%                 O3 = O3remMod;
+%                 oTheta = oThetaRemMod;
+%             else 
+                nTgVec = photonNumberVector(Xtg);
+                nPsFastVec = photonNumberVector(XpsFast);
+                nPsSlowVec = photonNumberVector(XpsSlow);
+                nTgVec = nTgVec(iOrth);
+                nPsFastVec = nPsFastVec(iOrth);
+                nPsSlowVec = nPsSlowVec(iOrth);
+                [O3,O1,O2,oTheta] = removeNBelowLimit(O3,O1,O2,oTheta,nTgVec,nPsFastVec,nPsSlowVec,range);
+%             end
         end
         
         % Compute photon numbers for each channel
-        [n1,n2,n3] = nPhotons(X1,X2,X3);
-        quantities.nX1(i) = n1;
-        quantities.nX2(i) = n2;
-        quantities.nX3(i) = n3;
-        quantities.minVar(i) = compute3ChLimit(n2,n3,n1);
+        [nTg,nPsFast,nPsSlow] = nPhotons(Xtg,XpsFast,XpsSlow);
+        quantities.nTg(i) = nTg;
+        quantities.nPsFast(i) = nPsFast;
+        quantities.nPsSlow(i) = nPsSlow;
+        quantities.minVar(i) = compute3ChLimit(nPsFast,nPsSlow,nTg);
         
         selParamsUse = selParams;
         if varyAPS    %choose the postselection radius according to photon numbers
-           selParamsUse.Position(1) = selParams.Position(1) * (1+n2+n3)/sqrt(2*n1*(n2+n3));
+           selParamsUse.Position(1) = selParams.Position(1) * (1+nPsFast+nPsSlow)/sqrt(2*nTg*(nPsFast+nPsSlow));
            quantities.APS(i) = selParamsUse.Position(1);
         end
                
@@ -250,7 +266,7 @@ for ii = 1:length(filerange)
     quantities.q2max(i) = max(expQ2);
     quantities.varQ(i) = delQ^2;
     quantities.varP(i) = delP^2;
-    quantities.discAmpl(i) = expQ(round(nDisc/4));
+    quantities.discAmpl(i) = mean(expQ(round(nDisc/4)-2:round(nDisc/4)+2));
     quantities.discMeanVar(i) = mean(expQ2(:)-(expQ(:)).^2);
     quantities.discN(i) = 0.5 * (expQ2(round(nDisc/4)) + ...
         expP2(round(nDisc/2)) - 1);
@@ -282,11 +298,25 @@ for ii = 1:length(filerange)
     %% Save workspace variables (because recomputing them takes time)
     % Save Theta
     if savetheta 
-        save(['mat-data/',files{i}],'theta','-append');
+        if remMod 
+            thetaRemMod = theta;
+            save(['mat-data/',files{i}],'thetaRemMod','-append');
+        else
+            save(['mat-data/',files{i}],'theta','-append');
+        end
     end
     
     if saveOrth
-        save(['mat-data/',files{i}],'O1','O2','O3','oTheta','-append');
+%         if remMod
+%             O1remMod = O1;
+%             O2remMod = O2;
+%             O3remMod = O3; 
+%             oThetaRemMod = oTheta; 
+%             iOrthRemMod = iOrth;
+%             save(['mat-data/',files{i}],'O1remMod','O2remMod','O3remMod','oThetaRemMod','iOrthRemMod','-append');
+%         else
+            save(['mat-data/',files{i}],'O1','O2','O3','oTheta','iOrth','-append');
+%         end
     end
     
     % Save postselected variables
