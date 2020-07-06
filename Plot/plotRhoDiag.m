@@ -26,7 +26,7 @@ varN = (n.^2)*pn - meanN^2;
 
 bar(n,pn,'r');
 
-xlim([-1 20]);
+xlim([-1 maxN+1]);
 
 fontname = 'Times New Roman';
 fontsize1 =22;
