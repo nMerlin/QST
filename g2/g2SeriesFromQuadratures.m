@@ -49,8 +49,8 @@ for iStruct =  1:length(Contents)
     
     switch parameter
         case 'power'    
-            currentToken = regexpi(filename,'([0123456789,]*)mW---4mW','tokens');
-            %currentToken = regexpi(filename,'([0123456789,]*)mW-4mW','tokens');
+            %currentToken = regexpi(filename,'([0123456789,]*)mW---4mW','tokens');
+            currentToken = regexpi(filename,'([0123456789,]*)mW-4mW','tokens');
              currentToken{1}=strrep(currentToken{1},',','.');
              dataStruct(iStruct).I = str2double(cell2mat(currentToken{1}));
         case 'delay'
