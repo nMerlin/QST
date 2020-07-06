@@ -13,22 +13,25 @@ defaultFitType = 'gauss';
 addParameter(p,'FitType',defaultFitType,@isstr);
 defaultVaryAPS = false;
 addParameter(p,'VaryAPS',defaultVaryAPS,@islogical);
+defaultRemoveModulation = false;
+addParameter(p,'RemoveModulation',defaultRemoveModulation,@islogical);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[filename,fitType,typestr,varyAPS,xUnit] = c{:};
+[filename,fitType,remMod,typestr,varyAPS,xUnit] = c{:};
 
 % Constants
 figurepath = 'figures-fig/';
 
 %% Gather data
-[delay,Yr,Yt,discAmpl,discMeanVar,discN,g2vals,g2std] = deal([]);
+zeroDelay = 0; %200; make this a choice    
+[delay,Yr,Yt,discAmpl,discMeanVar,discN,g2vals,g2std,nTg,nPsFast,nPsSlow] = deal([]);
 sigmas = zeros(length(listOfParams),1);
 sigmaConf = zeros(length(listOfParams),2);
 for iParams = 1:length(listOfParams)
     selParams = listOfParams(iParams);
     
     % From tables
-    A = seriesRead3ChTable(selParams,'VaryAPS',varyAPS);
+    A = seriesRead3ChTable(selParams,'VaryAPS',varyAPS,'RemoveModulation',remMod);
     H = height(A);
     Radii = ones(H,1) * selParams.Position(1);
     Thicknesses = ones(H,1) * selParams.Position(2);
@@ -48,12 +51,19 @@ for iParams = 1:length(listOfParams)
     g2std(iParams,:) = g2std(iParams,I);
     g2std(iParams,:) = A.g2std;
     g2std(iParams,:) = g2std(iParams,I);
-    nX1(iParams,:) = A.nX1;
-    nX1(iParams,:) = nX1(iParams,I);
-    nX2(iParams,:) = A.nX2;
-    nX2(iParams,:) = nX2(iParams,I);
-    nX3(iParams,:) = A.nX3;
-    nX3(iParams,:) = nX3(iParams,I);
+    nTg(iParams,:) = A.nTg;
+    nTg(iParams,:) = nTg(iParams,I);
+    nPsFast(iParams,:) = A.nPsFast;
+    nPsFast(iParams,:) = nPsFast(iParams,I);
+    nPsSlow(iParams,:) = A.nPsSlow;
+    nPsSlow(iParams,:) = nPsSlow(iParams,I);
+    
+%     nX1(iParams,:) = A.nX1;
+%     nX1(iParams,:) = nX1(iParams,I);
+%     nX2(iParams,:) = A.nX2;
+%     nX2(iParams,:) = nX2(iParams,I);
+%     nX3(iParams,:) = A.nX3;
+%     nX3(iParams,:) = nX3(iParams,I);
     
     % From DelayMeanVarX Plots
     if strcmp(typestr,'MeanVarSigma') || ...
@@ -84,9 +94,9 @@ discMeanVar = discMeanVar(I,:);
 discN = discN(I,:);
 g2vals = g2vals(I,:);
 g2std = g2std(I,:);
-nX1 = nX1(1,:);
-nX2 = nX2(1,:);
-nX3 = nX3(1,:);
+nTg = nTg(1,:);
+nPsFast = nPsFast(1,:);
+nPsSlow = nPsSlow(1,:);
 [fitTau,fitPeak,tauError] = deal(zeros(length(I),1));
 
 %% Create figure
@@ -103,11 +113,12 @@ switch typestr
             if ~any(~isnan(discAmpl(i,:))) %if there are only nans
                 discAmpl(i,:) = zeros(1,H);
             end
-            %ys = transpose(csaps(x,discAmpl(i,:),0.001,x));  
-            ys = discAmpl(i,:);
+            ys = transpose(csaps(x,discAmpl(i,:),0.0001,x));  
+            ys = ys';
+%             ys = discAmpl(i,:);
             switch fitType
                 case 'gauss'
-                    [res,gof,~] = fit(x',ys,'gauss1'); %f(x) =  a1*exp(-((x-b1)/c1)^2)
+                    [res,gof,~] = fit(x',ys','gauss1'); %f(x) =  a1*exp(-((x-b1)/c1)^2)
                     fitTau(i) = res.c1;
                     level = 2*tcdf(-1,gof.dfe);
                     m = confint(res,level); 
@@ -123,27 +134,37 @@ switch typestr
 %                     [res,gof,~] = fit(x',ysFit,ft,'problem',zeroDelay);
 %                     resPlot= res(min(delay(i,:)):1:max(delay(i,:)));
 %                     resPlot = resPlot * max(ys);
-%                     plot(ax,min(delay(i,:)):1:max(delay(i,:)),resPlot,'r','DisplayName','');
-                                      
-                    initGuess1 = [200,50, 5]; %peak x, gamma, sigma
+%                     plot(ax,min(delay(i,:)):1:max(delay(i,:)),resPlot,'r','DisplayName','');              
+                    initGuess1 = [zeroDelay,30, 1]; %peak x, gamma, sigma
                     [estimates1, model1] = voigtfit(x, ys, initGuess1, [min(x), max(x)]);
-                    res = myvoigt(x, 200, estimates1(2), estimates1(3) );%estimates1(1)
+                    gamma = estimates1(2);
+                    sigma = estimates1(3);
+                    res = myvoigt(x, zeroDelay, gamma, sigma );%estimates1(1)
                     res = res';
                     c = abs(res\ys');
                     res = res*c;             
                     plot(ax,x,res,'r','DisplayName','');
+                    FWHM_Gauss = 2*sigma*sqrt(2*log(2));
+                    FWHM_Lorentz = 2*gamma;
+                    fitTau(i) = 0.5346*FWHM_Lorentz + sqrt(0.2166*FWHM_Lorentz^2 + FWHM_Gauss^2);
+                    fitPeak(i) = max(res);
+                    % https://en.wikipedia.org/wiki/Voigt_profile
+                    % Olivero, J. J.; R. L. Longbothum (February 1977). 
+%                     "Empirical fits to the Voigt line width: A brief review". 
+%                     Journal of Quantitative Spectroscopy and Radiative Transfer. 
+%                     17 (2): 233–236. Bibcode:1977JQSRT..17..233O. doi:10.1016/0022-4073(77)90161-3. ISSN 0022-4073.
             end;               
         end;
         hold off;
         f=get(ax,'Children');
         index = length(f)-((1:length(I))-1).*2;
-        legend(f(index),'location','northwest');
-        xlabel(['Delay (' xUnit ')']); 
-        ylabel('Coherent Amplitude'); 
+        legend(f(index),'location','best');
+        xlabel(ax,['Delay (' xUnit ')']); 
+        ylabel(ax,'Coherent Amplitude'); 
         if ~varyAPS
-            title('Coherent Amplitude vs. Radius of Postselected Fullcircle');
+            title(ax,'Coherent Amplitude vs. Radius of Postselected Fullcircle');
         else
-            title('Coherent Amplitude vs. A_c');
+            title(ax,'Coherent Amplitude vs. A_c');
         end
         fig = figure(1);
     case 'MeanVar'
@@ -191,16 +212,17 @@ switch typestr
         legend('location','northeast');
         xlabel(['Delay (' xUnit ')']);
         ylabel('g^{(2)}(0)');
+        ylim([0.5 2.5]);
         if ~varyAPS
             title('G2 vs. Radius of Postselected Fullcircle');
         else
             title('G2 vs. A_c');
         end
     case 'nWithoutPostselection'        
-        plot(delay(1,:),nX1,'o-','DisplayName','n_1');
+        plot(delay(1,:),nTg,'o-','DisplayName','n_{tg}');
         hold on;
-        plot(delay(1,:),nX2,'o-','DisplayName','n_2');
-        plot(delay(1,:),nX3,'o-','DisplayName','n_3');      
+        plot(delay(1,:),nPsFast,'o-','DisplayName','n_{psFast}');
+        plot(delay(1,:),nPsSlow,'o-','DisplayName','n_{psSlow}');      
         hold off;
         legend('location','northwest');
         xlabel(['Delay (' xUnit ')']);
@@ -233,7 +255,7 @@ switch typestr
         zlabel('g^{(2)}');
         title('Photon Number vs. Thickness of Postselected Fullcircle');
 end
-set(fig,'Color','w');
+set(fig,'Color','w','Units','centimeters','Position',[1,1,45,30],'PaperPositionMode','auto');
 graphicsSettings;
 %% Write figure to file and close it
 if ~isempty(filename)
@@ -246,7 +268,12 @@ end
 if any(fitTau)
     errorbar(Yr(:,1),fitTau,tauError,'o-','Linewidth',2);
     xlabel('A_c set for postselection');
-    ylabel(['\tau_c of Gaussian (' xUnit ')']);
+    switch fitType
+        case 'gauss'
+            ylabel(['\tau_c of Gaussian (' xUnit ')']);
+        case 'voigt'
+            ylabel(['FWHM of Voigt Profile (' xUnit ')']);
+    end
     graphicsSettings;
     title([filename '-fitWidthsVsRadius']);
     savefig([filename '-fitWidthsVsRadius.fig']);
@@ -257,7 +284,7 @@ end
 if any(fitPeak)
     plot(Yr(:,1),fitPeak,'o-');
     xlabel('A_c set for postselection');
-    ylabel('Peakheight of Gaussian');
+    ylabel('Peakheight');
     graphicsSettings;
     title([filename '-fitPeaksVsRadius']);
     savefig([filename '-fitPeaksVsRadius.fig']);
@@ -268,7 +295,12 @@ end
 if any(fitTau)
     errorbar(Yt(:,1),fitTau,tauError,'o-','Linewidth',2);
     xlabel('Ring Thickness set for postselection');
-    ylabel(['\tau_c of Gaussian (' xUnit ')']);
+    switch fitType
+        case 'gauss'
+            ylabel(['\tau_c of Gaussian (' xUnit ')']);
+        case 'voigt'
+            ylabel(['FWHM of Voigt Profile (' xUnit ')']);
+    end
     graphicsSettings;
     title([filename '-fitWidthsVsThickness']);
     savefig([filename '-fitWidthsVsThickness.fig']);
@@ -279,7 +311,7 @@ end
 if any(fitPeak)
     plot(Yt(:,1),fitPeak,'o-');
     xlabel('Ring Thickness set for postselection');
-    ylabel('Peakheight of Gaussian');
+    ylabel('Peakheight');
     graphicsSettings;
     title([filename '-fitPeaksVsThickness']);
     savefig([filename '-fitPeaksVsThickness.fig']);
