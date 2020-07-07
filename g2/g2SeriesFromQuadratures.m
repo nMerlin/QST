@@ -49,6 +49,7 @@ for iStruct =  1:length(Contents)
     
     switch parameter
         case 'power'    
+            %currentToken = regexpi(filename,'([0123456789,]*)mW---4mW','tokens');
             currentToken = regexpi(filename,'([0123456789,]*)mW-4mW','tokens');
              currentToken{1}=strrep(currentToken{1},',','.');
              dataStruct(iStruct).I = str2double(cell2mat(currentToken{1}));
@@ -74,8 +75,7 @@ for iStruct =  1:length(Contents)
     
     %%% Load data
     %cd('Quadratures');
-    cd('mat-data');
-    load(filename);
+    load(['mat-data\' filename]);
     
     % Compute g2 values according to g2method
     
@@ -101,22 +101,14 @@ for iStruct =  1:length(Contents)
         end      
         g2Std = sqrt(var(g2vec)); 
         %plot g2
-        cd('..');
-        cd(['Plots-' useX]);
-        plotG2vsTime(times, g2vec, ada, [strrep(filename,'.mat','') '-Res-' num2str(nResolution) ]);
-        cd('..');
-        cd(['g2Data-' useX]);
-        save([strrep(filename,'.mat','') '-G2-nResolution-' num2str(nResolution) '-' g2method '.mat'],...
+        plotG2vsTime(times, g2vec, ada, ['Plots-' useX '\' strrep(filename,'.mat','') '-Res-' num2str(nResolution) ]);
+        save(['g2Data-' useX '\' strrep(filename,'.mat','') '-G2-nResolution-' num2str(nResolution) '-' g2method '.mat'],...
             'times','g2vec','ada');
-        cd('..');
     else
-        cd('..');
-        cd(['Plots-' useX]);
-        [g2vec, ada, meang2, g2Std] = g2Bins(X, nResolution, bins, filename); 
+        [~, ada, meang2, g2Std] = g2Bins(X, nResolution, bins, ['Plots-' useX '\' filename]); 
         g2Av = meang2;
         %g2Std = sqrt(var(g2vec,'omitnan'));  %?? use this or only variance in the middle range?     
         nAv = mean(ada,'omitnan'); % Mean photon number  
-        cd('..');
         
     end
     dataStruct(iStruct).g2Av = g2Av;

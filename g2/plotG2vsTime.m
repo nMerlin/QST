@@ -47,8 +47,8 @@ grid on;
 %%
 
 %Save figure 
-print(strcat('G2-',filename, '.png'), '-dpng');
-savefig(strcat('G2-',filename, '.fig'));
+print(strcat(filename,'G2-', '.png'), '-dpng');
+savefig(strcat(filename,'G2-', '.fig'));
 % bw = imread(strcat('G2-',filename,'-nResolution-',num2str(nResolution)...
 %     ,'-n-',num2str(nAv),'.png'));
 % bw2 = imcomplement(bw);
@@ -65,8 +65,8 @@ xlim([0 3]);
 set(gca, 'LineWidth', 1.5,'FontSize',fontsize2, 'XColor',[0 0 0],...
     'YColor', [0 0 0],'FontName',fontname);
 grid on; 
-print(strcat('G2-histogram',filename,'.png'), '-dpng');
-savefig(strcat('G2-histogram',filename,'.fig'));
+print(strcat(filename,'G2-histogram','.png'), '-dpng');
+savefig(strcat(filename,'G2-histogram','.fig'));
 % bw = imread(strcat('G2-histogram',filename,'-nResolution-',num2str(nResolution),'.png'));
 % bw2 = imcomplement(bw);
 % imwrite(bw2,strcat('G2-histogram',filename,'-nResolution-',num2str(nResolution),'-inverted.png'));

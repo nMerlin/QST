@@ -10,6 +10,10 @@ defaultSelectionParameters = struct('Type','fullcircle', ...
 addParameter(p,'SelectionParameters',defaultSelectionParameters,@isstruct);
 defaultRecomputeTheta = false;
 addParameter(p,'RecomputeTheta',defaultRecomputeTheta,@islogical);
+defaultRecomputeOrth = false;
+addParameter(p,'RecomputeOrth',defaultRecomputeOrth,@islogical);
+defaultSaveOrth = false;
+addParameter(p,'SaveOrth',defaultSaveOrth,@islogical);
 defaultSavePostselection = false;
 addParameter(p,'SavePostselection',defaultSavePostselection,@islogical);
 defaultSaveTheta = false;
@@ -20,12 +24,16 @@ defaultRemoveModulation = false;
 addParameter(p,'RemoveModulation',defaultRemoveModulation,@islogical);
 defaultRange = 0.3;
 addParameter(p,'Range',defaultRange,@isnumeric);
+defaultVaryAPS = false;
+addParameter(p,'VaryAPS',defaultVaryAPS,@islogical);
 defaultXUnit = 'fs';
 addParameter(p,'XUnit',defaultXUnit,@isstr);
+defaultChannelAssignment = [1,2,3]; %[target,ps_piezo_fast,ps_piezo_slow]
+addParameter(p,'ChannelAssignment',defaultChannelAssignment,@isvector);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[figurepath,getDelay,range,recomputeTheta,remMod,saveps, ...
-    savetheta,selParams,xUnit] = c{:};
+[chAssign,figurepath,getDelay,range,recomputeOrth,recomputeTheta,remMod, ...
+    saveOrth,saveps,savetheta,selParams,varyAPS,xUnit] = c{:};
 
 % Constants
 pdfpath = 'figures-pdf/';
@@ -38,9 +46,11 @@ end
 %% Find out what needs to be done
 [delayMeanVarX,delayDiscAmpl,movieWigner2D,movieWigner3D, ...
     cleanDelayMeanVarX,cleanDelayDiscAmpl,cleanMovieWigner2D, ...
-    cleanMovieWigner3D,pdfs,cleanpdfs] = deal(false);
+    cleanMovieWigner3D,pdfs,cleanpdfs,delayG2,delayN,makeTable] = deal(false);
 % User request
 switch type
+    case 'table'
+        makeTable = true;        
     case 'all'
         delayMeanVarX = true;
         delayDiscAmpl = true;
@@ -87,8 +97,7 @@ if ~isempty(dir([figurepath,'*-WignerMovie2D-',selStr,'*']))
 end
 
 % Find dependencies that need to be created
-[makeTable] = deal(false);
-if isempty(seriesRead3ChTable(selParams))
+if isempty(seriesRead3ChTable(selParams,'VaryAPS',varyAPS))
     makeTable = true;
 end
 
@@ -97,10 +106,12 @@ dispstat('','init','timestamp','keepthis',0);
 datestring = datestr(date,'yyyy-mm-dd');
 if makeTable
     dispstat('Making 3-channel table ...','timestamp','keepthis');
-    T = series3Ch('SelectionParameters',selParams,'RecomputeTheta',recomputeTheta,'Range',range,...
-        'SavePostselection',saveps,'SaveTheta',savetheta,'GetDelay',getDelay,'RemoveModulation',remMod);    
+    T = series3Ch('SelectionParameters',selParams,'RecomputeTheta',recomputeTheta,...
+        'RecomputeOrth',recomputeOrth,'SaveOrth',saveOrth,'Range',range,...
+        'SavePostselection',saveps,'SaveTheta',savetheta,'GetDelay',getDelay,...
+        'RemoveModulation',remMod,'VaryAPS',varyAPS,'ChannelAssignment',chAssign);    
 else
-    T = seriesRead3ChTable(selParams);
+    T = seriesRead3ChTable(selParams,'VaryAPS',varyAPS);
 end
 if ~exist('figures-fig','dir')
     mkdir('figures-fig');

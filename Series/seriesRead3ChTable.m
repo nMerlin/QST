@@ -1,4 +1,4 @@
-function T = seriesRead3ChTable(selParams)
+function T = seriesRead3ChTable(selParams,varargin)
 %SERIESREADTABLE3CH Load most recent table file
 %'yyyy-MM-dd-series3Ch-selectionParameters.txt' in current folder. Output
 %is empty if no table was detected.
@@ -9,11 +9,21 @@ function T = seriesRead3ChTable(selParams)
 % Input Arguments:
 %   selParams: Structure with selection parameters for 'selectRegion'.
 
+%% Validate and parse input arguments
+p = inputParser;
+defaultVaryAPS = false;
+addParameter(p,'VaryAPS',defaultVaryAPS,@islogical);
+defaultRemoveModulation = false;
+addParameter(p,'RemoveModulation',defaultRemoveModulation,@islogical);
+parse(p,varargin{:});
+c = struct2cell(p.Results);
+[remMod,varyAPS] = c{:};
+
 selStr = 'type=fullcircle-radius=2.5-thickness=0.5';
 if nargin > 0
     selStr = selParamsToStr(selParams);
 end
-filestruct = dir(['*-series3Ch-',selStr,'-remMod-0-range-0.3.txt']);%changethis!!!
+filestruct = dir(['*-series3Ch-',selStr,'-remMod-' num2str(remMod) '-range-0.3-varyAPS-' num2str(varyAPS) '.txt']);
 if ~isempty(filestruct)
     filestring = strjoin({filestruct.name});
     filedates = regexp(filestring,['([^ ]*)','-series3Ch-',selStr] ...
