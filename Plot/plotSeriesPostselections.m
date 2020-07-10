@@ -23,7 +23,7 @@ c = struct2cell(p.Results);
 figurepath = 'figures-fig/';
 
 %% Gather data
-zeroDelay = 0; %200; make this a choice    
+zeroDelay = -41; %200; make this a choice    
 [delay,Yr,Yt,discAmpl,discMeanVar,discN,g2vals,g2std,nTg,nPsFast,nPsSlow] = deal([]);
 sigmas = zeros(length(listOfParams),1);
 sigmaConf = zeros(length(listOfParams),2);
@@ -153,12 +153,19 @@ switch typestr
 %                     "Empirical fits to the Voigt line width: A brief review". 
 %                     Journal of Quantitative Spectroscopy and Radiative Transfer. 
 %                     17 (2): 233–236. Bibcode:1977JQSRT..17..233O. doi:10.1016/0022-4073(77)90161-3. ISSN 0022-4073.
+                case 'noFit'
+                    I = find(delay(i,:)>=zeroDelay-5 & delay(i,:)<=zeroDelay+5);
+                    fitPeak(i) = mean(discAmpl(i,I-2:I+2)); 
             end;               
         end;
         hold off;
-        f=get(ax,'Children');
-        index = length(f)-((1:length(I))-1).*2;
-        legend(f(index),'location','best');
+        if strcmp(fitType,'noFit')
+            legend('location','best');
+        else
+            f=get(ax,'Children');
+            index = length(f)-((1:length(I))-1).*2;
+            legend(f(index),'location','best');
+        end
         xlabel(ax,['Delay (' xUnit ')']); 
         ylabel(ax,'Coherent Amplitude'); 
         if ~varyAPS
@@ -193,6 +200,8 @@ switch typestr
         for i = 1:length(I)
             plot(delay(i,:),discN(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
+            I = find(delay(i,:)>=zeroDelay-5 & delay(i,:)<=zeroDelay+5);
+            fitPeak(i) = mean(discN(i,I-2:I+2)); 
         end;
         hold off;
         legend('location','northwest');
@@ -267,7 +276,7 @@ end
 %% plot fit results vs ring radius and thickness
 if any(fitTau)
     errorbar(Yr(:,1),fitTau,tauError,'o-','Linewidth',2);
-    xlabel('A_c set for postselection');
+    xlabel('A_{ps} set for postselection');
     switch fitType
         case 'gauss'
             ylabel(['\tau_c of Gaussian (' xUnit ')']);
@@ -275,20 +284,20 @@ if any(fitTau)
             ylabel(['FWHM of Voigt Profile (' xUnit ')']);
     end
     graphicsSettings;
-    title([filename '-fitWidthsVsRadius']);
-    savefig([filename '-fitWidthsVsRadius.fig']);
-    print([filename '-fitWidthsVsRadius.png'],'-dpng');
+    title([filename '-' typestr '-fitWidthsVsRadius']);
+    savefig([filename '-' typestr '-fitWidthsVsRadius.fig']);
+    print([filename '-' typestr '-fitWidthsVsRadius.png'],'-dpng');
     close all;
 end
 
 if any(fitPeak)
     plot(Yr(:,1),fitPeak,'o-');
-    xlabel('A_c set for postselection');
+    xlabel('A_{ps} set for postselection');
     ylabel('Peakheight');
     graphicsSettings;
-    title([filename '-fitPeaksVsRadius']);
-    savefig([filename '-fitPeaksVsRadius.fig']);
-    print([filename '-fitPeaksVsRadius.png'],'-dpng');
+    title([filename '-' typestr '-PeaksVsRadius']);
+    savefig([filename '-' typestr '-PeaksVsRadius.fig']);
+    print([filename '-' typestr '-PeaksVsRadius.png'],'-dpng');
     close all;
 end
 
@@ -302,9 +311,9 @@ if any(fitTau)
             ylabel(['FWHM of Voigt Profile (' xUnit ')']);
     end
     graphicsSettings;
-    title([filename '-fitWidthsVsThickness']);
-    savefig([filename '-fitWidthsVsThickness.fig']);
-    print([filename '-fitWidthsVsThickness.png'],'-dpng');
+    title([filename '-' typestr '-fitWidthsVsThickness']);
+    savefig([filename '-' typestr '-fitWidthsVsThickness.fig']);
+    print([filename '-' typestr '-fitWidthsVsThickness.png'],'-dpng');
     close all;
 end
 
@@ -313,9 +322,9 @@ if any(fitPeak)
     xlabel('Ring Thickness set for postselection');
     ylabel('Peakheight');
     graphicsSettings;
-    title([filename '-fitPeaksVsThickness']);
-    savefig([filename '-fitPeaksVsThickness.fig']);
-    print([filename '-fitPeaksVsThickness.png'],'-dpng');
+    title([filename '-' typestr '-PeaksVsThickness']);
+    savefig([filename '-' typestr '-PeaksVsThickness.fig']);
+    print([filename '-' typestr '-PeaksVsThickness.png'],'-dpng');
     close all;
 end
 % plot(Yt(:,1),fitWidth,'o-');
