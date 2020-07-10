@@ -181,7 +181,8 @@ for ii = 1:length(filerange)
         XpsSlow = quadratures(:,:,:,chAssign(3));
         clear('quadratures'); 
     end
-      
+    
+     
     
 %     if remMod %rescales the Xi according to time dependent photon numbers
 %             [X1,X2,X3,n1vec,n2vec,n3vec] = removeModulation(X1,X2,X3);
@@ -229,7 +230,7 @@ for ii = 1:length(filerange)
         end
         
         % Compute photon numbers for each channel
-        [nTg,nPsFast,nPsSlow] = nPhotons(Xtg,XpsFast,XpsSlow);
+        [nTg,nPsFast,nPsSlow] = nPhotons(Xtg,XpsFast,XpsSlow);       
         quantities.nTg(i) = nTg;
         quantities.nPsFast(i) = nPsFast;
         quantities.nPsSlow(i) = nPsSlow;
@@ -248,6 +249,8 @@ for ii = 1:length(filerange)
     
     %% Get quantities of interest
     % Compute expectation values of postselected state by fitting
+    
+    
     if fitexp
         expectations = computeExpectationsFit(selX,selTheta);
         quantities.cohAmpl(i) = expectations.cohAmpl;
@@ -268,8 +271,10 @@ for ii = 1:length(filerange)
     quantities.varP(i) = delP^2;
     quantities.discAmpl(i) = mean(expQ(round(nDisc/4)-2:round(nDisc/4)+2));
     quantities.discMeanVar(i) = mean(expQ2(:)-(expQ(:)).^2);
-    quantities.discN(i) = 0.5 * (expQ2(round(nDisc/4)) + ...
-        expP2(round(nDisc/2)) - 1);
+%     quantities.discN(i) = 0.5 * (expQ2(round(nDisc/4)) + ...
+%         expP2(round(nDisc/2)) - 1);
+     quantities.discN(i) = 0.5 * (mean(expQ2)+mean(expP2) - 1);
+     %quantities.discN(i) = 0.5 * (mean(expQ.^2) + mean(expP.^2) + 2*quantities.discMeanVar(i)- 1);
     
     % g2 estimation
     [g2values,nValues] = deal(zeros(10,1));
