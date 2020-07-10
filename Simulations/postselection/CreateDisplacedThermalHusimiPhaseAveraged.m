@@ -1,7 +1,7 @@
 function [ HusFunc,xx,yy ] = CreateDisplacedThermalHusimiPhaseAveraged( n, WLength, WRes, r,varargin)
 %% Validate and parse input arguments
 p = inputParser;
-defaultPlotOption = true;
+defaultPlotOption = false;
 addParameter(p,'PlotOption',defaultPlotOption,@islogical);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
