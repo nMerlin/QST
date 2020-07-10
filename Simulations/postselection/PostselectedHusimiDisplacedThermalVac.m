@@ -1,9 +1,11 @@
 function PSHusimi = PostselectedHusimiDisplacedThermalVac(Q2,P2,nThermal,Q0,P0,Transmission)
 %Calculates Wigner function at position (Q1,P1) for mixing displaced thermal light of photon number n and
-%vacuum, then performing postselection on the Q outcome in channel 2
+%vacuum, then performing postselection on the Q outcome in channel 2 (Q2,
+%P2 correspond to the postselection channel); they are scaled with sqrt(2)
+%because the postselection arm is divided into two channels. 
 %
-% Transmission gives transmission coefficient of the beam splitter, lokk in
-% incerse BS trafo
+% Transmission gives transmission coefficient of the beam splitter, look in
+% inverse BS trafo
 %
 % 
 % 
@@ -18,7 +20,7 @@ QuadVals=P2min:P2res:P2max;
 
 [xx,yy] = meshgrid(QuadVals,QuadVals);
 
-[ModQ1,ModP1,ModQ2,ModP2]=InverseBSTrafo( xx,yy,Q2,P2,Transmission );
+[ModQ1,ModP1,ModQ2,ModP2]=InverseBSTrafo( xx,yy,sqrt(2)*Q2,sqrt(2)*P2,Transmission );
 
 
     %%%%DISPLACED THERMAL AND VACUUM
