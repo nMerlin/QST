@@ -194,7 +194,7 @@ switch typestr
         else
             title('Variance vs. A_c');
         end
-     case 'varQ'
+     case 'VarQ'
         for i = 1:length(I)
             plot(delay(i,:),varQ(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
@@ -210,7 +210,7 @@ switch typestr
         else
             title('Var_{Q} vs. A_c');
         end
-     case 'varP'
+     case 'VarP'
         for i = 1:length(I)
             plot(delay(i,:),varP(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
