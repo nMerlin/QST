@@ -77,9 +77,9 @@ else
 end
 
 % Prepare figure for export to pdf
-if isempty(handle)
-    formatFigA5(fig);
-end
+% if isempty(handle)
+%     formatFigA5(fig);
+% end
 set(fig,'Color','w');
 
 % Prepare automatic colormap
