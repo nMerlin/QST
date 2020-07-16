@@ -29,9 +29,11 @@ defaultFitType = 'gauss';
 addParameter(p,'FitType',defaultFitType,@isstr);
 defaultChannelAssignment = [1,2,3]; %[target,ps_piezo_fast,ps_piezo_slow]
 addParameter(p,'ChannelAssignment',defaultChannelAssignment,@isvector);
+defaultCorrRemove = 'yes';
+addParameter(p,'CorrRemove',defaultCorrRemove,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[chAssign,fitType,getDelay,listOfParams,range,recomputeOrth,recomputeTheta,remMod, ...
+[chAssign,corrRemove,fitType,getDelay,listOfParams,range,recomputeOrth,recomputeTheta,remMod, ...
     saveOrth,saveps,savetheta,varyAPS,xUnit] = c{:};
 
 % Constants
@@ -113,7 +115,7 @@ if makeTable
         makeDelayPlots('table','SelectionParameters',listOfParams(iParams),...
         'RecomputeTheta',recomputeTheta,'RecomputeOrth',recomputeOrth,...
         'SaveOrth',saveOrth,'SavePostselection',saveps,'SaveTheta',savetheta,'GetDelay',getDelay,...
-        'RemoveModulation',remMod,'XUnit',xUnit,'VaryAPS',varyAPS,'ChannelAssignment',chAssign);  
+        'RemoveModulation',remMod,'XUnit',xUnit,'VaryAPS',varyAPS,'ChannelAssignment',chAssign,'CorrRemove',corrRemove);  
     end
 end
 if delayPlots
@@ -121,7 +123,7 @@ if delayPlots
         makeDelayPlots('plots','SelectionParameters',listOfParams(iParams),...
         'RecomputeTheta',recomputeTheta,'RecomputeOrth',recomputeOrth,...
         'SaveOrth',saveOrth,'SavePostselection',saveps,'SaveTheta',savetheta,'GetDelay',getDelay,...
-        'RemoveModulation',remMod,'XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'ChannelAssignment',chAssign);  
+        'RemoveModulation',remMod,'XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'ChannelAssignment',chAssign,'CorrRemove',corrRemove);  
     end
 end
 if radiusDiscAmpl
@@ -133,11 +135,15 @@ if radiusMeanVar
     filenameFig = [figurepath,datestring,'-RadiusMeanVar.fig'];
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
         'Type','MeanVar','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod);
+     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
+        'Type','VarQ','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod);
+     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
+        'Type','VarP','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod);
 end
 if radiusMeanVarSigma
     filenameFig = [figurepath,datestring,'-RadiusMeanVarSigma.fig'];
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
-        'Type','MeanVarSigma','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod);
+        'Type','MeanVarSigma','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod);   
 end
 if radiusDiscN
     filenameFig = [figurepath,datestring,'-RadiusDiscN.fig'];
