@@ -30,9 +30,11 @@ defaultXUnit = 'fs';
 addParameter(p,'XUnit',defaultXUnit,@isstr);
 defaultChannelAssignment = [1,2,3]; %[target,ps_piezo_fast,ps_piezo_slow]
 addParameter(p,'ChannelAssignment',defaultChannelAssignment,@isvector);
+defaultCorrRemove = 'yes';
+addParameter(p,'CorrRemove',defaultCorrRemove,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[chAssign,figurepath,getDelay,range,recomputeOrth,recomputeTheta,remMod, ...
+[chAssign,corrRemove,figurepath,getDelay,range,recomputeOrth,recomputeTheta,remMod, ...
     saveOrth,saveps,savetheta,selParams,varyAPS,xUnit] = c{:};
 
 % Constants
@@ -109,7 +111,7 @@ if makeTable
     T = series3Ch('SelectionParameters',selParams,'RecomputeTheta',recomputeTheta,...
         'RecomputeOrth',recomputeOrth,'SaveOrth',saveOrth,'Range',range,...
         'SavePostselection',saveps,'SaveTheta',savetheta,'GetDelay',getDelay,...
-        'RemoveModulation',remMod,'VaryAPS',varyAPS,'ChannelAssignment',chAssign);    
+        'RemoveModulation',remMod,'VaryAPS',varyAPS,'ChannelAssignment',chAssign,'CorrRemove',corrRemove);    
 else
     T = seriesRead3ChTable(selParams,'VaryAPS',varyAPS);
 end
