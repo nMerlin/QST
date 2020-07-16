@@ -9,7 +9,8 @@ function [] = seriesQuadratures(varargin)
 % computation from config.
 %E.g.: 2 periods for 50 Hz modulation and 2 um amplitude
 % 'Phase': decide whether the phase is random or fixed. 
-% 
+% 'CorrRemove': 'yes', if the correlations between adjacent pulses should
+% be removed numerically. Makes only sense for random phase. 
 
 %% Validate and parse input arguments
 p = inputParser;
@@ -21,9 +22,11 @@ defaultOffset = 'local'; % vs 'global'
 addParameter(p,'Offset',defaultOffset);
 defaultPiezo = 'yes'; 
 addParameter(p,'Piezo',defaultPiezo);
+defaultCorrRemove = 'yes';
+addParameter(p,'CorrRemove',defaultCorrRemove);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[channels,offset,period1,piezo] = c{:};
+[channels,corrRemove,offset,period1,piezo] = c{:};
 
 %% create data structs
 %dataStruct = struct('filename',{},'Delay', {},'nPhMean', {},'G2',{});
@@ -90,16 +93,17 @@ for number = 1:size(dataStruct,2)
     end
     
     if strcmp(piezo,'yes')  
-        [X1, X2, X3, piezoSign, ~] = prepareData(filenameLO,filenameSIG,'Channels',channels,'Offset',offset,'Piezo',piezo);        
-%         theta1 = computePhase(X,ones(size(X)),piezoSign1,'Period',period1); 
+        [X1, X2, X3, piezoSign, ~] = prepareData(filenameLO,filenameSIG,...
+            'Channels',channels,'Offset',offset,'Piezo',piezo,'CorrRemove',corrRemove);        
         cd('mat-data');
-        save(strcat(filenameSIG, '.mat'),'X1','X2','X3','piezoSign');
+        save(strcat(filenameSIG,'-offset-',offset,'-piezo-',piezo,'-corrRemove-',corrRemove,'.mat'),'X1','X2','X3','piezoSign');
         cd('..');
 
     else
-       [X1, X2, X3, ~, ~] = prepareData(filenameLO,filenameSIG,'Channels',channels,'Offset',offset,'Piezo',piezo);   
+       [X1, X2, X3, ~, ~] = prepareData(filenameLO,filenameSIG,'Channels',...
+           channels,'Offset',offset,'Piezo',piezo,'CorrRemove',corrRemove);   
         cd('mat-data');
-        save(strcat(filenameSIG, '.mat'),'X1','X2','X3');
+        save(strcat(filenameSIG,'-offset-',offset,'-piezo-',piezo,'-corrRemove-',corrRemove, '.mat'),'X1','X2','X3');
         cd('..');
     end
      
