@@ -5,24 +5,33 @@ switch type
 %plotCrossCorrelationDelaySeries;
 %seriesQuadratures('Channels',1:3,'Offset','local','Piezo','yes');
 %g2SeriesFromQuadratures(1000,'Weight','yes','UseX','X1','Parameter','delay');
-    listOfParams = struct('Type',{'fullcircle'},'Position',{[4 0.5]});
+    listOfParams = struct('Type',{'fullcircle'},'Position',{[4 0.4]});
     makeSelectionPlots('table','ListOfParams',listOfParams,'RecomputeTheta',true,...
             'RecomputeOrth',true,'saveOrth',true,'ChannelAssignment',[3,1,2],...
-            'SavePostselection',true,'SaveTheta',true,'GetDelay',true,'RemoveModulation',false,'XUnit','ps','VaryAPS',false);
+            'SavePostselection',true,'SaveTheta',true,'GetDelay',true,'RemoveModulation',false,'XUnit','ps','VaryAPS',false,'CorrRemove','yes');
 
     case 'radiusSeries'
 % %% Radius Series
-     listOfParams = struct('Type',{'fullcircle'},'Position',{[0.5 0.25],[1,0.4],[1.5 0.4],...
-            [2 0.4],[3 0.4],[5 0.4],[6 0.4],[7 0.4],[8 0.4],[9 0.4],[10 0.4],[11 0.4],[12 0.4],[13 0.4]});
+        %t = 0.4;
+        t = 0.1;
+     listOfParams = struct('Type',{'fullcircle'},'Position',{[0.5 t],[1,t],[1.5 t],...
+            [2 t],[3 t],[4 t],[5 t],[6 t],[7 t],[8 t],[9 t],[10 t],[11 t],[12 t],[13 t]});
        makeSelectionPlots('table','ListOfParams',listOfParams,'RecomputeTheta',false,'RecomputeOrth',false,'saveOrth',false,...
            'ChannelAssignment',[3,1,2],...
-            'SavePostselection',true,'SaveTheta',false,'GetDelay',true,'RemoveModulation',false,'XUnit','ps','VaryAPS',false,'FitType','voigt');
+            'SavePostselection',true,'SaveTheta',false,'GetDelay',true,'RemoveModulation',false,'XUnit','ps','VaryAPS',false,'FitType','noFit','CorrRemove','yes');
+        
+         t = 0.05;
+     listOfParams = struct('Type',{'fullcircle'},'Position',{[0.5 t],[1,t],[1.5 t],...
+            [2 t],[3 t],[4 t],[5 t],[6 t],[7 t],[8 t],[9 t],[10 t],[11 t],[12 t],[13 t]});
+       makeSelectionPlots('table','ListOfParams',listOfParams,'RecomputeTheta',false,'RecomputeOrth',false,'saveOrth',false,...
+           'ChannelAssignment',[3,1,2],...
+            'SavePostselection',true,'SaveTheta',false,'GetDelay',true,'RemoveModulation',false,'XUnit','ps','VaryAPS',false,'FitType','noFit','CorrRemove','yes');
         
          case 'thicknessSeries'
      listOfParams = struct('Type',{'fullcircle'},'Position',{[3 0.1],[3 0.2],[3 0.3],[3 0.4],[3 0.5],[3 0.6],[3 0.7],[3 0.8],[3 0.9],[3 1]});
        makeSelectionPlots('table','ListOfParams',listOfParams,'RecomputeTheta',false,'RecomputeOrth',false,'saveOrth',false,...
            'ChannelAssignment',[3,1,2],...
-            'SavePostselection',true,'SaveTheta',false,'GetDelay',true,'RemoveModulation',false,'XUnit','ps','VaryAPS',false,'FitType','voigt');
+            'SavePostselection',true,'SaveTheta',false,'GetDelay',true,'RemoveModulation',false,'XUnit','ps','VaryAPS',false,'FitType','voigt','CorrRemove','yes');
     
 %     listOfParams = struct('Type',{'fullcircle'},'Position',{[0.5 0.25],[1 0.25],...
 %         [2 0.5],[3 0.5],[4 0.5],[5 0.5],[6 0.5],[7 0.5],[8 0.5]});

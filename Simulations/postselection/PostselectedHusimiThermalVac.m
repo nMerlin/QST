@@ -1,4 +1,4 @@
-function PSHusimi = PostselectedHusimiThermalVac(Q2,P2,n,Transmission)
+function PSHusimi = PostselectedHusimiThermalVac(Q2,P2,n,Transmission,MaxQuad,Resolution)
 %Calculates Wigner function at position (Q1,P1) for mixing thermal light of photon number n and
 %vacuum, then performing postselection on the Q outcome in channel 2.(Q2,
 %P2 correspond to the postselection channel); they are scaled with sqrt(2)
@@ -10,12 +10,8 @@ function PSHusimi = PostselectedHusimiThermalVac(Q2,P2,n,Transmission)
 % 
 % 
 
-P2res=0.1;
-P2min=-20;
-P2max=20;
 
-
-QuadVals=P2min:P2res:P2max;
+QuadVals=-abs(MaxQuad):Resolution:abs(MaxQuad);
 
 [xx,yy] = meshgrid(QuadVals,QuadVals);
 
@@ -23,6 +19,6 @@ QuadVals=P2min:P2res:P2max;
 
 
     %%%%THERMAL AND VACUUM
-    PSHusimi=(1/P2res^2) *(CreateThermalHusimiAtQuad(n,ModQ1,ModP1,P2res).*CreateCoherentHusimiAtQuad( 0,0,ModQ2,ModP2,P2res ));
+    PSHusimi=(1/Resolution^2) *(CreateThermalHusimiAtQuad(n,ModQ1,ModP1,Resolution).*CreateCoherentHusimiAtQuad( 0,0,ModQ2,ModP2,Resolution ));
     %%%%THERMAL AND VACUUM
     

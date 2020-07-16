@@ -17,6 +17,8 @@ QuadVals=-abs(MaxQuad):Resolution:abs(MaxQuad);
 [xx,yy] = meshgrid(QuadVals,QuadVals);
 
 [ModQ1,ModP1,ModQ2,ModP2]=InverseBSTrafo( xx,yy,sqrt(2)*Q2,sqrt(2)*P2,Transmission );
+%[ModQ1,ModP1,ModQ2,ModP2]=InverseBSTrafo( xx,yy,Q2,P2,Transmission );
+
 
 % n is the total photon number, consisting of nThermal and nCoherent, which is given by radius r.
 % get nThermal:

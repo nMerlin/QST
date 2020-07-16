@@ -57,6 +57,8 @@ function T = series3Ch(varargin)
 %       in removeNBelowLimit
 %   'VaryAPS': Default is 'false'. choose the postselection radius according to 
 %       photon numbers, while keeping the conditional radius as fixed parameter
+%   'CorrRemove': Only uses those mat-file that have 'corrRemove-yes' in
+%       the filename
 %
 %   *** Developer Only ***
 %   'FileRange': Default is [] and loops over all found files. In any other
@@ -67,6 +69,8 @@ function T = series3Ch(varargin)
 p = inputParser;
 defaultFileRange = []; % be careful
 addParameter(p,'FileRange',defaultFileRange,@isvector);
+defaultFileNumber = 0; % be careful
+addParameter(p,'FileNumber',defaultFileNumber,@isnumeric);
 defaultFittedExpectations = false;
 addParameter(p,'FittedExpectations',defaultFittedExpectations,@islogical);
 defaultNDisc = 100;
@@ -97,6 +101,8 @@ defaultRemoveModulation = false;
 addParameter(p,'RemoveModulation',defaultRemoveModulation,@islogical);
 defaultVaryAPS = false;
 addParameter(p,'VaryAPS',defaultVaryAPS,@islogical);
+defaultCorrRemove = 'yes';
+addParameter(p,'CorrRemove',defaultCorrRemove,@isstr);
 defaultSelParams = struct('Type','fullcircle','Position',[2.5,0.5]);
 addParameter(p,'SelectionParameters',defaultSelParams,@isstruct);
 defaultRange = 0.3;
@@ -105,7 +111,7 @@ defaultChannelAssignment = [1,2,3]; %[target,ps_piezo_fast,ps_piezo_slow]
 addParameter(p,'ChannelAssignment',defaultChannelAssignment,@isvector);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[chAssign,filerange,fitexp,getDelay,nDisc,range,recomputeOrth,recomputeTheta,remMod,rewriteRho,rewriteWigner,rhoParams, ...
+[chAssign,corrRemove,filenumber,filerange,fitexp,getDelay,nDisc,range,recomputeOrth,recomputeTheta,remMod,rewriteRho,rewriteWigner,rhoParams, ...
     saveOrth,saveps,saverho,savetheta,saveWigner,selParams,varyAPS] = c{:};
 
 % Dependencies among optional input arguments
@@ -133,12 +139,23 @@ end
 for ii = 1:length(filerange)
     i = filerange(ii);
     %% Load data
+    C = strsplit(files{i},'.');
+    filename = C{1};
+    
+    if strcmp(corrRemove,'yes')
+        if (isempty(regexpi(filename,'corrRemove-yes','match')))
+            continue
+        end
+    else
+         if not(isempty(regexpi(filename,'corrRemove-yes','match')))
+            continue
+        end
+    end
+  
     dispstat(['Loading ',files{i},' ...'],'timestamp',0);
     clear X1 X2 X3 theta piezoSign
     clear O1 O2 O3 oTheta selX selTheta;
     clear rho WF;
-    C = strsplit(files{i},'.');
-    filename = C{1};
     postFilename =  ['post-data/',filename,'-',selStr,'-remMod-',...
             num2str(remMod),'-range-',num2str(range),'-varyAPS-',num2str(varyAPS),'.mat'];
     
@@ -231,10 +248,6 @@ for ii = 1:length(filerange)
         
         % Compute photon numbers for each channel
         [nTg,nPsFast,nPsSlow] = nPhotons(Xtg,XpsFast,XpsSlow);       
-        quantities.nTg(i) = nTg;
-        quantities.nPsFast(i) = nPsFast;
-        quantities.nPsSlow(i) = nPsSlow;
-        quantities.minVar(i) = compute3ChLimit(nPsFast,nPsSlow,nTg);
         
         selParamsUse = selParams;
         if varyAPS    %choose the postselection radius according to photon numbers
@@ -249,7 +262,12 @@ for ii = 1:length(filerange)
     
     %% Get quantities of interest
     % Compute expectation values of postselected state by fitting
-    
+    if (exist('nTg','var'))
+        quantities.nTg(i) = nTg;
+        quantities.nPsFast(i) = nPsFast;
+        quantities.nPsSlow(i) = nPsSlow;
+        quantities.minVar(i) = compute3ChLimit(nPsFast,nPsSlow,nTg);
+    end
     
     if fitexp
         expectations = computeExpectationsFit(selX,selTheta);
@@ -259,7 +277,7 @@ for ii = 1:length(filerange)
     
     % Compute simple expectation values of postselected state
     [disSelX,disSelTheta]=discretizeTheta(selX,selTheta,nDisc);
-    [expQ,expP,expQ2,expP2,delQ,delP,~,~,~,~] = ...
+    [expQ,expP,expQ2,expP2,~,~,~,~,~,~] = ...
         computeExpectations2(disSelX,disSelTheta,'bla','Plot','hide');
     quantities.q1(i) = expQ(1);
     quantities.q21(i) = expQ2(1);
@@ -267,14 +285,12 @@ for ii = 1:length(filerange)
     quantities.p21(i) = expP2(1);
     quantities.maxQ(i) = max(expQ);
     quantities.q2max(i) = max(expQ2);
-    quantities.varQ(i) = delQ^2;
-    quantities.varP(i) = delP^2;
     quantities.discAmpl(i) = mean(expQ(round(nDisc/4)-2:round(nDisc/4)+2));
     quantities.discMeanVar(i) = mean(expQ2(:)-(expQ(:)).^2);
-%     quantities.discN(i) = 0.5 * (expQ2(round(nDisc/4)) + ...
-%         expP2(round(nDisc/2)) - 1);
-     quantities.discN(i) = 0.5 * (mean(expQ2)+mean(expP2) - 1);
-     %quantities.discN(i) = 0.5 * (mean(expQ.^2) + mean(expP.^2) + 2*quantities.discMeanVar(i)- 1);
+    varVector =  expQ2(:)-(expQ(:)).^2; 
+    quantities.varQ = mean(varVector(round(nDisc/4)-2:round(nDisc/4)+2));
+    quantities.varP = mean(varVector(round(nDisc/2)-2:round(nDisc/2)+2));
+     %quantities.discN(i) = 0.5 * (mean(expQ2)+mean(expP2) - 1);
     
     % g2 estimation
     [g2values,nValues] = deal(zeros(10,1));
@@ -291,7 +307,8 @@ for ii = 1:length(filerange)
         catch
             warning('not enough X to compute g2. Set g2 = 2.');
             g2values(iG2) = 2;
-            nValues(iG2) = 0;
+            uniformX=uniformX-mean(uniformX);
+            nValues(iG2) = mean(uniformX.^2)-0.5;
         end
     end
     quantities.g2(i) = mean(g2values);
@@ -299,6 +316,7 @@ for ii = 1:length(filerange)
     quantities.n(i) = mean(nValues);
     meang2 = mean(g2values);
     meanVar = mean(expQ2(:)-(expQ(:)).^2);
+    quantities.discN(i) = mean(nValues);
     
     %% Save workspace variables (because recomputing them takes time)
     % Save Theta
@@ -327,7 +345,7 @@ for ii = 1:length(filerange)
     % Save postselected variables
     if saveps || tempsaveps
         save(postFilename, ...
-            'selX','selTheta','selParams','meang2','meanVar');
+            'selX','selTheta','selParams','meang2','meanVar','nTg','nPsFast','nPsSlow');      
         tempsaveps = false;
         if exist('rho','var')
             save(postFilename,'rho','rhoParams','-append');

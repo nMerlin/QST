@@ -23,8 +23,8 @@ c = struct2cell(p.Results);
 figurepath = 'figures-fig/';
 
 %% Gather data
-zeroDelay = -41; %200; make this a choice    
-[delay,Yr,Yt,discAmpl,discMeanVar,discN,g2vals,g2std,nTg,nPsFast,nPsSlow] = deal([]);
+zeroDelay = -30; %200; make this a choice    
+[delay,Yr,Yt,discAmpl,discMeanVar,varQ,varP,discN,g2vals,g2std,nTg,nPsFast,nPsSlow] = deal([]);
 sigmas = zeros(length(listOfParams),1);
 sigmaConf = zeros(length(listOfParams),2);
 for iParams = 1:length(listOfParams)
@@ -43,6 +43,10 @@ for iParams = 1:length(listOfParams)
     discAmpl(iParams,:) = discAmpl(iParams,I);
     discMeanVar(iParams,:) = A.discMeanVar;
     discMeanVar(iParams,:) = discMeanVar(iParams,I);
+    varQ(iParams,:) = A.varQ;
+    varQ(iParams,:) = varQ(iParams,I);
+    varP(iParams,:) = A.varP;
+    varP(iParams,:) = varP(iParams,I);
     discN(iParams,:) = A.discN;
     discN(iParams,:) = discN(iParams,I);
     g2vals(iParams,:) = A.g2;
@@ -154,8 +158,8 @@ switch typestr
 %                     Journal of Quantitative Spectroscopy and Radiative Transfer. 
 %                     17 (2): 233–236. Bibcode:1977JQSRT..17..233O. doi:10.1016/0022-4073(77)90161-3. ISSN 0022-4073.
                 case 'noFit'
-                    I = find(delay(i,:)>=zeroDelay-5 & delay(i,:)<=zeroDelay+5);
-                    fitPeak(i) = mean(discAmpl(i,I-2:I+2)); 
+                    Index = find(delay(i,:)>=zeroDelay-5 & delay(i,:)<=zeroDelay+5);
+                    fitPeak(i) = mean(discAmpl(i,Index-2:Index+2)); 
             end;               
         end;
         hold off;
@@ -178,6 +182,8 @@ switch typestr
         for i = 1:length(I)
             plot(delay(i,:),discMeanVar(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
+            Index = find(delay(i,:)>=zeroDelay-1 & delay(i,:)<=zeroDelay+1);
+            fitPeak(i) = mean(discMeanVar(i,Index)); 
         end;
         hold off;
         legend('location','southeast');
@@ -187,6 +193,38 @@ switch typestr
             title('Variance vs. Radius of Postselected Fullcircle');
         else
             title('Variance vs. A_c');
+        end
+     case 'VarQ'
+        for i = 1:length(I)
+            plot(delay(i,:),varQ(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+            hold on;
+            Index = find(delay(i,:)>=zeroDelay-1 & delay(i,:)<=zeroDelay+1);
+            fitPeak(i) = mean(varQ(i,Index)); 
+        end;
+        hold off;
+        legend('location','southeast');
+        ylabel('Variance in Q');
+        xlabel(['Delay (' xUnit ')']);
+        if ~varyAPS
+            title('Var_{Q} vs. Radius of Postselected Fullcircle');
+        else
+            title('Var_{Q} vs. A_c');
+        end
+     case 'VarP'
+        for i = 1:length(I)
+            plot(delay(i,:),varP(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+            hold on;
+            Index = find(delay(i,:)>=zeroDelay-1 & delay(i,:)<=zeroDelay+1);
+            fitPeak(i) = mean(varP(i,Index)); 
+        end;
+        hold off;
+        legend('location','southeast');
+        ylabel('Variance in P');
+        xlabel(['Delay (' xUnit ')']);
+        if ~varyAPS
+            title('Var_{P} vs. Radius of Postselected Fullcircle');
+        else
+            title('Var_{P} vs. A_c');
         end
     case 'MeanVarSigma'
         errorbar(Yr(:,1),sigmas,abs(sigmas-sigmaConf(:,1)), ...
@@ -200,8 +238,8 @@ switch typestr
         for i = 1:length(I)
             plot(delay(i,:),discN(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
-            I = find(delay(i,:)>=zeroDelay-5 & delay(i,:)<=zeroDelay+5);
-            fitPeak(i) = mean(discN(i,I-2:I+2)); 
+            Index = find(delay(i,:)>=zeroDelay-5 & delay(i,:)<=zeroDelay+5);
+            fitPeak(i) = mean(discN(i,Index-2:Index+2)); 
         end;
         hold off;
         legend('location','northwest');

@@ -26,7 +26,7 @@ defaultChannels = 1:3;
 addParameter(p,'Channels',defaultChannels,@isnumeric);
 defaultPickingFactor = 1;
 addParameter(p,'PickingFactor',defaultPickingFactor,@isnumeric);
-defaultCorrRemove = 'no';
+defaultCorrRemove = 'yes';
 addParameter(p,'CorrRemove',defaultCorrRemove);
 defaultDutyCycle = 1/3; % Integration Duty Cycle
 addParameter(p,'DutyCycle',defaultDutyCycle,@isnumeric);
@@ -124,7 +124,7 @@ for iCh = channels
             X(:,:,iCh) = correlationCompensation(X(:,:,iCh));
             Xrem = X(1:end-1,:,iCh);
         end 
-        
+             
     elseif strcmp(offset,'global') % remove global offset
         dispstat(['Removing global offset from channel ',num2str(iCh), ...
             ' ...'],'timestamp','keepthis',0);

@@ -1,4 +1,4 @@
-function [O1,O2,O3,oTheta,iOrth] = selectOrthogonal(X1,X2,X3,theta,piezoSign,varargin)
+function [O1,O2,O3,oTheta,iOrth,ys] = selectOrthogonal(X1,X2,X3,theta,piezoSign,varargin)
 %SELECTORTHOGONAL Select all data points where X1 and X2 are orthogonal
 %
 % Input Arguments:
@@ -21,7 +21,7 @@ SHIFT = 10000;
 %% Validate and parse input arguments
 p = inputParser;
 defaultPlot = 'noplot';
-defaultWidth = 0.05; % Width of orthogonal range in % of max-min
+defaultWidth = 0.05; % Width of orthogonal range as ratio of max-min
 addParameter(p,'Plot',defaultPlot,@isstr);
 addParameter(p,'Width',defaultWidth,@isnumeric);
 parse(p,varargin{:});
@@ -53,11 +53,11 @@ O2 = piezoSign*O2;
 %% Visualize the selection process for two piezo segments
 if strcmp(plotArg,'plot')
     [nPoints,~] = size(ys);
-    x = 1:5*nPoints;
-    iOrth = iOrth(iOrth<5*nPoints);
-    ys = ys(x);
-    plot(x,ys); hold on;
-    plot(x(iOrth),ys(iOrth),'.'); hold off;
+    x = 1:10*nPoints;
+    iOrthPlot = iOrth(iOrth<10*nPoints);
+    ysPlot = ys(x);
+    plot(x,ysPlot); hold on;
+    plot(x(iOrthPlot),ysPlot(iOrthPlot),'.'); hold off;
     legend('Smoothed Cross-Correlation X1.*X2','Selected Data Points');
 end
 
