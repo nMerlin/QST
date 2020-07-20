@@ -120,7 +120,13 @@ if saveWigner || rewriteWigner
 end
 
 %% Discover *.mat files
-filestruct = dir('mat-data/*.mat');
+if strcmp(corrRemove,'yes')
+        filestruct = dir('mat-data/*CorrRemove-yes.mat');
+    else
+        filestruct = dir('mat-data/*.mat'); %% will discover all files !
+end
+
+
 files = {filestruct.name};
 
 %% Create folder 'post-data'
@@ -142,15 +148,15 @@ for ii = 1:length(filerange)
     C = strsplit(files{i},'.');
     filename = C{1};
     
-    if strcmp(corrRemove,'yes')
-        if (isempty(regexpi(filename,'corrRemove-yes','match')))
-            continue
-        end
-    else
-         if not(isempty(regexpi(filename,'corrRemove-yes','match')))
-            continue
-        end
-    end
+%     if strcmp(corrRemove,'yes')
+%         if (isempty(regexpi(filename,'corrRemove-yes','match')))
+%             continue
+%         end
+%     else
+%          if not(isempty(regexpi(filename,'corrRemove-yes','match')))
+%             continue
+%         end
+%     end
   
     dispstat(['Loading ',files{i},' ...'],'timestamp',0);
     clear X1 X2 X3 theta piezoSign
@@ -288,8 +294,8 @@ for ii = 1:length(filerange)
     quantities.discAmpl(i) = mean(expQ(round(nDisc/4)-2:round(nDisc/4)+2));
     quantities.discMeanVar(i) = mean(expQ2(:)-(expQ(:)).^2);
     varVector =  expQ2(:)-(expQ(:)).^2; 
-    quantities.varQ = mean(varVector(round(nDisc/4)-2:round(nDisc/4)+2));
-    quantities.varP = mean(varVector(round(nDisc/2)-2:round(nDisc/2)+2));
+    quantities.varQ(i) = mean(varVector(round(nDisc/4)-2:round(nDisc/4)+2));
+    quantities.varP(i) = mean(varVector(round(nDisc/2)-2:round(nDisc/2)+2));
      %quantities.discN(i) = 0.5 * (mean(expQ2)+mean(expP2) - 1);
     
     % g2 estimation

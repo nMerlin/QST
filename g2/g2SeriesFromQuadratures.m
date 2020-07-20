@@ -39,6 +39,12 @@ for iStruct =  1:length(Contents)
     if strcmp(filename,'.') || strcmp(filename,'..') || strcmp(filename,'.txt')
         continue
     end
+    
+    if (isempty(regexpi(filename,'corrRemove-yes','match')))
+            continue
+    end
+    
+    
     dataStruct(iStruct).filename = filename;
     % get current or power
     %currentToken = regexpi(filename,'-([0123456789.]*)mA','tokens');

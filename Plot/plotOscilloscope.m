@@ -22,10 +22,11 @@ for i = 1:length(filerange)
      ylabel('signal voltage');
      graphicsSettings;
      title(filename);
+     savefig([filename '-time.fig']);
      print([filename '-time.png'], '-dpng');
      
      %Fouriertrafo 
-     plotFFTfromNphotonsVsTimes(P,t,filename,'Axis',[0 200 0 0.05]);
+     plotFFTfromNphotonsVsTimes(P,t,filename,'Axis',[0 5000 0 0.05]);
 end
     
 end
