@@ -23,7 +23,7 @@ addParameter(p,'GetDelay',defaultGetDelay,@islogical);
 defaultRemoveModulation = false;
 addParameter(p,'RemoveModulation',defaultRemoveModulation,@islogical);
 defaultRange = 0.3;
-addParameter(p,'Range',defaultRange,@isnumeric);
+addParameter(p,'Range',defaultRange,@isvector);
 defaultVaryAPS = false;
 addParameter(p,'VaryAPS',defaultVaryAPS,@islogical);
 defaultXUnit = 'fs';
@@ -99,7 +99,7 @@ if ~isempty(dir([figurepath,'*-WignerMovie2D-',selStr,'*']))
 end
 
 % Find dependencies that need to be created
-if isempty(seriesRead3ChTable(selParams,'VaryAPS',varyAPS))
+if isempty(seriesRead3ChTable(selParams,'VaryAPS',varyAPS,'RemoveModulation',remMod,'Range',range))
     makeTable = true;
 end
 
@@ -113,7 +113,7 @@ if makeTable
         'SavePostselection',saveps,'SaveTheta',savetheta,'GetDelay',getDelay,...
         'RemoveModulation',remMod,'VaryAPS',varyAPS,'ChannelAssignment',chAssign,'CorrRemove',corrRemove);    
 else
-    T = seriesRead3ChTable(selParams,'VaryAPS',varyAPS);
+    T = seriesRead3ChTable(selParams,'VaryAPS',varyAPS,'RemoveModulation',remMod,'Range',range);
 end
 if ~exist('figures-fig','dir')
     mkdir('figures-fig');
@@ -143,7 +143,10 @@ if delayN
 end
 if movieWigner2D || movieWigner3D
     dispstat('Making Wigner functions ...','timestamp','keepthis');
-    series3Ch('SaveWigner',true,'SelectionParameters',selParams);
+    series3Ch('SaveWigner',true,'SelectionParameters',selParams,'RecomputeTheta',recomputeTheta,...
+        'RecomputeOrth',recomputeOrth,'SaveOrth',saveOrth,'Range',range,...
+        'SavePostselection',saveps,'SaveTheta',savetheta,'GetDelay',getDelay,...
+        'RemoveModulation',remMod,'VaryAPS',varyAPS,'ChannelAssignment',chAssign,'CorrRemove',corrRemove);
 end
 if movieWigner2D && movieWigner3D
     dispstat('Making 2D & 3D Wigner movies ...','timestamp','keepthis');
