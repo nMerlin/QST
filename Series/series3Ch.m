@@ -51,10 +51,9 @@ function T = series3Ch(varargin)
 %   'GetDelay': Default is 'false'. Choose true if the delay can be retrieved
 %       from the file name with format xx-yymm, where yy is the delay.
 %   'RemoveModulation': Default is 'false'. Choose true if only data should
-%       be selected where the photon number lies in a certain range below the
-%       maximum. 
-%   'range': the range for selecting only photon numbers > n_max(1-range)
-%       in removeNBelowLimit
+%       be selected where the photon number lies in a certain range 
+%   'range': the range for selecting only photon numbers within this range
+%       (it takes nPsFast into regard)
 %   'VaryAPS': Default is 'false'. choose the postselection radius according to 
 %       photon numbers, while keeping the conditional radius as fixed parameter
 %   'CorrRemove': Only uses those mat-file that have 'corrRemove-yes' in
@@ -105,8 +104,8 @@ defaultCorrRemove = 'yes';
 addParameter(p,'CorrRemove',defaultCorrRemove,@isstr);
 defaultSelParams = struct('Type','fullcircle','Position',[2.5,0.5]);
 addParameter(p,'SelectionParameters',defaultSelParams,@isstruct);
-defaultRange = 0.3;
-addParameter(p,'Range',defaultRange,@isnumeric);
+defaultRange = [0 10];
+addParameter(p,'Range',defaultRange,@isvector);
 defaultChannelAssignment = [1,2,3]; %[target,ps_piezo_fast,ps_piezo_slow]
 addParameter(p,'ChannelAssignment',defaultChannelAssignment,@isvector);
 parse(p,varargin{:});
@@ -147,17 +146,6 @@ for ii = 1:length(filerange)
     %% Load data
     C = strsplit(files{i},'.');
     filename = C{1};
-    
-%     if strcmp(corrRemove,'yes')
-%         if (isempty(regexpi(filename,'corrRemove-yes','match')))
-%             continue
-%         end
-%     else
-%          if not(isempty(regexpi(filename,'corrRemove-yes','match')))
-%             continue
-%         end
-%     end
-  
     dispstat(['Loading ',files{i},' ...'],'timestamp',0);
     clear X1 X2 X3 theta piezoSign
     clear O1 O2 O3 oTheta selX selTheta;
@@ -203,16 +191,7 @@ for ii = 1:length(filerange)
         XpsFast = quadratures(:,:,:,chAssign(2));
         XpsSlow = quadratures(:,:,:,chAssign(3));
         clear('quadratures'); 
-    end
-    
-     
-    
-%     if remMod %rescales the Xi according to time dependent photon numbers
-%             [X1,X2,X3,n1vec,n2vec,n3vec] = removeModulation(X1,X2,X3);
-%             if (exist('thetaRemMod','var')) && (~recomputeTheta)
-%                 theta = thetaRemMod;
-%             end
-%     end; 
+    end 
     
     %% Compute Phase and Postselected Variables
     if ~exist('selX','var') % run only if postselection file was not loaded
@@ -226,29 +205,24 @@ for ii = 1:length(filerange)
             end
             
         end
-       
-%         if remMod %removes the edges of the piezo segments, where the photon number vectors make jumps
-%             [X1,X2,X3,theta,n1vec,n2vec,n3vec] = removeSegmentEdges(X1,X2,X3,theta,n1vec,n2vec,n3vec);
-%         end
-        
-        if (~exist('O1','var')) || recomputeOrth  %%case, where remMod is done first?
+              
+        if (~exist('O1','var')) || recomputeOrth 
             [O1,O2,O3,oTheta,iOrth] = selectOrthogonal(XpsFast,XpsSlow,Xtg,theta,piezoSign);
         end
         
-        if remMod %removes those Oi where the photon number is below a limit of n_max*(1-range)
-%             if (exist('O1remMod','var')) && (~recomputeOrth)
-%                 O1 = O1remMod;
-%                 O2 = O2remMod;
-%                 O3 = O3remMod;
-%                 oTheta = oThetaRemMod;
-%             else 
+        if remMod 
                 nTgVec = photonNumberVector(Xtg);
                 nPsFastVec = photonNumberVector(XpsFast);
                 nPsSlowVec = photonNumberVector(XpsSlow);
-                nTgVec = nTgVec(iOrth);
+                %nTgVec = nTgVec(iOrth);
                 nPsFastVec = nPsFastVec(iOrth);
-                nPsSlowVec = nPsSlowVec(iOrth);
-                [O3,O1,O2,oTheta] = removeNBelowLimit(O3,O1,O2,oTheta,nTgVec,nPsFastVec,nPsSlowVec,range);
+                %nPsSlowVec = nPsSlowVec(iOrth);
+                iSel = find(nPsFastVec >= min(range) & nPsFastVec <= max(range));
+                O1 = O1(iSel);
+                O2 = O2(iSel);
+                O3 = O3(iSel);
+                oTheta = oTheta(iSel);                
+               % [O3,O1,O2,oTheta] = removeNBelowLimit(O3,O1,O2,oTheta,nTgVec,nPsFastVec,nPsSlowVec,range);
 %             end
         end
         
@@ -294,8 +268,8 @@ for ii = 1:length(filerange)
     quantities.discAmpl(i) = mean(expQ(round(nDisc/4)-2:round(nDisc/4)+2));
     quantities.discMeanVar(i) = mean(expQ2(:)-(expQ(:)).^2);
     varVector =  expQ2(:)-(expQ(:)).^2; 
-    quantities.varQ(i) = mean(varVector(round(nDisc/4)-2:round(nDisc/4)+2));
-    quantities.varP(i) = mean(varVector(round(nDisc/2)-2:round(nDisc/2)+2));
+    quantities.varQ(i) = mean(mean([varVector(round(nDisc/4)-2:round(nDisc/4)+5) varVector(round(nDisc*3/4)-2:round(nDisc*3/4)+5)]));
+    quantities.varP(i) = mean(varVector(round(nDisc/2)-2:round(nDisc/2)+5));
      %quantities.discN(i) = 0.5 * (mean(expQ2)+mean(expP2) - 1);
     
     % g2 estimation
@@ -327,25 +301,11 @@ for ii = 1:length(filerange)
     %% Save workspace variables (because recomputing them takes time)
     % Save Theta
     if savetheta 
-        if remMod 
-            thetaRemMod = theta;
-            save(['mat-data/',files{i}],'thetaRemMod','-append');
-        else
             save(['mat-data/',files{i}],'theta','-append');
-        end
     end
     
     if saveOrth
-%         if remMod
-%             O1remMod = O1;
-%             O2remMod = O2;
-%             O3remMod = O3; 
-%             oThetaRemMod = oTheta; 
-%             iOrthRemMod = iOrth;
-%             save(['mat-data/',files{i}],'O1remMod','O2remMod','O3remMod','oThetaRemMod','iOrthRemMod','-append');
-%         else
             save(['mat-data/',files{i}],'O1','O2','O3','oTheta','iOrth','-append');
-%         end
     end
     
     % Save postselected variables
