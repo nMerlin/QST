@@ -15,15 +15,18 @@ defaultVaryAPS = false;
 addParameter(p,'VaryAPS',defaultVaryAPS,@islogical);
 defaultRemoveModulation = false;
 addParameter(p,'RemoveModulation',defaultRemoveModulation,@islogical);
+defaultRange = 0.3;
+addParameter(p,'Range',defaultRange,@isvector);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[remMod,varyAPS] = c{:};
+[range,remMod,varyAPS] = c{:};
 
 selStr = 'type=fullcircle-radius=2.5-thickness=0.5';
 if nargin > 0
     selStr = selParamsToStr(selParams);
 end
-filestruct = dir(['*-series3Ch-',selStr,'-remMod-' num2str(remMod) '-range-0.3-varyAPS-' num2str(varyAPS) '.txt']);
+filestruct = dir(['*-series3Ch-',selStr,'-remMod-' num2str(remMod) '-range-' ...
+    num2str(range) '-varyAPS-' num2str(varyAPS) '.txt']);
 if ~isempty(filestruct)
     filestring = strjoin({filestruct.name});
     filedates = regexp(filestring,['([^ ]*)','-series3Ch-',selStr] ...
