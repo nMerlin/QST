@@ -40,9 +40,9 @@ for iStruct =  1:length(Contents)
         continue
     end
     
-    if (isempty(regexpi(filename,'corrRemove-yes','match')))
-            continue
-    end
+%     if (isempty(regexpi(filename,'corrRemove-yes','match')))
+%             continue
+%     end
     
     
     dataStruct(iStruct).filename = filename;

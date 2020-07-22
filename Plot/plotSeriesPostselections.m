@@ -15,9 +15,11 @@ defaultVaryAPS = false;
 addParameter(p,'VaryAPS',defaultVaryAPS,@islogical);
 defaultRemoveModulation = false;
 addParameter(p,'RemoveModulation',defaultRemoveModulation,@islogical);
+defaultRange = 0.3;
+addParameter(p,'Range',defaultRange,@isvector);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[filename,fitType,remMod,typestr,varyAPS,xUnit] = c{:};
+[filename,fitType,range,remMod,typestr,varyAPS,xUnit] = c{:};
 
 % Constants
 figurepath = 'figures-fig/';
@@ -31,7 +33,7 @@ for iParams = 1:length(listOfParams)
     selParams = listOfParams(iParams);
     
     % From tables
-    A = seriesRead3ChTable(selParams,'VaryAPS',varyAPS,'RemoveModulation',remMod);
+    A = seriesRead3ChTable(selParams,'VaryAPS',varyAPS,'RemoveModulation',remMod,'Range',range);
     H = height(A);
     Radii = ones(H,1) * selParams.Position(1);
     Thicknesses = ones(H,1) * selParams.Position(2);

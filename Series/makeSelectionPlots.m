@@ -20,7 +20,7 @@ addParameter(p,'GetDelay',defaultGetDelay,@islogical);
 defaultRemoveModulation = false;
 addParameter(p,'RemoveModulation',defaultRemoveModulation,@islogical);
 defaultRange = 0.3;
-addParameter(p,'Range',defaultRange,@isnumeric);
+addParameter(p,'Range',defaultRange,@isvector);
 defaultVaryAPS = false;
 addParameter(p,'VaryAPS',defaultVaryAPS,@islogical);
 defaultXUnit = 'fs';
@@ -115,7 +115,7 @@ if makeTable
         makeDelayPlots('table','SelectionParameters',listOfParams(iParams),...
         'RecomputeTheta',recomputeTheta,'RecomputeOrth',recomputeOrth,...
         'SaveOrth',saveOrth,'SavePostselection',saveps,'SaveTheta',savetheta,'GetDelay',getDelay,...
-        'RemoveModulation',remMod,'XUnit',xUnit,'VaryAPS',varyAPS,'ChannelAssignment',chAssign,'CorrRemove',corrRemove);  
+        'RemoveModulation',remMod,'Range',range,'XUnit',xUnit,'VaryAPS',varyAPS,'ChannelAssignment',chAssign,'CorrRemove',corrRemove);  
     end
 end
 if delayPlots
@@ -123,66 +123,67 @@ if delayPlots
         makeDelayPlots('plots','SelectionParameters',listOfParams(iParams),...
         'RecomputeTheta',recomputeTheta,'RecomputeOrth',recomputeOrth,...
         'SaveOrth',saveOrth,'SavePostselection',saveps,'SaveTheta',savetheta,'GetDelay',getDelay,...
-        'RemoveModulation',remMod,'XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'ChannelAssignment',chAssign,'CorrRemove',corrRemove);  
+        'RemoveModulation',remMod,'Range',range,'XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,...
+        'ChannelAssignment',chAssign,'CorrRemove',corrRemove);  
     end
 end
 if radiusDiscAmpl
     filenameFig = [figurepath,datestring,'-RadiusDiscAmpl.fig'];
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
-        'Type','Amplitude','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod);
+        'Type','Amplitude','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod,'Range',range);
 end
 if radiusMeanVar
     filenameFig = [figurepath,datestring,'-RadiusMeanVar.fig'];
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
-        'Type','MeanVar','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod);
+        'Type','MeanVar','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod,'Range',range);
      plotSeriesPostselections(listOfParams,'Filename',[figurepath,datestring,'-VarQ.fig'], ...
-        'Type','VarQ','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod);
+        'Type','VarQ','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod,'Range',range);
      plotSeriesPostselections(listOfParams,'Filename',[figurepath,datestring,'-VarP.fig'], ...
-        'Type','VarP','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod);
+        'Type','VarP','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod,'Range',range);
 end
 if radiusMeanVarSigma
     filenameFig = [figurepath,datestring,'-RadiusMeanVarSigma.fig'];
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
-        'Type','MeanVarSigma','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod);   
+        'Type','MeanVarSigma','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod,'Range',range);   
 end
 if radiusDiscN
     filenameFig = [figurepath,datestring,'-RadiusDiscN.fig'];
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
-        'Type','DiscN','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod);
+        'Type','DiscN','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod,'Range',range);
 end
 if radiusG2
     filenameFig = [figurepath,datestring,'-RadiusG2.fig'];
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
-        'Type','G2','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod);
+        'Type','G2','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod,'Range',range);
 end    
 if nWithoutPostselection
     filenameFig = [figurepath,datestring,'-nWithoutPostselection.fig'];
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
-        'Type','nWithoutPostselection','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod);
+        'Type','nWithoutPostselection','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod,'Range',range);
 end   
 if thicknessMeanVar
     filenameFig = [figurepath,datestring,'-ThicknessMeanVar.fig'];
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
-        'Type','ThicknessMeanVar','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod);
+        'Type','ThicknessMeanVar','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod,'Range',range);
 end
 if thicknessMeanVarSigma
     filenameFig = [figurepath,datestring,'-ThicknessMeanVarSigma.fig'];
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
-        'Type','ThicknessMeanVarSigma','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod);
+        'Type','ThicknessMeanVarSigma','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod,'Range',range);
 end
 if thicknessMeanVarMin
     filenameFig = [figurepath,datestring,'-ThicknessMeanVarMin.fig'];
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
-        'Type','ThicknessMeanVarMin','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod);
+        'Type','ThicknessMeanVarMin','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod,'Range',range);
 end
 if thicknessG2
     filenameFig = [figurepath,datestring,'-ThicknessG2.fig'];
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
-        'Type','ThicknessG2','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod);
+        'Type','ThicknessG2','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod,'Range',range);
 end
 if pdfs
     for iParams = 1:length(listOfParams)
-        makeDelayPlots('pdfs','SelectionParameters',listOfParams(iParams),'XUnit',xUnit,'VaryAPS',varyAPS);
+        makeDelayPlots('pdfs','SelectionParameters',listOfParams(iParams),'XUnit',xUnit,'VaryAPS',varyAPS,'RemoveModulation',remMod,'Range',range);
     end
     % Radius pdfs
     listOfFigures = dir([figurepath,'*-Radius*.fig']);
