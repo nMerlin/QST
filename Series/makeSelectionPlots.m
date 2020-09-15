@@ -15,8 +15,8 @@ defaultRecomputeOrth = false;
 addParameter(p,'RecomputeOrth',defaultRecomputeOrth,@islogical);
 defaultSaveOrth = false;
 addParameter(p,'SaveOrth',defaultSaveOrth,@islogical);
-defaultGetDelay = false;
-addParameter(p,'GetDelay',defaultGetDelay,@islogical);
+defaultParameter = 'delay';
+addParameter(p,'Parameter',defaultParameter,@isstr);
 defaultRemoveModulation = false;
 addParameter(p,'RemoveModulation',defaultRemoveModulation,@islogical);
 defaultRange = 0.3;
@@ -33,7 +33,7 @@ defaultCorrRemove = 'yes';
 addParameter(p,'CorrRemove',defaultCorrRemove,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[chAssign,corrRemove,fitType,getDelay,listOfParams,range,recomputeOrth,recomputeTheta,remMod, ...
+[chAssign,corrRemove,fitType,listOfParams,parameter,range,recomputeOrth,recomputeTheta,remMod, ...
     saveOrth,saveps,savetheta,varyAPS,xUnit] = c{:};
 
 % Constants
@@ -114,7 +114,7 @@ if makeTable
     for iParams = 1:length(listOfParams)
         makeDelayPlots('table','SelectionParameters',listOfParams(iParams),...
         'RecomputeTheta',recomputeTheta,'RecomputeOrth',recomputeOrth,...
-        'SaveOrth',saveOrth,'SavePostselection',saveps,'SaveTheta',savetheta,'GetDelay',getDelay,...
+        'SaveOrth',saveOrth,'SavePostselection',saveps,'SaveTheta',savetheta,'Parameter',parameter,...
         'RemoveModulation',remMod,'Range',range,'XUnit',xUnit,'VaryAPS',varyAPS,'ChannelAssignment',chAssign,'CorrRemove',corrRemove);  
     end
 end
@@ -122,7 +122,7 @@ if delayPlots
     for iParams = 1:length(listOfParams)
         makeDelayPlots('plots','SelectionParameters',listOfParams(iParams),...
         'RecomputeTheta',recomputeTheta,'RecomputeOrth',recomputeOrth,...
-        'SaveOrth',saveOrth,'SavePostselection',saveps,'SaveTheta',savetheta,'GetDelay',getDelay,...
+        'SaveOrth',saveOrth,'SavePostselection',saveps,'SaveTheta',savetheta,'Parameter',parameter,...
         'RemoveModulation',remMod,'Range',range,'XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,...
         'ChannelAssignment',chAssign,'CorrRemove',corrRemove);  
     end
@@ -131,6 +131,8 @@ if radiusDiscAmpl
     filenameFig = [figurepath,datestring,'-RadiusDiscAmpl.fig'];
     plotSeriesPostselections(listOfParams,'Filename',filenameFig, ...
         'Type','Amplitude','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod,'Range',range);
+    plotSeriesPostselections(listOfParams,'Filename',[figurepath,datestring,'-RadiusDiscAmplLog.fig'], ...
+        'Type','AmplitudeLog','XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,'RemoveModulation',remMod,'Range',range);
 end
 if radiusMeanVar
     filenameFig = [figurepath,datestring,'-RadiusMeanVar.fig'];
