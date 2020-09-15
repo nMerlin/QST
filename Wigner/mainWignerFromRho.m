@@ -1,8 +1,18 @@
-function WF = mainWignerFromRho(rho)
+function WF = mainWignerFromRho(rho,varargin)
+% calculates the Wigner function from the input density matrix rho.
+% Optional Input: Directory: The directory, where the WignerTables WigTab
+% are located that should be used.  
 
+%% Validate and parse input arguments
+p = inputParser;
+defaultDirectory = 'C:\Users\lab\Documents\@archived-data\Wigner';
 %directory = 'Z:\freefilesync-lab\matlab\QST\Wigner';
 %directory = 'D:\@archive\2016-08-30-wigner-test';
-directory = 'C:\Users\lab\Documents\@archived-data\Wigner';
+%directory = 'C:\Users\lab\Documents\@archived-data\Wigner-Resolution-0.25';
+addParameter(p,'Directory',defaultDirectory,@isstr);
+parse(p,varargin{:});
+c = struct2cell(p.Results);
+[directory] = c{:};
 
 maxn=size(rho,1);
 load(strcat(directory,'\n0m0'));
@@ -14,7 +24,7 @@ for nVal=0:maxn-1
         WF=WF+(rho(nVal+1,mVal+1)*WigTab);
     end;
 end
-WF = real(WF);
+%WF = real(WF);
 WF = WF/sum(sum(WF));
 
 end
