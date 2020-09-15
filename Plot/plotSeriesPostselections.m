@@ -21,6 +21,11 @@ parse(p,varargin{:});
 c = struct2cell(p.Results);
 [filename,fitType,range,remMod,typestr,varyAPS,xUnit] = c{:};
 
+%% Create folder 'figures-fig'
+if ~exist([pwd 'figures-fig'],'dir')
+    mkdir('figures-fig')
+end
+
 % Constants
 figurepath = 'figures-fig/';
 
@@ -180,6 +185,32 @@ switch typestr
             title(ax,'Coherent Amplitude vs. A_c');
         end
         fig = figure(1);
+        
+    case 'AmplitudeLog'
+        figure(1);
+        ax = gca;
+        for i = 1:length(I)
+            semilogy(ax,delay(i,:),discAmpl(i,:)*2^i,'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+            hold on;   
+        end;
+        hold off;
+        if strcmp(fitType,'noFit')
+            legend('location','best');
+        else
+            f=get(ax,'Children');
+            index = length(f)-((1:length(I))-1).*2;
+            legend(f(index),'location','best');
+        end
+        xlabel(ax,['Delay (' xUnit ')']); 
+        ylabel(ax,'Coherent Amplitude'); 
+        if ~varyAPS
+            title(ax,'Coherent Amplitude vs. Radius of Postselected Fullcircle');
+        else
+            title(ax,'Coherent Amplitude vs. A_c');
+        end
+        fig = figure(1);
+        
+        
     case 'MeanVar'
         for i = 1:length(I)
             plot(delay(i,:),discMeanVar(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
