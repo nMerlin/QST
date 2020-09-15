@@ -48,8 +48,10 @@ function T = series3Ch(varargin)
 %       calculation, which is not saved. 
 %   'NDisc': Default is 100. Number of bins to discretize theta for
 %       computing expectation values with 'computeExpectations'.
-%   'GetDelay': Default is 'false'. Choose true if the delay can be retrieved
+%   'Parameter': Default is 'delay'. Then, delay is retrieved
 %       from the file name with format xx-yymm, where yy is the delay.
+%       choose 'power' when power was changed during the series and get
+%       this frome filename.
 %   'RemoveModulation': Default is 'false'. Choose true if only data should
 %       be selected where the photon number lies in a certain range 
 %   'range': the range for selecting only photon numbers within this range
@@ -94,8 +96,8 @@ defaultSaveOrth = false;
 addParameter(p,'SaveOrth',defaultSaveOrth,@islogical);
 defaultSaveWigner = false;
 addParameter(p,'SaveWigner',defaultSaveWigner,@islogical);
-defaultGetDelay = false;
-addParameter(p,'GetDelay',defaultGetDelay,@islogical);
+defaultParameter = 'delay';
+addParameter(p,'Parameter',defaultParameter,@isstr);
 defaultRemoveModulation = false;
 addParameter(p,'RemoveModulation',defaultRemoveModulation,@islogical);
 defaultVaryAPS = false;
@@ -110,7 +112,7 @@ defaultChannelAssignment = [1,2,3]; %[target,ps_piezo_fast,ps_piezo_slow]
 addParameter(p,'ChannelAssignment',defaultChannelAssignment,@isvector);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[chAssign,corrRemove,filenumber,filerange,fitexp,getDelay,nDisc,range,recomputeOrth,recomputeTheta,remMod,rewriteRho,rewriteWigner,rhoParams, ...
+[chAssign,corrRemove,filenumber,filerange,fitexp,nDisc,parameter,range,recomputeOrth,recomputeTheta,remMod,rewriteRho,rewriteWigner,rhoParams, ...
     saveOrth,saveps,saverho,savetheta,saveWigner,selParams,varyAPS] = c{:};
 
 % Dependencies among optional input arguments
@@ -153,20 +155,27 @@ for ii = 1:length(filerange)
     postFilename =  ['post-data/',filename,'-',selStr,'-remMod-',...
             num2str(remMod),'-range-',num2str(range),'-varyAPS-',num2str(varyAPS),'.mat'];
     
-    if getDelay
+    switch parameter
+        case 'power'    
+            powerToken =  regexpi(filename,'([0123456789,]*)mW-4mW','tokens');
+            power = cell2mat(powerToken{1});
+            power = strrep(power,',','.');
+            power = str2double(power);
+            quantities.Power(i) = power;      
+        case 'delay'
         % get delay from the file name with format xx-yymm, where xx is the
         % filenumber and yy is the delay which can also be negative and start
-        % with a minus sign
-        delayToken = regexpi(filename,'([-0123456789,-]*)mm','tokens');
-        delay = cell2mat(delayToken{1});
-        numberToken = regexpi(delay,'^([0123456789,]*)-','tokens'); 
-        number = cell2mat(numberToken{1});
-        delay = strrep(delay,[number '-'],'');
-        delay = strrep(delay,',','.');
-        delay = str2double(delay);
-        c = 299792458; % in m/s
-        delay = 2*delay/1000/c*10^12; %delay in ps
-        quantities.Delay(i) = delay;
+        % with a minus sign        
+            delayToken = regexpi(filename,'([-0123456789,-]*)mm','tokens');
+            delay = cell2mat(delayToken{1});
+            numberToken = regexpi(delay,'^([0123456789,]*)-','tokens'); 
+            number = cell2mat(numberToken{1});
+            delay = strrep(delay,[number '-'],'');
+            delay = strrep(delay,',','.');
+            delay = str2double(delay);
+            c = 299792458; % in m/s
+            delay = 2*delay/1000/c*10^12; %delay in ps
+            quantities.Delay(i) = delay;      
     end
     
     if ~saveps

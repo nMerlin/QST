@@ -1,4 +1,4 @@
-function [E0,a,y0,Emax,modeInt, SumInt] = plotDispersion(filenameSIG, filenameBG,varargin)
+function [E0,a,y0,Emax,modeInt, SumInt,FWHM,FWHMerror,peakPosition,peakHeight] = plotDispersion(filenameSIG, filenameBG,varargin)
 %PLOTSTREAK plots the dispersion of polaritons obtained with spectrometer
 %and fourier lens and makes a parabolic fit. 
 %
@@ -42,9 +42,13 @@ defaultaOld = 4.4973e-7;
 addParameter(parser,'aOld',defaultaOld,@isnumeric);
 defaultY0Old = 217; 
 addParameter(parser,'y0Old',defaultY0Old,@isnumeric);
+defaultR = 9.5;  %Rabi splitting in meV
+addParameter(parser,'R',defaultR,@isnumeric);
+defaultEX = 1.6195;  %Exciton energy in eV
+addParameter(parser,'EX',defaultEX,@isnumeric);
 parse(parser,varargin{:});
 c = struct2cell(parser.Results);
-[aOld,E0Old,fitoption,minY,modeE,modeK,plotMode,plottype,subtract,xAperture,y0Old,zoomE] = c{:};
+[aOld,E0Old,EX,fitoption,minY,modeE,modeK,plotMode,plottype,R,subtract,xAperture,y0Old,zoomE] = c{:};
 
 %% fourier pixel
 % take values from calibration measurement
@@ -153,12 +157,20 @@ if strcmp(plotMode,'yes')
 end
 if strcmp(fitoption,'yes')
     Efit = f(y);
-    plot(k(Efit>=min(zoomE) & Efit <= max(zoomE)),Efit(Efit>=min(zoomE) & Efit <= max(zoomE)),'r-','LineWidth',1.5);
 end
 if strcmp(fitoption,'useOld')
     Efit = E0Old + aOld * (y-y0Old).^2;
-    plot(k(Efit>=min(zoomE) & Efit <= max(zoomE)),Efit(Efit>=min(zoomE) & Efit <= max(zoomE)),'r-','LineWidth',1.5);
 end
+if strcmp(fitoption,'yes') || strcmp(fitoption,'useOld')
+    [detuningMeV, detuning2g0,Ecav,~] = computeDetuning(E0,R,EX);
+    EX = EX*ones(length(k(Efit>=min(zoomE) & Efit <= max(zoomE))),1);   
+    Ecav = Ecav*ones(length(k(Efit>=min(zoomE) & Efit <= max(zoomE))),1);
+    plot(k(Efit>=min(zoomE) & Efit <= max(zoomE)),Efit(Efit>=min(zoomE) & Efit <= max(zoomE)),...
+        'r-','LineWidth',1.5,'DisplayName','Lower Polariton');
+    plot(k(Efit>=min(zoomE) & Efit <= max(zoomE)),Ecav,'y-','LineWidth',1.5,'DisplayName','Cavity Energy at k = 0');
+    plot(k(Efit>=min(zoomE) & Efit <= max(zoomE)),EX,'w-','LineWidth',1.5,'DisplayName','Exciton');
+end
+legend('Location','best');
 fontsize = 24;
 graphicsSettings;
 fontName = 'Times New Roman';
@@ -177,35 +189,44 @@ savefig([filenameSIG '-2Dsurfplot-' plottype '-Subtract-' subtract '.fig']);
 clf();
 
 %% make 1D plot 
-% %range for integration
-% % range = length(x)/8;
-% % subInt = Int(:,minX-range:minX+range);
-% % intInt = sum(subInt,2);
-% 
-% % intInt = Int(:,minX);
-% % [Intmax,index]=max(intInt);
-% % Emax = energy(index);
-% intInt = Int(:,minY);
-% Intmax = Int(modeY, minY);
-% Emax = energy(modeY);
-% 
-% if strcmp(plottype,'lin')
-%     plot(energy, intInt, 'linewidth',2);
-%     set(gca, 'Ylim',[0 max(intInt)+10000]);
-%     hold on;
-% 
-% elseif strcmp(plottype,'log')
-%     semilogy(energy(intInt>0), intInt(intInt>0), 'linewidth',2);
-%     hold on;
-%        
-% end
-% ylabel('Intensity at k = 0 (a.u.)','FontSize',fontsize,'FontName',fontName);
-% xlabel('Energy (eV)','FontSize',fontsize,'FontName',fontName);
-% set(gca,'LineWidth',3,'XColor',[0 0 0], 'YColor', [0 0 0],'Box','on',...
-% 'FontSize',22,'FontName',fontName,...
-% 'TickDir','In');
-% print([filenameSIG '-k0Plot-' plottype '-Subtract-' subtract '.png'],'-dpng','-r300');
-% savefig([filenameSIG '-k0Plot-' plottype '-Subtract-' subtract '.fig']);
-% clf();
+%range for integration
+subInt = Int(range, modeRangeK);
+intInt = sum(subInt,2);
+intInt = intInt - mean(intInt(1:20)); %subtract background 
+zoomEnergy = energy(range);
+plot(zoomEnergy, intInt, 'linewidth',2);
+%set(gca, 'Ylim',[0 max(intInt)+10000]);
+hold on;
+
+% get maximum and peak position
+[Max,I] = max(intInt);
+peakPosition = zoomEnergy(I);
+    
+% make Gauss Fit 
+gaussCustom = 'a1*exp(-((x-b1)/c1)^2)';
+wfit = zoomEnergy';
+Intfit = intInt;
+[f,gof,~] = fit(wfit,Intfit,gaussCustom, 'StartPoint', [Max, peakPosition, 0.001] ); %f(x) =  a1*exp(-((x-b1)/c1)^2)
+peakPosition = f.b1;
+peakHeight = f.a1;
+FWHM = 2*f.c1*sqrt(log(2));
+level = 2*tcdf(-1,gof.dfe);
+m = confint(f,level); 
+std = m(end,end) - f.c1;
+FWHMerror = std * 2*sqrt(log(2));
+FWHM = FWHM * 1000; %in meV
+FWHMerror = FWHMerror * 1000;
+energyPlot = min(zoomEnergy):0.00001:max(zoomEnergy);
+plot(energyPlot,f(energyPlot),'r','LineWidth',1.5,'DisplayName','Fit');
+set(gca,'DefaultTextInterpreter','latex');
+ylim([0 Max*1.1]);
+text(peakPosition-0.05, Max/2,...
+    ['FWHM = ' num2str(FWHM,'%.3f') ' $\pm$ ' num2str(FWHMerror,'%.4f') ' meV' ],'FontSize',fontsize-4);
+ylabel('integrated Intensity around k = 0 (a.u.)','FontSize',fontsize,'FontName',fontName);
+xlabel('Energy (eV)','FontSize',fontsize,'FontName',fontName);
+graphicsSettings;
+print([filenameSIG '-cut.png'],'-dpng','-r300');
+savefig([filenameSIG '-cut.fig']);
+clf();
     
 end

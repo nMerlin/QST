@@ -70,6 +70,8 @@ for iStruct =  1:length(Contents)
             c = 299792458; % in m/s
             delay = 2*delay/1000/c*10^12; %delay in ps   
             dataStruct(iStruct).I = delay;
+        case 'no' 
+            dataStruct(iStruct).I = 0;
     end
          
     if ~exist(['Plots-' useX],'dir')
@@ -81,6 +83,8 @@ for iStruct =  1:length(Contents)
     
     %%% Load data
     %cd('Quadratures');
+    dispstat(['load ' filename],...
+        'timestamp','keepthis','notquiet');
     load(['mat-data\' filename]);
     
     % Compute g2 values according to g2method

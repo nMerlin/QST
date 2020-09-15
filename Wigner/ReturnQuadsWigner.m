@@ -1,6 +1,7 @@
-function [Qx,Qy,FullQx2,FullQy2,VarQx,VarQy,PhotonNr ] = ReturnQuadsWigner( WF, MaxQuad, Resolution )
-%UNTITLED2 Summary of this function goes here
-%   Detailed explanation goes here
+function [Qx,Qy,FullQx2,FullQy2,VarQx,VarQy,PhotonNr,meanAmpQP ] = ReturnQuadsWigner( WF, MaxQuad, Resolution )
+%UNTITLED2 Computes the expectation values of quadratures for a given
+%Wigner function. The maximum quadrature value MaxQuad and their Resolution
+%need to match those used for computing the Wigner function. 
 
 QuadVals=-abs(MaxQuad):Resolution:abs(MaxQuad);
 
@@ -21,7 +22,7 @@ PhotonNr=0.5*(FullQx2+FullQy2) - 0.5;
 FullQx4=sum(sum(XAxis.^4.*WF));
 FullQy4=sum(sum(YAxis.^4.*WF));
 
-
+meanAmpQP=sum(sum(sqrt(XAxis.^2 + YAxis.^2).*WF));
 
 
 end

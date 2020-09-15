@@ -14,6 +14,8 @@ function [rho,history] = computeDensityMatrix( X, theta, varargin )
 p = inputParser;
 defaultDebug = false;
 addParameter(p,'Debug',defaultDebug,@islogical);
+defaultHistory = false;
+addParameter(p,'History',defaultHistory,@islogical);
 defaultIterations = 100;
 addParameter(p,'Iterations',defaultIterations,@isnumeric);
 defaultMaxFockState = 30;
@@ -24,7 +26,7 @@ defaultThreshold = 0;
 addParameter(p,'Threshold',defaultThreshold,@isnumeric);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[debug,N_ITERATIONS,maxFockState,nextRho,threshold] = c{:};
+[debug,historyOpt,N_ITERATIONS,maxFockState,nextRho,threshold] = c{:};
 
 if isempty(nextRho)
     nextRho = normalize(ones(maxFockState+1,maxFockState+1));
@@ -45,12 +47,13 @@ theta = theta(~isnan(theta));
 %% History
 % The _history_ variable will contain all calculated density
 % matrices. It is only saved when the output is required.
-if nargout>1
+if historyOpt
     history = zeros(maxFockState+1,maxFockState+1,N_ITERATIONS);
 end
 
 %% Iteration
 PI1D = computeProjector1D( X, theta, maxFockState);
+ %G =PI1D*PI1D';
 nX = length(X);
 prob = zeros(nX, 1);
 for iRho = 1:N_ITERATIONS
@@ -60,15 +63,22 @@ for iRho = 1:N_ITERATIONS
         num2str(N_ITERATIONS) '.'], 'timestamp');
     rho = nextRho;
     R = zeros(maxFockState+1,maxFockState+1);
+    
+    %rho = G^-0.5*nextRho* G^-0.5;
     for i = 1:nX
         prob(i) = PI1D(:,i)' * rho * PI1D(:,i);
         R = R + (PI1D(:,i)*PI1D(:,i)')/(nX*prob(i));
     end
+    
+   % RG = G^-0.5 * R * G^-0.5;
+   
+    %nextRho = RG * nextRho * RG; 
+
     nextRho = R * rho * R; % ITERATION step
     nextRho = normalize(nextRho); % normalization
     
     % Update history output
-    if nargout>1
+    if historyOpt
         history(:,:,iRho) = nextRho;
     end
     
@@ -84,6 +94,7 @@ for iRho = 1:N_ITERATIONS
     % Plot in debug mode
     if debug
         plotRho(nextRho);
+        pause(1);
     end
 end
 

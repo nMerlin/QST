@@ -5,11 +5,13 @@ function [ dataStruct] = plotCrossCorrelationDelaySeries(varargin)
 % Optional input arguments
 %% Validate and parse input arguments
 p = inputParser;
-defaultNSegments = 2;
+defaultNSegments = 10;
 addParameter(p,'NSegments',defaultNSegments,@isnumeric);
+defaultParameter = 'delay'; % which parameter was changed during the series
+addParameter(p,'Parameter',defaultParameter);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[nsegments] = c{:};
+[nsegments,parameter] = c{:};
 
 %% Variables
 dataStruct = struct('filename',{},'delay',{},'A12',{},'A13',{}, 'A23',{});
@@ -23,7 +25,7 @@ name = {Contents.name};
 
 if ~exist('crosscorrelations','dir')
     mkdir('crosscorrelations')
-    end
+end
 
 for iStruct =  1:length(Contents) 
     %get filename
@@ -32,16 +34,28 @@ for iStruct =  1:length(Contents)
         continue
     end
     dataStruct(iStruct).filename = filename;
-    % get delay; from the file name format xx-yymm, where xx is the
-    % filenumber and yy is the delay which can also be negative and start
-    % with a minus sign
-    delayToken = regexpi(filename,'([-0123456789,-]*)mm','tokens');
-    delay = cell2mat(delayToken{1});
-    numberToken = regexpi(delay,'^([0123456789,]*)-','tokens'); 
-    number = cell2mat(numberToken{1});
-    delay = strrep(delay,[number '-'],'');
-    delay = strrep(delay,',','.');
-    dataStruct(iStruct).delay = str2double(delay);
+    
+    switch parameter
+        case 'power'    
+            %currentToken = regexpi(filename,'([0123456789,]*)mW','tokens');
+            currentToken = regexpi(filename,'([0123456789,]*)mW-4mW','tokens');
+             currentToken{1}=strrep(currentToken{1},',','.');
+             dataStruct(iStruct).delay = str2double(cell2mat(currentToken{1}));
+        case 'delay'
+            delayToken = regexpi(filename,'([-0123456789,-]*)mm','tokens');
+            delay = cell2mat(delayToken{1});
+            numberToken = regexpi(delay,'^([0123456789,]*)-','tokens'); 
+            number = cell2mat(numberToken{1});
+            delay = strrep(delay,[number '-'],'');
+            delay = strrep(delay,',','.');
+            delay = str2double(delay);
+            c = 299792458; % in m/s
+            delay = 2*delay/1000/c*10^12; %delay in ps   
+            dataStruct(iStruct).delay = delay;
+        case 'no' 
+            dataStruct(iStruct).delay = 0;
+    end
+   
     
     %%% Load data
     %cd('Quadratures');
@@ -51,9 +65,8 @@ for iStruct =  1:length(Contents)
     
     % Plot crosscorrelation
     dispstat('Plot cross corr ...','timestamp','keepthis');
-    cd('crosscorrelations');
-    [A12,A13,A23] = plotCrossCorrelation(X1, X2, X3, filename, 'Nsegments',nsegments);
-    cd('..');
+    [A12,A13,A23] = plotCrossCorrelation(X1, X2, X3, ['crosscorrelations\' filename], ...
+        'Nsegments',nsegments);
     
     dataStruct(iStruct).A12 = A12;
     dataStruct(iStruct).A13 = A13;

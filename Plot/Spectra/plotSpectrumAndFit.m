@@ -28,7 +28,7 @@ defaultSubtract = 'yes'; %
 addParameter(parser,'Subtract',defaultSubtract);
 defaultXLim = 0.5; %
 addParameter(parser,'XLim',defaultXLim,@isnumeric);
-defaultXUnit = 'nm';
+defaultXUnit = 'nm'; % alternatives: Hz, eV
 addParameter(parser,'XUnit',defaultXUnit);
 defaultXrange = [];
 addParameter(parser,'Xrange',defaultXrange);
@@ -39,6 +39,8 @@ c = struct2cell(parser.Results);
 %%
 fontsize = 24;
 lightVelocity = 299792458;
+h = 6.62607015e-34;
+e0 = 1.602176634e-19;
 
 %% load data
     cd('raw-data')
@@ -76,7 +78,13 @@ end
         xLim = lightVelocity*xLim*10^-9./(peak*10^-9)^2;
         w = lightVelocity./(w*10^-9);
         peak = w(I);
+    elseif strcmp(xUnit,'eV')
+        xLim = h*lightVelocity/e0*xLim*10^-9./(peak*10^-9)^2;
+        w = h*lightVelocity/e0*1./(w*10^-9);
+        peak = w(I);
     end
+    
+
     
 %% interpolate data, if wished
     if strcmp(intp, 'yes')
@@ -109,7 +117,7 @@ end
         x= peak-xLim:xLim/1000:peak+xLim; %x = peak-xLim:0.001:peak+xLim;
         plot(x,f(x),'r','LineWidth',1.5,'DisplayName','Fit');
         set(gca,'DefaultTextInterpreter','latex');
-        text(peak-0.45, Max/4,...
+        text(peak, Max/4,...
             ['FWHM = ' num2str(FWHM,'%.3f') ' $\pm$ ' num2str(FWHMerror,'%.4f') ' ' xUnit char(10) ...
             'Q = ' num2str(Q,'%.0f') char(10) '$\Delta t$ = ' num2str(duration,'%.1f') ' fs'],'FontSize',fontsize-4);
     else
@@ -130,7 +138,9 @@ end
     if strcmp(xUnit, 'nm')
         xlabel('Wavelength (nm)');    
     elseif strcmp(xUnit, 'Hz')
-        xlabel('Frequency (Hz)');   
+        xlabel('Frequency (Hz)');  
+    elseif strcmp(xUnit, 'eV')
+        xlabel('Energy (eV)');  
     end
     fontName = 'Times New Roman';
     set(gca,'LineWidth',3,'XColor',[0 0 0], 'YColor', [0 0 0],'Box','on',...

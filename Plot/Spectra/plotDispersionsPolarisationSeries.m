@@ -1,4 +1,4 @@
-function plotDispersionsPowerSeries(varargin)
+function plotDispersionsPolarisationSeries(varargin)
 % this script makes spectrum plots for a series of dispersion measurements.
 % The data should be in folder 'raw-data'.
 % With 'Subtract', you can choose whether there are background measurements
@@ -47,7 +47,7 @@ c0 = 299792458;
 e0 = 1.602176634e-19;
 
 %% Create data overview
-dataStruct = struct('filename',{},'number',{}, 'Power',{}, 'time', {}, 'E0', {}, 'lambda',{}, 'Emax', {}, 'modeInt', {}, 'SumInt', {});
+dataStruct = struct('filename',{},'number',{}, 'Polarisation',{}, 'time', {}, 'E0', {}, 'lambda',{}, 'Emax', {}, 'modeInt', {}, 'SumInt', {});
 dataStructBackground = struct('filename',{},'number',{});
 
 rawDataContents = dir('raw-data');
@@ -57,7 +57,7 @@ for name = {rawDataContents.name}
     % Loop only over Signal files
     filename = cell2mat(name);
     if not(isempty(regexpi(filename,'-background.csv','match')))...
-            || not(isempty(regexpi(filename,'raw','match')))...
+             || not(isempty(regexpi(filename,'raw','match')))...
             || isempty(regexpi(filename,'.csv','match'))...
             || isempty(regexpi(filename,label,'match'))
         continue
@@ -68,10 +68,10 @@ for name = {rawDataContents.name}
     number = str2double(cell2mat(numberToken{1}));
     dataStruct(number).filename = filename;
     
-    % Fetch excitation power
-    powerToken = regexpi(filename,'-([0123456789.]*)mW','tokens');
-    power = str2double(cell2mat(powerToken{1}));
-    dataStruct(number).Power = power;
+    % Fetch polarisation
+    polToken = regexpi(filename,'l2-([0123456789.]*)','tokens');
+    polarisation = str2double(cell2mat(polToken{1}));
+    dataStruct(number).Polarisation = polarisation*2; %position of halfwaveplate * 2 is polarisation 
     
     if strcmp(getTime,'yes')
         timeToken = regexpi(filename,'-([0123456789.]*)ms','tokens');
@@ -114,7 +114,7 @@ for number = 1:size(dataStruct,2)
     else
         filenameBG = filenameSIG;
     end
-    [E0,~,~,Emax,modeInt,SumInt,FWHM,FWHMerror,peakPosition,peakHeight] = plotDispersion(filenameSIG, filenameBG,'Subtract',subtract,...
+    [E0,~,~,Emax,modeInt,SumInt,FWHM,FWHMerror,peakPosition] = plotDispersion(filenameSIG, filenameBG,'Subtract',subtract,...
         'Plottype',plottype,'minY',minY,'xAperture',xAperture,'ModeE',modeE,...
         'ModeK',modeK,'ZoomE',zoomE,'Fit',fitoption,'aOld',aOld,'E0Old',E0Old,'y0Old',y0Old,'PlotMode',plotMode,'R',R,'EX',EX);
     lambda = h*c0/e0*1./E0 *10^9;
@@ -127,16 +127,14 @@ for number = 1:size(dataStruct,2)
     if strcmp(getTime,'yes')
         dataStruct(number).modeInt = modeInt/dataStruct(number).time;
         dataStruct(number).SumInt = SumInt/dataStruct(number).time;
-        dataStruct(number).peakHeight = peakHeight/dataStruct(number).time;
     else
         dataStruct(number).modeInt = modeInt; 
         dataStruct(number).SumInt = SumInt;
-        dataStruct(number).peakHeight = peakHeight;
     end
     
 end
 
-power = cell2mat({dataStruct.Power});
+polarisation = cell2mat({dataStruct.Polarisation});
 E0 = cell2mat({dataStruct.E0});
 lambda = cell2mat({dataStruct.lambda});
 Emax = cell2mat({dataStruct.Emax});
@@ -145,88 +143,60 @@ SumInt = cell2mat({dataStruct.SumInt});
 FWHM = cell2mat({dataStruct.FWHM});
 FWHMerror = cell2mat({dataStruct.FWHMerror});
 peakPosition = cell2mat({dataStruct.peakPosition});
-peakHeight = cell2mat({dataStruct.peakHeight});
 
 %% write them in excel table
 T = struct2table(dataStruct);
 writetable(T,['powerSeries' label '.xls']);
 
 %% make plots
-semilogx(power,E0,'o');
-xlabel('Excitation Power (mW)');
-ylabel('minimum energy E_{LP}(k_{||}=0)(eV)');
-graphicsSettings;
-savefig(['powerSeries-E0' label '.fig']);
-print(['powerSeries-E0' label '.png'],'-dpng','-r300');
-clf();
-
-semilogx(power,Emax,'o');
-xlabel('Excitation Power (mW)');
-ylabel('Energy of maximum of mode (eV)');
-graphicsSettings;
-savefig(['powerSeries-Emax' label '.fig']);
-print(['powerSeries-Emax' label '.png'],'-dpng','-r300');
-clf();
-
-semilogx(power,lambda,'o');
-xlabel('Excitation Power (mW)');
-ylabel('wavelength of maximum of mode (nm)');
-graphicsSettings;
-savefig(['powerSeries-wavelength' label '.fig']);
-print(['powerSeries-wavelength' label '.png'],'-dpng','-r300');
-clf();
-
-semilogx(power,peakPosition,'o');
-xlabel('Excitation Power (mW)');
-ylabel('Energy of Fit Peak Position (eV)');
-graphicsSettings;
-savefig(['powerSeries-peakPosition' label '.fig']);
-print(['powerSeries-peakPosition' label '.png'],'-dpng','-r300');
-clf();
-
-errorbar(power,FWHM,FWHMerror);
-f = gca;
-f.XScale = 'log';
-xlabel('Excitation Power (mW)');
-ylabel('FWHM of Fit around k = 0 (meV)');
-graphicsSettings;
-savefig(['powerSeries-FWHM' label '.fig']);
-print(['powerSeries-FWHM' label '.png'],'-dpng','-r300');
-clf();
-
-loglog(power,modeInt,'o');
-xlabel('Excitation Power (mW)');
-if strcmp(getTime,'yes')
-    ylabel('Integrated Mode Intensity (counts/ms)');
-else
-    ylabel('Integrated Mode Intensity (counts)');
-end
-graphicsSettings;
-savefig(['powerSeries-modeInt' label '.fig']);
-print(['powerSeries-modeInt' label '.png'],'-dpng','-r300');
-clf();
-
-loglog(power,SumInt,'o');
-xlabel('Excitation Power (mW)');
+[polarisation,Index] = sort(polarisation);
+SumInt = SumInt(Index);
+polar(polarisation*pi/180,SumInt,'-o');
+xlabel('linear polarisation angle');
 if strcmp(getTime,'yes')
    ylabel('overall integrated Intensity (counts/ms)'); 
 else
-    ylabel('overall integrated Intensity (counts)');
+    ylabel('overall integrated Intensity (a.u.)');
 end
 graphicsSettings;
-savefig(['powerSeries-SumInt' label '.fig']);
-print(['powerSeries-SumInt' label '.png'],'-dpng','-r300');
+savefig(['polarisation-polarPlot-SumInt' label '.fig']);
+print(['polarisation-polarPlot-SumInt' label '.png'],'-dpng','-r300');
 clf();
 
-loglog(power,peakHeight,'o');
-xlabel('Excitation Power (mW)');
+plot(polarisation,SumInt,'-o');
+xlabel('linear polarisation angle');
 if strcmp(getTime,'yes')
-   ylabel('Peak Height of Fit (counts/ms)'); 
+   ylabel('overall integrated Intensity (counts/ms)'); 
 else
-    ylabel('Peak Height of Fit (counts)');
+    ylabel('overall integrated Intensity (a.u.)');
 end
 graphicsSettings;
-savefig(['powerSeries-peakHeight' label '.fig']);
-print(['powerSeries-peakHeight' label '.png'],'-dpng','-r300');
+savefig(['polarisation-linearPlot-SumInt' label '.fig']);
+print(['polarisation-linearPlot-SumInt' label '.png'],'-dpng','-r300');
+clf();
+
+modeInt = modeInt(Index);
+polar(polarisation*pi/180,modeInt,'-o');
+xlabel('linear polarisation angle');
+if strcmp(getTime,'yes')
+   ylabel('mode integrated Intensity (counts/ms)'); 
+else
+    ylabel('mode integrated Intensity (a.u.)');
+end
+graphicsSettings;
+savefig(['polarisation-polarPlot-modeInt' label '.fig']);
+print(['polarisation-polarPlot-modeInt' label '.png'],'-dpng','-r300');
+clf();
+
+plot(polarisation,modeInt,'-o');
+xlabel('linear polarisation angle');
+if strcmp(getTime,'yes')
+   ylabel('mode integrated Intensity (counts/ms)'); 
+else
+    ylabel('mode integrated Intensity (a.u.)');
+end
+graphicsSettings;
+savefig(['polarisation-linearPlot-modeInt' label '.fig']);
+print(['polarisation-linearPlot-modeInt' label '.png'],'-dpng','-r300');
 clf();
 end

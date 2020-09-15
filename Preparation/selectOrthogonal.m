@@ -42,6 +42,24 @@ globMax = max(ys(:));
 globMin = min(ys(:));
 halfWidth = ORTH_WIDTH * (globMax - globMin) / 2;
 iOrth = find(ys<halfWidth & ys>-halfWidth); % Indices for selection
+
+%%besser machen
+% [nbunch,nSeg]=size(ys);
+% X1 = reshape(X1,[nbunch,nSeg]);X2 = reshape(X2,[nbunch,nSeg]);
+% [O1,O2,iOrth]=deal(NaN([nbunch,nSeg]));
+% for iSeg = 1:nSeg
+%     locMax = max(ys(:,iSeg));
+%     locMin = min(ys(:,iSeg));
+%     halfWidth = ORTH_WIDTH * (locMax - locMin) / 2;
+%     iOrthSeg = find(ys(:,iSeg)<halfWidth & ys(:,iSeg)>-halfWidth); % Indices for selection
+%     O1(1:length(iOrthSeg),iSeg)=X1(iOrthSeg,iSeg);
+%     O2(1:length(iOrthSeg),iSeg)=X2(iOrthSeg,iSeg);
+%     iOrth(1:length(iOrthSeg),iSeg)=iOrthSeg;%geht nicht
+% end
+% O1=O1(:);O2=O2(:);iOrth=iOrth(:);
+% O1=O1(~isnan(O1));O2=O2(~isnan(O2));iOrth=iOrth(~isnan(iOrth));
+%%besser machen
+
 O1 = X1(iOrth); O2 = X2(iOrth); O3 = X3(iOrth); oTheta = theta(iOrth);
 ysShift = circshift(ys,SHIFT,1);
 iMinus = find((iOrth>SHIFT) & ((ys(iOrth)-ysShift(iOrth))<0));
@@ -53,8 +71,8 @@ O2 = piezoSign*O2;
 %% Visualize the selection process for two piezo segments
 if strcmp(plotArg,'plot')
     [nPoints,~] = size(ys);
-    x = 1:10*nPoints;
-    iOrthPlot = iOrth(iOrth<10*nPoints);
+    x = 1:238*nPoints;
+    iOrthPlot = iOrth(iOrth<238*nPoints);
     ysPlot = ys(x);
     plot(x,ysPlot); hold on;
     plot(x(iOrthPlot),ysPlot(iOrthPlot),'.'); hold off;

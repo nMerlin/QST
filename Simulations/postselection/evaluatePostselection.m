@@ -1,12 +1,14 @@
 function [A_c, Var_q,Var_p, n_c] = evaluatePostselection(nTotal,r1,r2,MaxQuad,Resolution,varargin)
 % makes simulations of postselection outcomes.
 % Right now it only works for phase averaged displaced thermal states.
-% nTotal: total photon number of input signal state
-% r1,r2 coherent radius of signal state 
+% nTotal: total photon number of input signal state before all beam
+% splitters
+% r1,r2 coherent radius of signal state before all beam
+% splitters
 % MaxQuad, Resolution: maximum quadrature value and quadrature Resolution
 % Transmission: Intensity ratio of target photon number / total photon
 % number
-% A_ps: postselection radius 
+% A_ps: postselection radius after beam splitters
 % Thickness: range for postselection values around A_ps
 % PhaseAverage: True if the postselection quadratures should assume all
 % phases
