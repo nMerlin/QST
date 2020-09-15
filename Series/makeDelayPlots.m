@@ -18,8 +18,8 @@ defaultSavePostselection = false;
 addParameter(p,'SavePostselection',defaultSavePostselection,@islogical);
 defaultSaveTheta = false;
 addParameter(p,'SaveTheta',defaultSaveTheta,@islogical);
-defaultGetDelay = false;
-addParameter(p,'GetDelay',defaultGetDelay,@islogical);
+defaultParameter = 'delay';
+addParameter(p,'Parameter',defaultParameter,@isstr);
 defaultRemoveModulation = false;
 addParameter(p,'RemoveModulation',defaultRemoveModulation,@islogical);
 defaultRange = 0.3;
@@ -34,7 +34,7 @@ defaultCorrRemove = 'yes';
 addParameter(p,'CorrRemove',defaultCorrRemove,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[chAssign,corrRemove,figurepath,getDelay,range,recomputeOrth,recomputeTheta,remMod, ...
+[chAssign,corrRemove,figurepath,parameter,range,recomputeOrth,recomputeTheta,remMod, ...
     saveOrth,saveps,savetheta,selParams,varyAPS,xUnit] = c{:};
 
 % Constants
@@ -110,7 +110,7 @@ if makeTable
     dispstat('Making 3-channel table ...','timestamp','keepthis');
     T = series3Ch('SelectionParameters',selParams,'RecomputeTheta',recomputeTheta,...
         'RecomputeOrth',recomputeOrth,'SaveOrth',saveOrth,'Range',range,...
-        'SavePostselection',saveps,'SaveTheta',savetheta,'GetDelay',getDelay,...
+        'SavePostselection',saveps,'SaveTheta',savetheta,'Parameter',parameter,...
         'RemoveModulation',remMod,'VaryAPS',varyAPS,'ChannelAssignment',chAssign,'CorrRemove',corrRemove);    
 else
     T = seriesRead3ChTable(selParams,'VaryAPS',varyAPS,'RemoveModulation',remMod,'Range',range);
@@ -145,7 +145,7 @@ if movieWigner2D || movieWigner3D
     dispstat('Making Wigner functions ...','timestamp','keepthis');
     series3Ch('SaveWigner',true,'SelectionParameters',selParams,'RecomputeTheta',recomputeTheta,...
         'RecomputeOrth',recomputeOrth,'SaveOrth',saveOrth,'Range',range,...
-        'SavePostselection',saveps,'SaveTheta',savetheta,'GetDelay',getDelay,...
+        'SavePostselection',saveps,'SaveTheta',savetheta,'Parameter',parameter,...
         'RemoveModulation',remMod,'VaryAPS',varyAPS,'ChannelAssignment',chAssign,'CorrRemove',corrRemove);
 end
 if movieWigner2D && movieWigner3D
