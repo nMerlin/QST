@@ -5,8 +5,8 @@ function output_txt = dataTipUpdateFcn(obj,event_obj)
 % output_txt   Data cursor text string (string or cell array of strings).
 
 pos = get(event_obj,'Position');
-output_txt = {['X: ',num2str(pos(1),8)],...
-    ['Y: ',num2str(pos(2),8)]};
+output_txt = {['X: ',num2str(pos(1),10)],...
+    ['Y: ',num2str(pos(2),10)]};
 
 % If there is a Z-coordinate in the position, display it as well
 if length(pos) > 2
