@@ -1,11 +1,24 @@
-x0 = 163498;
+xmin = 163498;
 xmax=166798;
-del = 2*(xmax-x0);
-k = 0:29;
-Prange = 1000;
-a = Prange^(1/length(k));
-x = x0 + del/pi * asin(sqrt(1/Prange * a.^k));
+number = 100;
+Prange = 100;
+del = 2*(xmax-xmin);
+k = 0:number-2;
+a = Prange^(1/length(k));  
+x = xmin + del/pi * asin(sqrt(1/Prange * a.^k));
 x = round(x);
 x = [x xmax];
+P = (sin(pi/del*(x-xmin))).^2;
 
-P = (sin(pi/del*(x-x0))).^2;
+%% to have more data points for high powers 
+xmin = 163400;
+xmax=166798;
+number = 75;
+Prange = 100;
+del = 2*(xmax-xmin);
+k = [0:round(number/3)  round(number/3):0.5:round(number*2/3 -2)];
+a = Prange^(1/(number*2/3-2));  
+x = xmin + del/pi * asin(sqrt(1/Prange * a.^k));
+x = round(x);
+x = [xmin x xmax];
+P = (sin(pi/del*(x-xmin))).^2;
