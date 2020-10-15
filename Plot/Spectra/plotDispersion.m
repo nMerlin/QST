@@ -94,19 +94,21 @@ end
 %% compute energy in eV from wavelength
  energy = h*c0/e0*1./(w*10^-9);
  energy = fliplr(energy');
-
+ 
 %% find energy of intensity maxima over the energy axis in the spectral
     % range where we expect the polariton
-[~,Index] = max(Int(energy<1.63,:));
-Emaxs = energy(Index);
+range = energy>=min(zoomE) & energy <= max(zoomE);
+[~,Index] = max(Int(range,:));
+E = energy(range);
+Emaxs = E(Index);
 minE = Emaxs(minY);
  
 %% fit 
 if strcmp(fitoption,'yes')  
     % guess value for slope
-    aStart = (Emaxs(round(length(Emaxs)*0.75)) - minE)/(y(round(length(y)*0.75))-minY)^2;
-    EmaxsFit=Emaxs(Emaxs>=minE & y>= 0.5*minY & y<= 1.5*minY );  %limit the range for the fit 
-    yFit=y(Emaxs>=minE & y>= 0.5*minY & y<= 1.5*minY );
+    aStart = (Emaxs(round(1.2*minY)) - minE)/(y(round(1.2*minY))-minY)^2;
+    EmaxsFit=Emaxs(Emaxs>=minE & y>= 0.65*minY & y<= 1.3*minY );  %limit the range for the fit 
+    yFit=y(Emaxs>=minE & y>= 0.65*minY & y<= 1.3*minY );
 
     %% make parabolic fit
     par = 'E0 + a * (x-x0)^2';
@@ -139,7 +141,6 @@ modeEnergy = energy(modeRangeE);
 Emax = modeEnergy(index);
  
 %% make 2D surface plot
-range = energy>=min(zoomE) & energy <= max(zoomE);
 if strcmp(plottype, 'lin')
     pcolor(k, energy(range), Int(range,:));
 else

@@ -114,7 +114,7 @@ for number = 1:size(dataStruct,2)
     else
         filenameBG = filenameSIG;
     end
-    [E0,~,~,Emax,modeInt,SumInt,FWHM,FWHMerror,peakPosition] = plotDispersion(filenameSIG, filenameBG,'Subtract',subtract,...
+    [E0,~,~,Emax,modeInt,SumInt,FWHM,FWHMerror,peakPosition,peakHeight] = plotDispersion(filenameSIG, filenameBG,'Subtract',subtract,...
         'Plottype',plottype,'minY',minY,'xAperture',xAperture,'ModeE',modeE,...
         'ModeK',modeK,'ZoomE',zoomE,'Fit',fitoption,'aOld',aOld,'E0Old',E0Old,'y0Old',y0Old,'PlotMode',plotMode,'R',R,'EX',EX);
     lambda = h*c0/e0*1./E0 *10^9;
@@ -127,9 +127,11 @@ for number = 1:size(dataStruct,2)
     if strcmp(getTime,'yes')
         dataStruct(number).modeInt = modeInt/dataStruct(number).time;
         dataStruct(number).SumInt = SumInt/dataStruct(number).time;
+        dataStruct(number).peakHeight = peakHeight/dataStruct(number).time;
     else
         dataStruct(number).modeInt = modeInt; 
         dataStruct(number).SumInt = SumInt;
+        dataStruct(number).peakHeight = peakHeight;
     end
     
 end
@@ -143,6 +145,7 @@ SumInt = cell2mat({dataStruct.SumInt});
 FWHM = cell2mat({dataStruct.FWHM});
 FWHMerror = cell2mat({dataStruct.FWHMerror});
 peakPosition = cell2mat({dataStruct.peakPosition});
+peakHeight = cell2mat({dataStruct.peakHeight});
 
 %% write them in excel table
 T = struct2table(dataStruct);
@@ -150,6 +153,8 @@ writetable(T,['powerSeries' label '.xls']);
 
 %% make plots
 [polarisation,Index] = sort(polarisation);
+modeInt = modeInt(Index);
+peakHeight = peakHeight(Index);
 SumInt = SumInt(Index);
 polar(polarisation*pi/180,SumInt,'-o');
 xlabel('linear polarisation angle');
@@ -175,7 +180,6 @@ savefig(['polarisation-linearPlot-SumInt' label '.fig']);
 print(['polarisation-linearPlot-SumInt' label '.png'],'-dpng','-r300');
 clf();
 
-modeInt = modeInt(Index);
 polar(polarisation*pi/180,modeInt,'-o');
 xlabel('linear polarisation angle');
 if strcmp(getTime,'yes')
@@ -199,4 +203,17 @@ graphicsSettings;
 savefig(['polarisation-linearPlot-modeInt' label '.fig']);
 print(['polarisation-linearPlot-modeInt' label '.png'],'-dpng','-r300');
 clf();
+
+polar(polarisation*pi/180,peakHeight,'-o');
+xlabel('linear polarisation angle');
+if strcmp(getTime,'yes')
+   ylabel('Peak Height of Fit (counts/ms)'); 
+else
+    ylabel('Peak Height of Fit (a.u.)');
+end
+graphicsSettings;
+savefig(['polarisation-polarPlot-peakHeight' label '.fig']);
+print(['polarisation-polarPlot-peakHeight' label '.png'],'-dpng','-r300');
+clf();
+
 end

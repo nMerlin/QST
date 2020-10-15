@@ -1,6 +1,6 @@
 function [] = kSpaceCalibration(filename)
 %% load data
-    %cd('raw-data');
+    cd('raw-data');
     data = textread(filename,'','delimiter',',','headerlines',1);
     %data = textread(filename,'','headerlines',1);
     X = data(:,1); % wavelength
@@ -26,6 +26,6 @@ shading flat;
 axis tight;
  axis equal;
 
-
+cd('..');
 savefig(strrep(filename,'csv','fig'));
 end

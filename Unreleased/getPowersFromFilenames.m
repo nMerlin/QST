@@ -11,7 +11,9 @@ name = {Contents.name};
 for iStruct =  1:length(Contents) 
     %get filename
     filename = cell2mat(name(iStruct));
-    if strcmp(filename,'.') || strcmp(filename,'..') || strcmp(filename,'.txt')|| strcmp(filename,'.stamp')|| strcmp(filename,'cfg')
+    if  isempty(regexpi(filename,'LOwithDL','match'))...
+        || not(isempty(regexpi(filename,'cfg','match')))...
+        || not(isempty(regexpi(filename,'stamp','match')))
         continue
     end
     
@@ -32,6 +34,8 @@ for iStruct =  1:length(Contents)
     currentToken = regexpi(filename,'([0123456789,]*)mW-4mW','tokens');
      currentToken{1}=strrep(currentToken{1},',','.');
      dataStruct(iStruct).I = str2double(cell2mat(currentToken{1}));
+     numberToken = regexpi(filename,'^([0123456789,]*)-','tokens'); 
+     dataStruct(iStruct).number = str2double(cell2mat(numberToken{1}));
   
          
     
@@ -39,4 +43,7 @@ for iStruct =  1:length(Contents)
 end % iStruct
 
 Is = cell2mat({dataStruct.I});
-
+numbers = cell2mat({dataStruct.number});
+[~,I] = sort(numbers);
+Is = Is(I);
+save('powers.mat','numbers','Is');

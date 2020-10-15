@@ -1,9 +1,9 @@
 function [] = graphicsSettings
     fontName = 'Times New Roman';
-    fontSize = 22;
+    fontSize = 20;
     h = findobj(gca,'Type','line');
     set(h,'linewidth',2);
-    set(gca,'linewidth',3,'XColor',[0 0 0], 'YColor', [0 0 0],'Box','on',...
+    set(gca,'linewidth',2,'XColor',[0 0 0], 'YColor', [0 0 0],'Box','on',...
         'FontSize',fontSize,'FontName',fontName,...
         'TickDir','Out');
     set(gca,'DefaultTextInterpreter','latex');
