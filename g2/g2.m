@@ -36,6 +36,7 @@ X = reshape(X,[nResolution nSegments]); % Consecutive values in columns
 %% Piecewise photon number <a^+ a>
 X = X - mean(mean(X));
 ada = mean(X.^2)-0.5;
+%ada(ada<0) = 0;
 
 %% Piecewise <a^+ a^+ a a>, in the following adadaa, and g2(t,t)
 adadaa = 2/3*mean(X.^4)-2*ada-0.5;
