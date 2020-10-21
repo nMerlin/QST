@@ -113,13 +113,21 @@ end
         FWHMerror = std * 2*sqrt(log(2));
         %relative width
         Q = f.b1/FWHM;
-        duration= 2*log(2)/pi *(peak*1e-9)^2 / lightVelocity / (FWHM*1e-9) * 1e15; %time in femtoseconds
+        if strcmp(xUnit, 'nm')
+            duration= 2*log(2)/pi *(peak*1e-9)^2 / lightVelocity / (FWHM*1e-9) * 1e15; %time in femtoseconds
+        end               
         x= peak-xLim:xLim/1000:peak+xLim; %x = peak-xLim:0.001:peak+xLim;
         plot(x,f(x),'r','LineWidth',1.5,'DisplayName','Fit');
         set(gca,'DefaultTextInterpreter','latex');
-        text(peak, Max/4,...
-            ['FWHM = ' num2str(FWHM,'%.3f') ' $\pm$ ' num2str(FWHMerror,'%.4f') ' ' xUnit char(10) ...
-            'Q = ' num2str(Q,'%.0f') char(10) '$\Delta t$ = ' num2str(duration,'%.1f') ' fs'],'FontSize',fontsize-4);
+        if strcmp(xUnit, 'nm')
+            text(peak, Max/4,...
+                ['FWHM = ' num2str(FWHM,'%.3f') ' $\pm$ ' num2str(FWHMerror,'%.4f') ' ' xUnit char(10) ...
+                'Q = ' num2str(Q,'%.0f') char(10) '$\Delta t$ = ' num2str(duration,'%.1f') ' fs'],'FontSize',fontsize-4);
+        else
+            text(peak, Max/4,...
+                ['FWHM = ' num2str(FWHM,'%.3f') ' $\pm$ ' num2str(FWHMerror,'%.4f') ' ' xUnit char(10) ...
+                'Q = ' num2str(Q,'%.0f') ],'FontSize',fontsize-4);
+        end
     else
         FWHM = 0;
         Q = 0;
