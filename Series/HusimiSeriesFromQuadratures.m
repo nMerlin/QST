@@ -8,9 +8,14 @@ defaultParameter = 'power'; % which parameter was changed during the series
 addParameter(p,'Parameter',defaultParameter);
 defaultXUnit = 'mW'; % unit  of the parameter
 addParameter(p,'XUnit',defaultXUnit);
+defaultSelectN = false; % if yes, only the data is selected where the photon ...
+%number lies within range, which is set below. 
+addParameter(p,'selectN',defaultSelectN);
+defaultRange = [0 100]; 
+addParameter(p,'range',defaultRange);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[parameter,xUnit] = c{:};
+[parameter,range,selectN,xUnit] = c{:};
 
 %% Variables
 dataStruct = struct('filename',{},'I',{},'r',{},'nTherm',{},'nCoherent',{},'meanN',{});
@@ -82,6 +87,18 @@ for iStruct =  1:length(Contents)
             [O1,O2,~,~,iOrth] = selectOrthogonal(XpsFast,XpsSlow,XpsSlow,theta,piezoSign,'width',0.05);
             save(['mat-data\' filename],'O1','O2','iOrth','-append');
         end
+        
+        % selecting only for some photon numbers... 
+        if selectN 
+                nPsFastVec = photonNumberVector(XpsFast);
+                %nPsSlowVec = photonNumberVector(XpsSlow);
+                nPsFastVec = nPsFastVec(iOrth);
+                %nPsSlowVec = nPsSlowVec(iOrth);
+                iSel = find(nPsFastVec >= min(range) & nPsFastVec <= max(range));
+                O1 = O1(iSel);
+                O2 = O2(iSel);
+        end
+        
 
         [H, binsO1, binsO2] = plotHusimiAndCut(O1,O2,0,0,0,'Filename',['Husimiplots\' filename],'MakeFit',false );
         close all;
@@ -113,13 +130,24 @@ meanN = cell2mat({dataStruct.meanN});
 save('Husimiplots\HusimiResultsScaled.mat','Is','r','nTherm','meanN','nCoherent');
 xlswrite('Husimiplots\HusimiResultsScaled.xls',[Is' r' nTherm' meanN' nCoherent']);
 
-loglog(Is,nTherm,'o');hold on;loglog(Is,nCoherent,'o');loglog(Is,meanN,'o');
-legend('n_{Thermal}','n_{Coherent}','n_{total}','location','best');
+loglog(Is,nTherm,'o');hold on;loglog(Is,nCoherent,'o');
+legend('n_{Thermal}','n_{Coherent}','location','northwest');
 ylabel('photon number');
 xlabel([parameter ' (' xUnit ')']);
 graphicsSettings;
 savefig('Husimiplots\PhotonNumbersFromHusimiFunctions.fig');
 print('Husimiplots\PhotonNumbersFromHusimiFunctions.png','-dpng');
+clf();
+
+loglog(Is,nCoherent./nTherm,'o');
+legend('n_{Coherent}/n_{Thermal}','location','northwest');
+ylabel('ratio');
+xlabel([parameter ' (' xUnit ')']);
+graphicsSettings;
+savefig('Husimiplots\PhotonNumberRatioFromHusimiFunctions.fig');
+print('Husimiplots\PhotonNumberRatioFromHusimiFunctions.png','-dpng');
+clf();
+
 
 end % function
 

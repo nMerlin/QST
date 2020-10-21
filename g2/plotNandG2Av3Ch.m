@@ -55,7 +55,7 @@ function [] = plotNandG2Av3Ch(filename,parameter)
         case 'delay'
             xlabel('delay','FontSize',fontsize,'Interpreter','latex');
     end
-    legend('location','best');
+    legend('location','northwest');
     graphicsSettings
     print(['NoverPower-allCh-' filename],'-dpng');
     savefig(['NoverPower-allCh-' filename '.fig']);
