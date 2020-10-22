@@ -107,27 +107,36 @@ end
         %gaussCustom = 'a1*exp(-((x-b1)/c1)^2)+d1';
         [f,gof,~] = fit(wfit,Intfit,'gauss1', 'StartPoint', [Max, peak, xLim] ); %f(x) =  a1*exp(-((x-b1)/c1)^2)
         FWHM = 2*f.c1*sqrt(log(2));
+        % Properties of gaussian: https://de.wikipedia.org/wiki/Normalverteilung
         level = 2*tcdf(-1,gof.dfe);
         m = confint(f,level); 
         std = m(end,end) - f.c1;
         FWHMerror = std * 2*sqrt(log(2));
         %relative width
         Q = f.b1/FWHM;
+        % In order to compute the duration in time, the duration in
+        % whatever unit is converted to a duration in frequency space and
+        % then we use the relation between duration in frequency and time
+        % domain given by Fourier transformation.
+        % According to
+        % https://de.wikipedia.org/wiki/Fourier-Transformation#Tabelle_wichtiger_Fourier-Transformations-Paare,
+        % we get sigma_t = 1/(2*pi*sigma_f). Also we use the relation
+        % sigma = FWHM / (2*sqrt(log(2)). 
+        % Then : FWHM_t = 2*log(2)/pi / FWHM_f.
+        % Another source for this: https://de.wikipedia.org/wiki/Pulslaser
         if strcmp(xUnit, 'nm')
             duration= 2*log(2)/pi *(peak*1e-9)^2 / lightVelocity / (FWHM*1e-9) * 1e15; %time in femtoseconds
+        elseif strcmp(xUnit, 'eV')
+            duration = 2*log(2)/pi * h/e0/FWHM *1e15;
+        elseif strcmp(xUnit, 'Hz')
+            duration = 2*log(2)/pi / FWHM *1e15;
         end               
         x= peak-xLim:xLim/1000:peak+xLim; %x = peak-xLim:0.001:peak+xLim;
         plot(x,f(x),'r','LineWidth',1.5,'DisplayName','Fit');
         set(gca,'DefaultTextInterpreter','latex');
-        if strcmp(xUnit, 'nm')
-            text(peak, Max/4,...
-                ['FWHM = ' num2str(FWHM,'%.3f') ' $\pm$ ' num2str(FWHMerror,'%.4f') ' ' xUnit char(10) ...
-                'Q = ' num2str(Q,'%.0f') char(10) '$\Delta t$ = ' num2str(duration,'%.1f') ' fs'],'FontSize',fontsize-4);
-        else
-            text(peak, Max/4,...
-                ['FWHM = ' num2str(FWHM,'%.3f') ' $\pm$ ' num2str(FWHMerror,'%.4f') ' ' xUnit char(10) ...
-                'Q = ' num2str(Q,'%.0f') ],'FontSize',fontsize-4);
-        end
+        text(peak, Max/4,...
+            ['FWHM = ' num2str(FWHM,'%.3f') ' $\pm$ ' num2str(FWHMerror,'%.4f') ' ' xUnit char(10) ...
+            'Q = ' num2str(Q,'%.0f') char(10) '$\Delta t$ = ' num2str(duration,'%.1f') ' fs'],'FontSize',fontsize-4);
     else
         FWHM = 0;
         Q = 0;
