@@ -19,6 +19,7 @@ end
  Int = reshape(Int, [n max(Y)]);
  Int = Int';
  
+Int(Int<0) = 0; 
 surf(X, Y, log(Int));
 colorbar;
 view(180,-90);
