@@ -107,15 +107,21 @@ minE = Emaxs(minY);
 if strcmp(fitoption,'yes')  
     % guess value for slope
     aStart = (Emaxs(round(1.2*minY)) - minE)/(y(round(1.2*minY))-minY)^2;
-    EmaxsFit=Emaxs(Emaxs>=minE & y>= 0.65*minY & y<= 1.3*minY );  %limit the range for the fit 
-    yFit=y(Emaxs>=minE & y>= 0.65*minY & y<= 1.3*minY );
+    EmaxsFit=Emaxs(Emaxs>=minE-0.05 & y>= 0.65*minY & y<= 1.25*minY );  %limit the range for the fit 
+    yFit=y(Emaxs>=minE-0.05 & y>= 0.65*minY & y<= 1.25*minY );
+
 
     %% make parabolic fit
     par = 'E0 + a * (x-x0)^2';
     [f,gof,~]=fit(yFit',EmaxsFit',par, 'StartPoint', [minE aStart minY]);
+    %[f,gof,~]=fit(yFit',EmaxsFit',par, 'StartPoint', [1.6107 3.61488190561411e-06 210]);
     E0 = f.E0;
     a = f.a;
-    y0 = f.x0;
+    y0 = f.x0;   
+    %plot for testing:
+    %plot(y,Emaxs,'.')
+%     plot(yFit',EmaxsFit,'.');
+%     plot(y,f(y));
 elseif strcmp(fitoption,'useOld')
     E0 = E0Old;
     y0 = y0Old;
