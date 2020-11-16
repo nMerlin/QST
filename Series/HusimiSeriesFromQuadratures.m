@@ -62,8 +62,9 @@ for iStruct =  1:length(Contents)
     dispstat(['load ' filename],...
         'timestamp','keepthis','notquiet');   
     try
-        load(['mat-data\' filename],'nPsFast','nPsSlow','nPsFastVec','O1','O2','iOrth');
-    catch
+        load '['mat-data\' filename]' nPsFast nPsSlow nPsFastVec O1 O2 iOrth;
+    catch 
+        warning('nPsFast etc. not found');
         load(['mat-data\' filename]);
         quadratures = zeros([size(X1) 3]);
         quadratures(:,:,:,1) = X1;
@@ -210,6 +211,15 @@ savefig('Husimiplots\PhotonNumberRatioFromHusimiFunctionsWeighted.fig');
 print('Husimiplots\PhotonNumberRatioFromHusimiFunctionsWeighted.png','-dpng');
 clf();
 
+semilogx(Is,nCoherent./nTherm,'o');
+legend('n_{Coherent}/n_{Thermal}','location','northwest');
+ylabel('ratio');
+xlabel([parameter ' (' xUnit ')']);
+graphicsSettings;
+savefig('Husimiplots\PhotonNumberRatioFromHusimiFunctionsWeighted-semilogx.fig');
+print('Husimiplots\PhotonNumberRatioFromHusimiFunctionsWeighted-semilogx.png','-dpng');
+clf();
+
 loglog(Is,nThermMax,'o');hold on;loglog(Is,nCoherentMax,'o');
 legend('n_{Thermal}','n_{Coherent}','location','northwest');
 ylabel('photon number');
@@ -235,6 +245,15 @@ xlabel([parameter ' (' xUnit ')']);
 graphicsSettings;
 savefig('Husimiplots\PhotonNumbersFromHusimiFunctionsLowAndHigh.fig');
 print('Husimiplots\PhotonNumbersFromHusimiFunctionsLowAndHigh.png','-dpng');
+clf();
+
+semilogx(Is,nThermLow,'o',Is,nCoherentLow,'o',Is,nThermHigh,'o',Is,nCoherentHigh,'o');
+legend('n_{Thermal,Low}','n_{Coherent,Low}','n_{Thermal,High}','n_{Coherent,High}','location','northwest');
+ylabel('photon number');
+xlabel([parameter ' (' xUnit ')']);
+graphicsSettings;
+savefig('Husimiplots\PhotonNumbersFromHusimiFunctionsLowAndHigh-semilogx.fig');
+print('Husimiplots\PhotonNumbersFromHusimiFunctionsLowAndHigh-semilogx.png','-dpng');
 clf();
 
 loglog(Is,meanNLow,'o',Is,meanNHigh,'o');
