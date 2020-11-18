@@ -1,4 +1,4 @@
-function [H, binsO1, binsO2,r,nTherm,nCoherent,meanN] = plotHusimiAndCut(O1,O2,H,binsO1,binsO2,varargin)
+function [H, binsO1, binsO2,r,nTherm, nThermErr,nCoherent,nCohErr,meanN,Coherence] = plotHusimiAndCut(O1,O2,H,binsO1,binsO2,varargin)
 %Plot histogram of Husimi-Q function and cut along q axis
 % Either make it new from the orthogonal postselection quadratures O1,O2.
 % Then set H, binsO1,binsO2 = 0.
@@ -44,6 +44,7 @@ end
 
 %% get mean total photon number from averaging over Husimi function 
 [XAxis,YAxis]=meshgrid(binsO1,binsO2);
+x = 1/sqrt(2)*sqrt(XAxis.^2+YAxis.^2); % xfit = |alpha|
 FullQx2=sum(sum(XAxis.^2.*H));
 FullQy2=sum(sum(YAxis.^2.*H));
 meanN=0.5*(FullQx2+FullQy2) -1;
@@ -63,18 +64,43 @@ nCoherent = 0.5*r^2;
 nTherm = meanN-nCoherent; % thermal state photon number
 
 if makeFit
-    % find optimum nTherm and nCoherent, which minimizes the function mini
-    x0 = [nTherm,nCoherent];
-    f = @(x)mini(x, WLength, WRes,H);
-    % set constraints, so nTherm + nCoherent = meanN and both are >= 0
-    A = []; b = []; Aeq = [1,1]; beq = meanN; lb = [0,0]; ub = [Inf,Inf];
-    [x,~] = fmincon(f,x0,A,b,Aeq,beq,lb,ub);
-    nTherm = x(1);
-    nCoherent = x(2); 
-    r = sqrt(2*nCoherent);
+%     % old method: find optimum nTherm and nCoherent, which minimizes the function mini
+%     x0 = [nTherm,nCoherent];
+%     f = @(x)mini(x, WLength, WRes,H);
+%     % set constraints, so nTherm + nCoherent = meanN and both are >= 0
+%     A = []; b = []; Aeq = [1,1]; beq = meanN; lb = [0,0]; ub = [Inf,Inf];
+%     [x,~] = fmincon(f,x0,A,b,Aeq,beq,lb,ub);
+%     nTherm = x(1);
+%     nCoherent = x(2); 
+%     r = sqrt(2*nCoherent);
+%     [ HusFunc,~,~ ] = CreateDisplacedThermalHusimiPhaseAveraged( nTherm, WLength, WRes, r,'PlotOption',false);
+%     [~,~,~,~,~,hessian] = fminunc(f,x);
+%     err = sqrt(diag(inv(hessian)));
+%     nThermErr = err(1);
+%     nCohErr = err(2);
+%     %The key to the standard errors is the Hessian matrix. 
+%     %The variance-covariance-matrix of the coefficients is the inverse
+%     % of the Hessian matrix. So the standard errors are the square root of
+%     %the values on the diagonal of the inverse Hessian matrix.
+%     % The hessian of fminunc is accurate, the one of fmincon is not.
+%     % https://de.mathworks.com/matlabcentral/answers/153414-estimator-standard-errors-using-fmincon-portfolio-optimization-context
+    
+    %% Method with theory function 
+    xfit = x(:); %1D
+    Hfit = H(:);
+    HTheory = fittype('0.5*WRes^2*(pi*(a1+1))^-1 *exp(-(x.^2 + b1)/(a1+1)) .* besseli(0,2*x*sqrt(b1)/(a1+1))','problem','WRes'); 
+    %a1 = nTherm; b1 = |alpha0|^2 = nCoherent; 0.5*WRes^2 is for normalization  
+    [f,gof,~] = fit(xfit,Hfit,HTheory,'problem',WRes,'StartPoint', [nTherm,nCoherent],'Lower',[0,0] );
+    nTherm = f.a1;    
+    nCoherent = f.b1;
+    level = 2*tcdf(-1,gof.dfe);
+    m = confint(f,1-level);    
+    nThermErr = m(2,1) - nTherm; 
+    nCohErr = m(end,end) - nCoherent; 
 end
-
-[ HusFunc,~,~ ] = CreateDisplacedThermalHusimiPhaseAveraged( nTherm, WLength, WRes, r,'PlotOption',false);
+a = ( nTherm +1)^2 -  nTherm ^2;
+Coherence = (1 - exp(-2*nCoherent/a) * besseli(0,2*nCoherent/a ) )/a;
+HusFunc = 0.5*WRes^2*(pi*(nTherm+1))^-1 *exp(-(x.^2 + nCoherent)/(nTherm+1)) .* besseli(0,2*x*sqrt(nCoherent)/(nTherm+1));
 theoryHFCut = HusFunc(round(nBinsA/2),:);
 theoryHFCut = theoryHFCut/max(theoryHFCut);
 
