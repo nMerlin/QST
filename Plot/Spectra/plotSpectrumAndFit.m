@@ -109,7 +109,7 @@ end
         FWHM = 2*f.c1*sqrt(log(2));
         % Properties of gaussian: https://de.wikipedia.org/wiki/Normalverteilung
         level = 2*tcdf(-1,gof.dfe);
-        m = confint(f,level); 
+        m = confint(f,1-level); 
         std = m(end,end) - f.c1;
         FWHMerror = std * 2*sqrt(log(2));
         %relative width

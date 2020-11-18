@@ -61,21 +61,22 @@ for iStruct =  1:length(Contents)
     %%% Load data
     dispstat(['load ' filename],...
         'timestamp','keepthis','notquiet');   
-    try
-        load '['mat-data\' filename]' nPsFast nPsSlow nPsFastVec O1 O2 iOrth;
-    catch 
-        warning('nPsFast etc. not found');
+    
         load(['mat-data\' filename]);
-        quadratures = zeros([size(X1) 3]);
-        quadratures(:,:,:,1) = X1;
-        quadratures(:,:,:,2) = X2;
-        quadratures(:,:,:,3) = X3;
-        XpsFast = quadratures(:,:,:,chAssign(2));
-        XpsSlow = quadratures(:,:,:,chAssign(3));
-        clear('quadratures');
-        [~,nPsFast,nPsSlow] = nPhotons(XpsFast,XpsFast,XpsSlow);
-        nPsFastVec = photonNumberVector(XpsFast);
-        save(['mat-data\' filename],'nPsFast','nPsSlow','nPsFastVec','-append');
+        
+        if ~exist('nPsFast','var')     
+            load(['mat-data\' filename]);
+            quadratures = zeros([size(X1) 3]);
+            quadratures(:,:,:,1) = X1;
+            quadratures(:,:,:,2) = X2;
+            quadratures(:,:,:,3) = X3;
+            XpsFast = quadratures(:,:,:,chAssign(2));
+            XpsSlow = quadratures(:,:,:,chAssign(3));
+            clear('quadratures');
+            [~,nPsFast,nPsSlow] = nPhotons(XpsFast,XpsFast,XpsSlow);
+            nPsFastVec = photonNumberVector(XpsFast);
+            save(['mat-data\' filename],'nPsFast','nPsSlow','nPsFastVec','-append');
+        end
         
         if ~exist('O1','var')  % make orthogonal quadratures 
             [a,b,c] = size(XpsFast);
@@ -83,7 +84,7 @@ for iStruct =  1:length(Contents)
             [O1,O2,~,~,iOrth] = selectOrthogonal(XpsFast,XpsSlow,XpsSlow,theta,piezoSign,'width',0.05);
             save(['mat-data\' filename],'O1','O2','iOrth','-append');
         end
-    end
+  
         
         maxN = max(nPsFastVec(:));
         minN = min(nPsFastVec(:));
@@ -95,7 +96,7 @@ for iStruct =  1:length(Contents)
             close all;
             O1scaled = O1*sqrt(mean([nPsFast nPsSlow])/nPsFast);
             O2scaled = O2*sqrt(mean([nPsFast nPsSlow])/nPsSlow);
-            [Hsc, binsO1sc, binsO2sc,rsc,nThermsc,nCoherentsc,meanNsc] = ...
+            [Hsc, binsO1sc, binsO2sc,rsc,nThermsc,nThermErr,nCoherentsc,nCohErr,meanNsc,Coherence] = ...
                 plotHusimiAndCut(O1scaled,O2scaled,0,0,0,'Filename',['Husimiplots\scaled-' filename],'MakeFit',true);
              close all;        
             save(['mat-data\' filename],'H','Hsc','binsO1','binsO1sc','binsO2','binsO2sc','-append');
@@ -104,6 +105,7 @@ for iStruct =  1:length(Contents)
             [nCoherentscMax,nCoherentscHigh,nCoherentscLow] = deal(nCoherentsc);
             [meanNscMax,meanNscHigh,meanNscLow] = deal(meanNsc);
             [weightLow,weightHigh] = deal(0);
+            [CoherenceMax,CoherenceHigh,CoherenceLow] = deal(Coherence);
         else
         % If the std is big, there is probably switching between states
         % over time, so we make a fit for the lower and the higher state
@@ -121,7 +123,7 @@ for iStruct =  1:length(Contents)
             close all;
             O1scaled = O1s*sqrt(mean([nPsFast nPsSlow])/nPsFast);
             O2scaled = O2s*sqrt(mean([nPsFast nPsSlow])/nPsSlow);
-            [Hsc, binsO1sc, binsO2sc,rscLow,nThermscLow,nCoherentscLow,meanNscLow] = ...
+            [Hsc, binsO1sc, binsO2sc,rscLow,nThermscLow,nThermErrLow,nCoherentscLow,nCohErrLow,meanNscLow,CoherenceLow] = ...
                 plotHusimiAndCut(O1scaled,O2scaled,0,0,0,'Filename',['Husimiplots\scaled-' filename '-LowPhotonNumber'],'MakeFit',true);
              close all;
              % for the high one 
@@ -132,7 +134,7 @@ for iStruct =  1:length(Contents)
             close all;
             O1scaled = O1s*sqrt(mean([nPsFast nPsSlow])/nPsFast);
             O2scaled = O2s*sqrt(mean([nPsFast nPsSlow])/nPsSlow);
-            [Hsc, binsO1sc, binsO2sc,rscHigh,nThermscHigh,nCoherentscHigh,meanNscHigh] = ...
+            [Hsc, binsO1sc, binsO2sc,rscHigh,nThermscHigh,nThermErrHigh,nCoherentscHigh,nCohErrHigh,meanNscHigh,CoherenceHigh] = ...
                 plotHusimiAndCut(O1scaled,O2scaled,0,0,0,'Filename',['Husimiplots\scaled-' filename '-HighPhotonNumber'],'MakeFit',true);
              close all;
             % their respective weights
@@ -143,11 +145,13 @@ for iStruct =  1:length(Contents)
             nThermsc = weightLow*nThermscLow + weightHigh*nThermscHigh;
             nCoherentsc = weightLow*nCoherentscLow + weightHigh*nCoherentscHigh;
             meanNsc = weightLow*meanNscLow + weightHigh*meanNscHigh;
+            Coherence = weightLow*CoherenceLow + weightHigh*CoherenceHigh;
             % maximum results
             rscMax = max([rscLow rscHigh]);
             nThermscMax = max([nThermscLow nThermscHigh]);
             nCoherentscMax = max([nCoherentscLow nCoherentscHigh]);
             meanNscMax = max([meanNscLow meanNscHigh]);
+            CoherenceMax = max([CoherenceLow CoherenceHigh]);
         end            
 %     end  
     clear X1 X2 X3 theta piezoSign O1 O2 'H' 'Hsc' 'binsO1' 'binsO1sc' 'binsO2' 'binsO2sc' O1scaled O2scaled 
@@ -156,18 +160,22 @@ for iStruct =  1:length(Contents)
     dataStruct(iStruct).nTherm = nThermsc;
     dataStruct(iStruct).nCoherent = nCoherentsc;
     dataStruct(iStruct).meanN = meanNsc;  
+    dataStruct(iStruct).Coherence = Coherence;  
     dataStruct(iStruct).rMax = rscMax;
     dataStruct(iStruct).nThermMax = nThermscMax;
     dataStruct(iStruct).nCoherentMax = nCoherentscMax;
     dataStruct(iStruct).meanNMax = meanNscMax; 
+    dataStruct(iStruct).CoherenceMax = CoherenceMax;  
     dataStruct(iStruct).weightLow = weightLow;
     dataStruct(iStruct).weightHigh = weightHigh;
     dataStruct(iStruct).nThermHigh = nThermscHigh;
     dataStruct(iStruct).nCoherentHigh = nCoherentscHigh;
     dataStruct(iStruct).meanNHigh = meanNscHigh; 
+    dataStruct(iStruct).CoherenceHigh = CoherenceHigh;  
     dataStruct(iStruct).nThermLow = nThermscLow;
     dataStruct(iStruct).nCoherentLow = nCoherentscLow;
     dataStruct(iStruct).meanNLow = meanNscLow;
+    dataStruct(iStruct).CoherenceLow = CoherenceLow;  
 end % iStruct
 
 Is = cell2mat({dataStruct.I});
@@ -187,12 +195,28 @@ meanNHigh = cell2mat({dataStruct.meanNHigh});
 nThermLow = cell2mat({dataStruct.nThermLow});
 nCoherentLow = cell2mat({dataStruct.nCoherentLow});
 meanNLow = cell2mat({dataStruct.meanNLow});
+CoherenceLow = cell2mat({dataStruct.CoherenceLow});
+CoherenceHigh = cell2mat({dataStruct.CoherenceHigh});
+CoherenceMax = cell2mat({dataStruct.CoherenceMax});
+Coherence = cell2mat({dataStruct.Coherence});
 
 save('Husimiplots\HusimiResultsScaled.mat','Is','r','nTherm','meanN','nCoherent',...
-    'rMax','nThermMax','meanNMax','nCoherentMax','weightLow', 'weightHigh', 'nThermHigh', 'nCoherentHigh', 'meanNHigh', 'nThermLow', 'meanNLow','nCoherentLow');
+    'rMax','nThermMax','meanNMax','nCoherentMax','weightLow', 'weightHigh', 'nThermHigh', 'nCoherentHigh', 'meanNHigh', 'nThermLow', 'meanNLow','nCoherentLow',...
+    'CoherenceHigh','CoherenceMax','Coherence','CoherenceLow');
 xlswrite('Husimiplots\HusimiResultsScaled.xls',[Is' r' nTherm' meanN' nCoherent' ...
-    rMax' nThermMax' meanNMax' nCoherentMax' weightLow' weightHigh' nThermHigh' nCoherentHigh' meanNHigh' nThermLow' meanNLow' nCoherentLow']);
+    rMax' nThermMax' meanNMax' nCoherentMax' weightLow' weightHigh' nThermHigh' nCoherentHigh' meanNHigh' nThermLow' meanNLow' nCoherentLow' ...
+     CoherenceHigh' CoherenceMax' Coherence' CoherenceLow']);
 
+ 
+semilogx(Is,CoherenceLow,'o',Is,CoherenceHigh,'o',Is,Coherence,'o');
+legend('Coherence_{Low}','Coherence_{High}','Coherence_{Weighted}','location','northwest');
+ylabel('Coherence');
+xlabel([parameter ' (' xUnit ')']);
+graphicsSettings;
+savefig('Husimiplots\CoherenceFromHusimiFunctions-semilogx.fig');
+print('Husimiplots\CoherenceFromHusimiFunctions-semilogx.png','-dpng');
+clf();
+ 
 loglog(Is,nTherm,'o');hold on;loglog(Is,nCoherent,'o');
 legend('n_{Thermal}','n_{Coherent}','location','northwest');
 ylabel('photon number');
