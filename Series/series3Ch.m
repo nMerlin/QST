@@ -108,7 +108,7 @@ defaultSelParams = struct('Type','fullcircle','Position',[2.5,0.5]);
 addParameter(p,'SelectionParameters',defaultSelParams,@isstruct);
 defaultRange = [0 10];
 addParameter(p,'Range',defaultRange,@isvector);
-defaultChannelAssignment = [1,2,3]; %[target,ps_piezo_fast,ps_piezo_slow]
+defaultChannelAssignment = [3,1,2]; %[target,ps_piezo_fast,ps_piezo_slow]
 addParameter(p,'ChannelAssignment',defaultChannelAssignment,@isvector);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
