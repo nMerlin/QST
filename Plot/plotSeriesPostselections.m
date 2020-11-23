@@ -17,9 +17,11 @@ defaultRemoveModulation = false;
 addParameter(p,'RemoveModulation',defaultRemoveModulation,@islogical);
 defaultRange = 0.3;
 addParameter(p,'Range',defaultRange,@isvector);
+defaultZeroDelay = 0;
+addParameter(p,'ZeroDelay',defaultZeroDelay,@isnumeric);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[filename,fitType,range,remMod,typestr,varyAPS,xUnit] = c{:};
+[filename,fitType,range,remMod,typestr,varyAPS,xUnit,zeroDelay] = c{:};
 
 %% Create folder 'figures-fig'
 if ~exist([pwd 'figures-fig'],'dir')
@@ -30,7 +32,6 @@ end
 figurepath = 'figures-fig/';
 
 %% Gather data
-zeroDelay = -30; %200; make this a choice    
 [delay,Yr,Yt,discAmpl,discMeanVar,varQ,varP,discN,g2vals,g2std,nTg,nPsFast,nPsSlow] = deal([]);
 sigmas = zeros(length(listOfParams),1);
 sigmaConf = zeros(length(listOfParams),2);
@@ -98,6 +99,7 @@ for iParams = 1:length(listOfParams)
 end
 [~,I] = sort(delay(:,1)); % Sort for Radii
 delay = delay(I,:); %delays
+delay = delay - zeroDelay;
 Yr = Yr(I,:); %Radii
 Yt = Yt(I,:); %thicknesses
 discAmpl = discAmpl(I,:);
@@ -146,11 +148,11 @@ switch typestr
 %                     resPlot= res(min(delay(i,:)):1:max(delay(i,:)));
 %                     resPlot = resPlot * max(ys);
 %                     plot(ax,min(delay(i,:)):1:max(delay(i,:)),resPlot,'r','DisplayName','');              
-                    initGuess1 = [zeroDelay,30, 1]; %peak x, gamma, sigma
+                    initGuess1 = [0,30, 1]; %peak x, gamma, sigma
                     [estimates1, model1] = voigtfit(x, ys, initGuess1, [min(x), max(x)]);
                     gamma = estimates1(2);
                     sigma = estimates1(3);
-                    res = myvoigt(x, zeroDelay, gamma, sigma );%estimates1(1)
+                    res = myvoigt(x, 0, gamma, sigma );%estimates1(1)
                     res = res';
                     c = abs(res\ys');
                     res = res*c;             
@@ -165,7 +167,7 @@ switch typestr
 %                     Journal of Quantitative Spectroscopy and Radiative Transfer. 
 %                     17 (2): 233–236. Bibcode:1977JQSRT..17..233O. doi:10.1016/0022-4073(77)90161-3. ISSN 0022-4073.
                 case 'noFit'
-                    Index = find(delay(i,:)>=zeroDelay-5 & delay(i,:)<=zeroDelay+5);
+                    Index = find(delay(i,:)>= -5 & delay(i,:)<= 5);
                     fitPeak(i) = mean(discAmpl(i,Index-2:Index+2)); 
             end;               
         end;
@@ -194,13 +196,14 @@ switch typestr
             hold on;   
         end;
         hold off;
-        if strcmp(fitType,'noFit')
-            legend('location','best');
-        else
-            f=get(ax,'Children');
-            index = length(f)-((1:length(I))-1).*2;
-            legend(f(index),'location','best');
-        end
+        legend('location','best');
+%         if strcmp(fitType,'noFit')
+%             legend('location','best');
+%         else
+%             f=get(ax,'Children');
+%             index = length(f)-((1:length(I))-1).*2;
+%             legend(f(index),'location','best');
+%         end
         xlabel(ax,['Delay (' xUnit ')']); 
         ylabel(ax,'Coherent Amplitude'); 
         if ~varyAPS
@@ -215,7 +218,7 @@ switch typestr
         for i = 1:length(I)
             plot(delay(i,:),discMeanVar(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
-            Index = find(delay(i,:)>=zeroDelay-1 & delay(i,:)<=zeroDelay+1);
+            Index = find(delay(i,:)>= -1 & delay(i,:)<= 1);
             fitPeak(i) = mean(discMeanVar(i,Index)); 
         end;
         hold off;
@@ -231,7 +234,7 @@ switch typestr
         for i = 1:length(I)
             plot(delay(i,:),varQ(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
-            Index = find(delay(i,:)>=zeroDelay-1 & delay(i,:)<=zeroDelay+1);
+            Index = find(delay(i,:)>= -1 & delay(i,:)<= 1);
             fitPeak(i) = mean(varQ(i,Index)); 
         end;
         hold off;
@@ -247,7 +250,7 @@ switch typestr
         for i = 1:length(I)
             plot(delay(i,:),varP(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
-            Index = find(delay(i,:)>=zeroDelay-1 & delay(i,:)<=zeroDelay+1);
+            Index = find(delay(i,:)>= -1 & delay(i,:)<= 1);
             fitPeak(i) = mean(varP(i,Index)); 
         end;
         hold off;
@@ -271,7 +274,7 @@ switch typestr
         for i = 1:length(I)
             plot(delay(i,:),discN(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
-            Index = find(delay(i,:)>=zeroDelay-5 & delay(i,:)<=zeroDelay+5);
+            Index = find(delay(i,:)>= -5 & delay(i,:)<= 5);
             fitPeak(i) = mean(discN(i,Index-2:Index+2)); 
         end;
         hold off;

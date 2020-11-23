@@ -173,6 +173,7 @@ for ii = 1:length(filerange)
             delay = strrep(delay,[number '-'],'');
             delay = strrep(delay,',','.');
             delay = str2double(delay);
+            quantities.DelayMm(i) = delay;  % in mm
             c = 299792458; % in m/s
             delay = 2*delay/1000/c*10^12; %delay in ps
             quantities.Delay(i) = delay;      
