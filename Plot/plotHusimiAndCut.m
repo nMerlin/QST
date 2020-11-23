@@ -1,4 +1,4 @@
-function [H, binsO1, binsO2,r,nTherm, nThermErr,nCoherent,nCohErr,meanN,Coherence] = plotHusimiAndCut(O1,O2,H,binsO1,binsO2,varargin)
+function [H, binsO1, binsO2,r,nTherm, nThermErr,nCoherent,nCohErr,meanN,Coherence,CoherenceErr] = plotHusimiAndCut(O1,O2,H,binsO1,binsO2,varargin)
 %Plot histogram of Husimi-Q function and cut along q axis
 % Either make it new from the orthogonal postselection quadratures O1,O2.
 % Then set H, binsO1,binsO2 = 0.
@@ -97,9 +97,14 @@ if makeFit
     m = confint(f,1-level);    
     nThermErr = m(2,1) - nTherm; 
     nCohErr = m(end,end) - nCoherent; 
+else 
+    [nThermErr, nCohErr] = deal(0);
 end
-a = ( nTherm +1)^2 -  nTherm ^2;
-Coherence = (1 - exp(-2*nCoherent/a) * besseli(0,2*nCoherent/a ) )/a;
+
+% [Coherence, CoherenceErr,~, ~] = error_propagation( @(nTherm,nCoherent) coherencePDTS(nTherm,nCoherent), ...
+%     nTherm, nCoherent, nThermErr, nCohErr ); This gave nan values for
+%     some exc. Powers. Try sth else... 
+Coherence = coherencePDTS(nTherm,nCoherent);CoherenceErr = 0;
 HusFunc = 0.5*WRes^2*(pi*(nTherm+1))^-1 *exp(-(x.^2 + nCoherent)/(nTherm+1)) .* besseli(0,2*x*sqrt(nCoherent)/(nTherm+1));
 theoryHFCut = HusFunc(round(nBinsA/2),:);
 theoryHFCut = theoryHFCut/max(theoryHFCut);
