@@ -17,9 +17,11 @@ defaultRange = 0.5; % if maxN-minN > range*medN, there are two fits made
 addParameter(p,'range',defaultRange);
 defaultPlotErrorbars = false; % if true, errorbars are plotted 
 addParameter(p,'PlotErrorbars',defaultPlotErrorbars,@islogical);
+defaultLOpower = 4; % important to read out filename
+addParameter(p,'LOpower',defaultLOpower,@isnumeric);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[loadExistent,parameter,plotErrorbars,range,saveHusimi,xUnit] = c{:};
+[loadExistent,LOpower,parameter,plotErrorbars,range,saveHusimi,xUnit] = c{:};
 
 %% Variables
 dataStruct = struct; %will contain the quantities of interest 
@@ -42,7 +44,7 @@ for iStruct =  1:length(Contents)
     switch parameter
         case 'Power'    
             %currentToken = regexpi(filename,'([0123456789,]*)mW','tokens');
-            currentToken = regexpi(filename,'([0123456789,]*)mW-4mW','tokens');
+            currentToken = regexpi(filename,['([0123456789,]*)mW-' num2str(LOpower) 'mW'],'tokens');
              currentToken{1}=strrep(currentToken{1},',','.');
              dataStruct(iStruct).I = str2double(cell2mat(currentToken{1}));
         case 'delay'
