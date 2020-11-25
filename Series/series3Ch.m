@@ -60,6 +60,7 @@ function T = series3Ch(varargin)
 %       photon numbers, while keeping the conditional radius as fixed parameter
 %   'CorrRemove': Only uses those mat-file that have 'corrRemove-yes' in
 %       the filename
+%   'Period': number of periods expected in one piezo segment. Important for phase computation. 
 %
 %   *** Developer Only ***
 %   'FileRange': Default is [] and loops over all found files. In any other
@@ -76,6 +77,8 @@ defaultFittedExpectations = false;
 addParameter(p,'FittedExpectations',defaultFittedExpectations,@islogical);
 defaultNDisc = 100;
 addParameter(p,'NDisc',defaultNDisc,@isnumeric);
+defaultPeriod = 2; % number of periods expected in one piezo segment. Important for phase computation. 
+addParameter(p,'Period',defaultPeriod,@isnumeric);
 defaultRewriteRho = false;
 addParameter(p,'RewriteRho',defaultRewriteRho,@islogical);
 defaultRewriteWigner = false;
@@ -112,7 +115,7 @@ defaultChannelAssignment = [3,1,2]; %[target,ps_piezo_fast,ps_piezo_slow]
 addParameter(p,'ChannelAssignment',defaultChannelAssignment,@isvector);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[chAssign,corrRemove,filenumber,filerange,fitexp,nDisc,parameter,range,recomputeOrth,recomputeTheta,remMod,rewriteRho,rewriteWigner,rhoParams, ...
+[chAssign,corrRemove,filenumber,filerange,fitexp,nDisc,parameter,periodsPerSeg,range,recomputeOrth,recomputeTheta,remMod,rewriteRho,rewriteWigner,rhoParams, ...
     saveOrth,saveps,saverho,savetheta,saveWigner,selParams,varyAPS] = c{:};
 
 % Dependencies among optional input arguments
@@ -179,7 +182,7 @@ for ii = 1:length(filerange)
             quantities.Delay(i) = delay;      
     end
     
-    if ~saveps
+    if ~saveps && ~recomputeTheta
         try
             load(postFilename);
         catch
@@ -207,7 +210,7 @@ for ii = 1:length(filerange)
     if ~exist('selX','var') % run only if postselection file was not loaded
         if (~exist('theta','var')) || recomputeTheta % run only if theta is not available or should be rewritten
             try
-                [theta,~] = computePhase(Xtg,XpsFast,piezoSign);
+                [theta,~] = computePhase(Xtg,XpsFast,piezoSign,'Period',periodsPerSeg);
             catch
                 warning(['Problem using computePhase.', ...
                     ' Assigning random phase.']);

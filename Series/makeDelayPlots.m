@@ -8,6 +8,8 @@ addParameter(p,'Figurepath',defaultFigurepath,@isstr);
 defaultSelectionParameters = struct('Type','fullcircle', ...
     'Position',[2.5 0.5]);
 addParameter(p,'SelectionParameters',defaultSelectionParameters,@isstruct);
+defaultPeriod = 2; % number of periods expected in one piezo segment. Important for phase computation. 
+addParameter(p,'Period',defaultPeriod,@isnumeric);
 defaultRecomputeTheta = false;
 addParameter(p,'RecomputeTheta',defaultRecomputeTheta,@islogical);
 defaultRecomputeOrth = false;
@@ -34,7 +36,7 @@ defaultCorrRemove = 'yes';
 addParameter(p,'CorrRemove',defaultCorrRemove,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[chAssign,corrRemove,figurepath,parameter,range,recomputeOrth,recomputeTheta,remMod, ...
+[chAssign,corrRemove,figurepath,parameter,periodsPerSeg,range,recomputeOrth,recomputeTheta,remMod, ...
     saveOrth,saveps,savetheta,selParams,varyAPS,xUnit] = c{:};
 
 % Constants
@@ -111,7 +113,7 @@ if makeTable
     T = series3Ch('SelectionParameters',selParams,'RecomputeTheta',recomputeTheta,...
         'RecomputeOrth',recomputeOrth,'SaveOrth',saveOrth,'Range',range,...
         'SavePostselection',saveps,'SaveTheta',savetheta,'Parameter',parameter,...
-        'RemoveModulation',remMod,'VaryAPS',varyAPS,'ChannelAssignment',chAssign,'CorrRemove',corrRemove);    
+        'RemoveModulation',remMod,'VaryAPS',varyAPS,'ChannelAssignment',chAssign,'CorrRemove',corrRemove,'Period',periodsPerSeg);    
 else
     T = seriesRead3ChTable(selParams,'VaryAPS',varyAPS,'RemoveModulation',remMod,'Range',range);
 end
@@ -146,7 +148,7 @@ if movieWigner2D || movieWigner3D
     series3Ch('SaveWigner',true,'SelectionParameters',selParams,'RecomputeTheta',recomputeTheta,...
         'RecomputeOrth',recomputeOrth,'SaveOrth',saveOrth,'Range',range,...
         'SavePostselection',saveps,'SaveTheta',savetheta,'Parameter',parameter,...
-        'RemoveModulation',remMod,'VaryAPS',varyAPS,'ChannelAssignment',chAssign,'CorrRemove',corrRemove);
+        'RemoveModulation',remMod,'VaryAPS',varyAPS,'ChannelAssignment',chAssign,'CorrRemove',corrRemove,'Period',periodsPerSeg);
 end
 if movieWigner2D && movieWigner3D
     dispstat('Making 2D & 3D Wigner movies ...','timestamp','keepthis');
