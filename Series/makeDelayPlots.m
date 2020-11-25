@@ -34,10 +34,12 @@ defaultChannelAssignment = [1,2,3]; %[target,ps_piezo_fast,ps_piezo_slow]
 addParameter(p,'ChannelAssignment',defaultChannelAssignment,@isvector);
 defaultCorrRemove = 'yes';
 addParameter(p,'CorrRemove',defaultCorrRemove,@isstr);
+defaultZeroDelay = 0;
+addParameter(p,'ZeroDelay',defaultZeroDelay,@isnumeric);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
 [chAssign,corrRemove,figurepath,parameter,periodsPerSeg,range,recomputeOrth,recomputeTheta,remMod, ...
-    saveOrth,saveps,savetheta,selParams,varyAPS,xUnit] = c{:};
+    saveOrth,saveps,savetheta,selParams,varyAPS,xUnit,zeroDelay] = c{:};
 
 % Constants
 pdfpath = 'figures-pdf/';
@@ -113,7 +115,8 @@ if makeTable
     T = series3Ch('SelectionParameters',selParams,'RecomputeTheta',recomputeTheta,...
         'RecomputeOrth',recomputeOrth,'SaveOrth',saveOrth,'Range',range,...
         'SavePostselection',saveps,'SaveTheta',savetheta,'Parameter',parameter,...
-        'RemoveModulation',remMod,'VaryAPS',varyAPS,'ChannelAssignment',chAssign,'CorrRemove',corrRemove,'Period',periodsPerSeg);    
+        'RemoveModulation',remMod,'VaryAPS',varyAPS,'ChannelAssignment',chAssign,...
+        'CorrRemove',corrRemove,'Period',periodsPerSeg,'ZeroDelay',zeroDelay);    
 else
     T = seriesRead3ChTable(selParams,'VaryAPS',varyAPS,'RemoveModulation',remMod,'Range',range);
 end
@@ -148,7 +151,8 @@ if movieWigner2D || movieWigner3D
     series3Ch('SaveWigner',true,'SelectionParameters',selParams,'RecomputeTheta',recomputeTheta,...
         'RecomputeOrth',recomputeOrth,'SaveOrth',saveOrth,'Range',range,...
         'SavePostselection',saveps,'SaveTheta',savetheta,'Parameter',parameter,...
-        'RemoveModulation',remMod,'VaryAPS',varyAPS,'ChannelAssignment',chAssign,'CorrRemove',corrRemove,'Period',periodsPerSeg);
+        'RemoveModulation',remMod,'VaryAPS',varyAPS,'ChannelAssignment',chAssign,...
+        'CorrRemove',corrRemove,'Period',periodsPerSeg,'ZeroDelay',zeroDelay);
 end
 if movieWigner2D && movieWigner3D
     dispstat('Making 2D & 3D Wigner movies ...','timestamp','keepthis');

@@ -61,6 +61,8 @@ function T = series3Ch(varargin)
 %   'CorrRemove': Only uses those mat-file that have 'corrRemove-yes' in
 %       the filename
 %   'Period': number of periods expected in one piezo segment. Important for phase computation. 
+%   'ZeroDelay': Delay where all channels are at the same time, in mm
+    %   position of target delay line 
 %
 %   *** Developer Only ***
 %   'FileRange': Default is [] and loops over all found files. In any other
@@ -113,10 +115,12 @@ defaultRange = [0 10];
 addParameter(p,'Range',defaultRange,@isvector);
 defaultChannelAssignment = [3,1,2]; %[target,ps_piezo_fast,ps_piezo_slow]
 addParameter(p,'ChannelAssignment',defaultChannelAssignment,@isvector);
+defaultZeroDelay = 0;
+addParameter(p,'ZeroDelay',defaultZeroDelay,@isnumeric);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
 [chAssign,corrRemove,filenumber,filerange,fitexp,nDisc,parameter,periodsPerSeg,range,recomputeOrth,recomputeTheta,remMod,rewriteRho,rewriteWigner,rhoParams, ...
-    saveOrth,saveps,saverho,savetheta,saveWigner,selParams,varyAPS] = c{:};
+    saveOrth,saveps,saverho,savetheta,saveWigner,selParams,varyAPS,zeroDelay] = c{:};
 
 % Dependencies among optional input arguments
 if saveWigner || rewriteWigner
@@ -178,7 +182,7 @@ for ii = 1:length(filerange)
             delay = str2double(delay);
             quantities.DelayMm(i) = delay;  % in mm
             c = 299792458; % in m/s
-            delay = 2*delay/1000/c*10^12; %delay in ps
+            delay = 2*(delay-zeroDelay)/1000/c*10^12; %delay in ps
             quantities.Delay(i) = delay;      
     end
     
