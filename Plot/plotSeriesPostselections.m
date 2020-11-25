@@ -18,7 +18,7 @@ addParameter(p,'RemoveModulation',defaultRemoveModulation,@islogical);
 defaultRange = 0.3;
 addParameter(p,'Range',defaultRange,@isvector);
 defaultZeroDelay = 0;
-addParameter(p,'ZeroDelay',defaultZeroDelay,@isnumeric);
+addParameter(p,'ZeroDelay',defaultZeroDelay,@isnumeric); % in mm
 parse(p,varargin{:});
 c = struct2cell(p.Results);
 [filename,fitType,range,remMod,typestr,varyAPS,xUnit,zeroDelay] = c{:};
@@ -99,7 +99,8 @@ for iParams = 1:length(listOfParams)
 end
 [~,I] = sort(delay(:,1)); % Sort for Radii
 delay = delay(I,:); %delays
-delay = delay - zeroDelay;
+c = 299792458; % in m/s
+delay = delay - 2*zeroDelay/1000/c*10^12;
 Yr = Yr(I,:); %Radii
 Yt = Yt(I,:); %thicknesses
 discAmpl = discAmpl(I,:);
@@ -165,7 +166,7 @@ switch typestr
                     % Olivero, J. J.; R. L. Longbothum (February 1977). 
 %                     "Empirical fits to the Voigt line width: A brief review". 
 %                     Journal of Quantitative Spectroscopy and Radiative Transfer. 
-%                     17 (2): 233–236. Bibcode:1977JQSRT..17..233O. doi:10.1016/0022-4073(77)90161-3. ISSN 0022-4073.
+%                     17 (2): 233ï¿½236. Bibcode:1977JQSRT..17..233O. doi:10.1016/0022-4073(77)90161-3. ISSN 0022-4073.
                 case 'noFit'
                     Index = find(delay(i,:)>= -5 & delay(i,:)<= 5);
                     fitPeak(i) = mean(discAmpl(i,Index-2:Index+2)); 

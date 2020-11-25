@@ -119,7 +119,8 @@ if makeTable
         makeDelayPlots('table','SelectionParameters',listOfParams(iParams),...
         'Period',periodsPerSeg,'RecomputeTheta',recomputeTheta,'RecomputeOrth',recomputeOrth,...
         'SaveOrth',saveOrth,'SavePostselection',saveps,'SaveTheta',savetheta,'Parameter',parameter,...
-        'RemoveModulation',remMod,'Range',range,'XUnit',xUnit,'VaryAPS',varyAPS,'ChannelAssignment',chAssign,'CorrRemove',corrRemove);  
+        'RemoveModulation',remMod,'Range',range,'XUnit',xUnit,'VaryAPS',varyAPS,'ChannelAssignment',...
+        chAssign,'CorrRemove',corrRemove,'ZeroDelay',zeroDelay);  
     end
 end
 if delayPlots
@@ -128,7 +129,7 @@ if delayPlots
         'Period',periodsPerSeg,'RecomputeTheta',recomputeTheta,'RecomputeOrth',recomputeOrth,...
         'SaveOrth',saveOrth,'SavePostselection',saveps,'SaveTheta',savetheta,'Parameter',parameter,...
         'RemoveModulation',remMod,'Range',range,'XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,...
-        'ChannelAssignment',chAssign,'CorrRemove',corrRemove);  
+        'ChannelAssignment',chAssign,'CorrRemove',corrRemove,'ZeroDelay',zeroDelay);  
     end
 end
 if radiusDiscAmpl
@@ -189,7 +190,7 @@ if thicknessG2
 end
 if pdfs
     for iParams = 1:length(listOfParams)
-        makeDelayPlots('pdfs','SelectionParameters',listOfParams(iParams),'XUnit',xUnit,'VaryAPS',varyAPS,'RemoveModulation',remMod,'Range',range);
+        makeDelayPlots('pdfs','SelectionParameters',listOfParams(iParams),'XUnit',xUnit,'VaryAPS',varyAPS,'RemoveModulation',remMod,'Range',range,'ZeroDelay',zeroDelay);
     end
     % Radius pdfs
     listOfFigures = dir([figurepath,'*-Radius*.fig']);
