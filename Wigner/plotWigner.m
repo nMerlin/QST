@@ -67,6 +67,7 @@ nP = length(p);
 nWF = length(WF);
 shift = (nWF-nP)/2;
 WF = WF(shift+1:end-shift,shift+1:end-shift);
+WF = real(WF);
 
 %% Plot data
 if ~isempty(handle)
