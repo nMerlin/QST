@@ -24,23 +24,11 @@ c = struct2cell(p.Results);
 % those quadratures before the Husimi beam splitter
 O1 = O1*sqrt(2);
 O2 = O2*sqrt(2);
-%% plot Husimi function
-subplot(3,1,1);
-
+%% compute Husimi
 if H == 0
-    plotHusimi(O1,O2,[],'Limits',limits,'nBinsA',nBinsA,'nBinsB',nBinsB); % husimi=[O1,O2,iSelect]
-    %%
     [H, binsO1, binsO2] = histogram2D(O1,O2,'nBinsA',nBinsA,'nBinsB',nBinsB);
-    H=H./(sum(sum(H)));
-else
-    H=H./(sum(sum(H)));
-    imagesc(binsO1,binsO2,H); axis on; colormap hot; hold on;
-    set(gca,'XLim',limits,'YLim',limits);
-    xlabel('q');
-    ylabel('p');
-    title('H(q,p)');
-    pbaspect([1 1 1]); 
-end
+end;
+H=H./(sum(sum(H)));
 
 %% get mean total photon number from averaging over Husimi function 
 [XAxis,YAxis]=meshgrid(binsO1,binsO2);
@@ -51,7 +39,6 @@ meanN=0.5*(FullQx2+FullQy2) -1;
 %% get cut of H along q axis
 Hcut = H(round(length(binsO2)/2),:);
 Hcut = Hcut/max(Hcut);
-
 
 %% Get Theory
 WLength = max(binsO1);
@@ -109,30 +96,48 @@ HusFunc = 0.5*WRes^2*(pi*(nTherm+1))^-1 *exp(-(x.^2 + nCoherent)/(nTherm+1)) .* 
 theoryHFCut = HusFunc(round(nBinsA/2),:);
 theoryHFCut = theoryHFCut/max(theoryHFCut);
 
-%% plot stuff 
-ax2 = subplot(3,1,2);
-plot(binsO1,Hcut,'DisplayName','measured Husimi');
+%% plot Husimi function
+%subplot(2,1,1,'align');
+%subplot('Position',[0.2 0.5 0.4 0.4]); %[left bottom width height].
+pcolor(binsO1,binsO2,H/max(max(H))); shading 'flat'; axis on; colormap hot; colorbar; hold on;
+plot(binsO1,Hcut*0.5*max(binsO2)-max(binsO2),'w','Linewidth',2);
 hold on;
-plot(binsO1,theoryHFCut,'Linewidth',2,'DisplayName',...
-    ['theory displaced thermal Husimi, r = ' num2str(r) ', n_{Th} = ' num2str(nTherm) ', n_{Coh} = ' num2str(nCoherent) ]);
+plot(binsO1,theoryHFCut*0.5*max(binsO2)-max(binsO2),'r','Linewidth',2);
+%set(gca,'XLim',limits,'YLim',limits);
 xlabel('q');
-ylabel('normalized cut histogram');
-legend(ax2,'location','southwest');
-ax2.XTick = (min(ax2.XLim):1:max(ax2.XLim));
+ylabel('p');
+title('H(q,p)');
+pbaspect([1 1 1]); 
+legend('Data','Cut', ['Theory, n_{Th} = ' num2str(nTherm,'%.1f') ', n_{Coh} = ' num2str(nCoherent,'%.1f') ],'location','northwest');
+graphicsSettings;grid;
 
 %%
-ax3 = subplot(3,1,3);
-Hcut = H(:,round(length(binsO1)/2));
-Hcut = Hcut/max(Hcut);
+% %ax2 = subplot(2,1,2,'align');
+% ax2 =subplot('Position',[0.2 0.2 0.28 0.2]);
+% plot(binsO1,Hcut,'k','DisplayName','Data');
+% hold on;
+% plot(binsO1,theoryHFCut,'r','Linewidth',2,'DisplayName',...
+%     ['Theory, n_{Th} = ' num2str(nTherm,'%.0f') ', n_{Coh} = ' num2str(nCoherent,'%.0f') ]);
+% xlabel('q');
+% ylabel('Cut');
+% legend(ax2,'location','southwest');
+% %ax2.XTick = (min(ax2.XLim):1:max(ax2.XLim));
+% graphicsSettings;grid;
 
-plot(binsO2,Hcut,'DisplayName','measured Husimi');
-hold on;
-plot(binsO2,theoryHFCut,'Linewidth',2,'DisplayName',...
-    ['theory displaced thermal Husimi, r = ' num2str(r) ', n_{Th} = ' num2str(nTherm) ', n_{Coh} = ' num2str(nCoherent) ]);
-xlabel('p');
-ylabel('normalized cut histogram');
-legend(ax3,'location','southwest');
-ax3.XTick = (min(ax3.XLim):1:max(ax3.XLim));
+%%
+% ax3 = subplot(3,1,3);
+% Hcut = H(:,round(length(binsO1)/2));
+% Hcut = Hcut/max(Hcut);
+% 
+% plot(binsO2,Hcut,'k','DisplayName','Data');
+% hold on;
+% plot(binsO2,theoryHFCut,'r','Linewidth',2,'DisplayName',...
+%     ['Theory, n_{Th} = ' num2str(nTherm,'%.0f') ', n_{Coh} = ' num2str(nCoherent,'%.0f') ]);
+% xlabel('p');
+% ylabel('Cut');hh
+% legend(ax3,'location','southwest');
+% %ax3.XTick = (min(ax3.XLim):1:max(ax3.XLim));
+% graphicsSettings;grid;
 
 savefig([filename '-nbins-' num2str(nBinsA) '-Husimi.fig']);
 print([filename '-nbins-' num2str(nBinsA) '-Husimi.png'],'-dpng');
