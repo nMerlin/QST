@@ -242,15 +242,19 @@ xlswrite('Husimiplots\HusimiResultsScaled.xls',[Is' r' nTherm' meanN' nCoherent'
     rMax' nThermMax' meanNMax' nCoherentMax' weightLow' weightHigh' nThermHigh' nCoherentHigh' meanNHigh' nThermLow' meanNLow' nCoherentLow' ...
      CoherenceHigh' CoherenceMax' Coherence' CoherenceLow' nThermErr' nCohErr' CoherenceErr' nThermErrMax' nCohErrMax' CoherenceErrMax']);
 
+if strcmp(parameter,'Power')
+    parameter = 'Excitation power';
+end
+ 
 if plotErrorbars
     errorbar(Is,CoherenceLow,CoherenceErr,'o','linewidth',1.5);
     f = gca;f.XScale = 'log'; hold on; 
     errorbar(Is,CoherenceHigh,CoherenceErr,'o','linewidth',1.5);
     errorbar(Is,Coherence,CoherenceErr,'o','linewidth',1.5);
 else
-    semilogx(Is,CoherenceLow,'o',Is,CoherenceHigh,'o',Is,Coherence,'o');
+    semilogx(Is,CoherenceLow,'ok',Is,CoherenceHigh,'*k');
 end
-legend('Coherence_{Low}','Coherence_{High}','Coherence_{Weighted}','location','northwest');
+legend('Coherence_{Low}','Coherence_{High}','location','northwest');
 ylabel('Coherence');
 xlabel([parameter ' (' xUnit ')']);
 graphicsSettings;
@@ -266,7 +270,7 @@ else
     loglog(Is,nTherm,'o');hold on;loglog(Is,nCoherent,'o');
 end
 legend('n_{Thermal}','n_{Coherent}','location','northwest');
-ylabel('photon number');
+ylabel('Photon number');
 xlabel([parameter ' (' xUnit ')']);
 graphicsSettings;
 savefig('Husimiplots\PhotonNumbersFromHusimiFunctionsWeighted.fig');
@@ -275,7 +279,7 @@ clf();
 
 loglog(Is,nCoherent./nTherm,'o');
 legend('n_{Coherent}/n_{Thermal}','location','northwest');
-ylabel('ratio');
+ylabel('Ratio');
 xlabel([parameter ' (' xUnit ')']);
 graphicsSettings;
 savefig('Husimiplots\PhotonNumberRatioFromHusimiFunctionsWeighted.fig');
@@ -284,7 +288,7 @@ clf();
 
 semilogx(Is,nCoherent./nTherm,'o');
 legend('n_{Coherent}/n_{Thermal}','location','northwest');
-ylabel('ratio');
+ylabel('Ratio');
 xlabel([parameter ' (' xUnit ')']);
 graphicsSettings;
 savefig('Husimiplots\PhotonNumberRatioFromHusimiFunctionsWeighted-semilogx.fig');
@@ -293,7 +297,7 @@ clf();
 
 loglog(Is,nThermMax,'o');hold on;loglog(Is,nCoherentMax,'o');
 legend('n_{Thermal}','n_{Coherent}','location','northwest');
-ylabel('photon number');
+ylabel('Photon number');
 xlabel([parameter ' (' xUnit ')']);
 graphicsSettings;
 savefig('Husimiplots\PhotonNumbersFromHusimiFunctionsMax.fig');
@@ -302,16 +306,16 @@ clf();
 
 loglog(Is,nCoherentMax./nThermMax,'o');
 legend('n_{Coherent}/n_{Thermal}','location','northwest');
-ylabel('ratio');
+ylabel('Ratio');
 xlabel([parameter ' (' xUnit ')']);
 graphicsSettings;
 savefig('Husimiplots\PhotonNumberRatioFromHusimiFunctionsMax.fig');
 print('Husimiplots\PhotonNumberRatioFromHusimiFunctionsMax.png','-dpng');
 clf();
 
-loglog(Is,nThermLow,'o',Is,nCoherentLow,'o',Is,nThermHigh,'o',Is,nCoherentHigh,'o');
+loglog(Is,nThermLow,'ok',Is,nCoherentLow,'or',Is,nThermHigh,'*k',Is,nCoherentHigh,'*r');
 legend('n_{Thermal,Low}','n_{Coherent,Low}','n_{Thermal,High}','n_{Coherent,High}','location','northwest');
-ylabel('photon number');
+ylabel('Photon number');
 xlabel([parameter ' (' xUnit ')']);
 graphicsSettings;
 savefig('Husimiplots\PhotonNumbersFromHusimiFunctionsLowAndHigh.fig');
@@ -320,7 +324,7 @@ clf();
 
 semilogx(Is,nThermLow,'o',Is,nCoherentLow,'o',Is,nThermHigh,'o',Is,nCoherentHigh,'o');
 legend('n_{Thermal,Low}','n_{Coherent,Low}','n_{Thermal,High}','n_{Coherent,High}','location','northwest');
-ylabel('photon number');
+ylabel('Photon number');
 xlabel([parameter ' (' xUnit ')']);
 graphicsSettings;
 savefig('Husimiplots\PhotonNumbersFromHusimiFunctionsLowAndHigh-semilogx.fig');
@@ -329,7 +333,7 @@ clf();
 
 loglog(Is,meanNLow,'o',Is,meanNHigh,'o');
 legend('n_{total,Low}','n_{total,High}','location','northwest');
-ylabel('photon number');
+ylabel('Photon number');
 xlabel([parameter ' (' xUnit ')']);
 graphicsSettings;
 savefig('Husimiplots\PhotonNumbersFromHusimiFunctionsMeanNLowAndHigh.fig');
@@ -338,7 +342,7 @@ clf();
 
 semilogx(Is,weightLow,'o',Is,weightHigh,'o');
 legend('Low','High','location','northwest');
-ylabel('relative abundance');
+ylabel('Relative abundance');
 xlabel([parameter ' (' xUnit ')']);
 graphicsSettings;
 savefig('Husimiplots\PhotonNumbersFromHusimiFunctionsWeights.fig');
