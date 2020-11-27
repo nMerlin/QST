@@ -135,10 +135,18 @@ switch typestr
                     [res,gof,~] = fit(x',ys','gauss1'); %f(x) =  a1*exp(-((x-b1)/c1)^2)
                     fitTau(i) = res.c1;
                     level = 2*tcdf(-1,gof.dfe);
-                    m = confint(res,level); 
+                    m = confint(res,1-level); 
                     tauError(i) = m(end,end) - res.c1;
                     fitPeak(i) = res(res.b1);  
                     plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(min(delay(i,:)):1:max(delay(i,:))),'r','DisplayName','');
+                case 'exponential'
+                    [res,gof,~] = fit(abs(x)',ys','exp1'); %f(x) =  a*exp(bx)
+                    fitTau(i) = res.b;
+                    level = 2*tcdf(-1,gof.dfe);
+                    m = confint(res,1-level); 
+                    tauError(i) = m(end,end) - res.b;
+                    fitPeak(i) = res.a;  
+                    plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(abs(min(delay(i,:)):1:max(delay(i,:)))),'r','DisplayName','');                   
                 case 'voigt' 
 %                     fo = fitoptions('Method','NonlinearLeastSquares', ...
 %                             'StartPoint',[50, 5]); %gamma, sigma
@@ -168,7 +176,7 @@ switch typestr
 %                     Journal of Quantitative Spectroscopy and Radiative Transfer. 
 %                     17 (2): 233�236. Bibcode:1977JQSRT..17..233O. doi:10.1016/0022-4073(77)90161-3. ISSN 0022-4073.
                 case 'noFit'
-                    Index = find(delay(i,:)>= -5 & delay(i,:)<= 5);
+                    Index = find(delay(i,:)>= -30 & delay(i,:)<= 30);
                     fitPeak(i) = mean(discAmpl(i,Index-2:Index+2)); 
             end;               
         end;
@@ -195,7 +203,7 @@ switch typestr
         for i = 1:length(I)
             semilogy(ax,delay(i,:),discAmpl(i,:)*2^i,'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;   
-        end;
+        end
         hold off;
         legend('location','best');
 %         if strcmp(fitType,'noFit')
@@ -219,7 +227,7 @@ switch typestr
         for i = 1:length(I)
             plot(delay(i,:),discMeanVar(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
-            Index = find(delay(i,:)>= -1 & delay(i,:)<= 1);
+            Index = find(delay(i,:)>= -30 & delay(i,:)<= 30);
             fitPeak(i) = mean(discMeanVar(i,Index)); 
         end;
         hold off;
@@ -235,7 +243,7 @@ switch typestr
         for i = 1:length(I)
             plot(delay(i,:),varQ(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
-            Index = find(delay(i,:)>= -1 & delay(i,:)<= 1);
+            Index = find(delay(i,:)>= -30 & delay(i,:)<= 30);
             fitPeak(i) = mean(varQ(i,Index)); 
         end;
         hold off;
@@ -251,7 +259,7 @@ switch typestr
         for i = 1:length(I)
             plot(delay(i,:),varP(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
-            Index = find(delay(i,:)>= -1 & delay(i,:)<= 1);
+            Index = find(delay(i,:)>= -30 & delay(i,:)<= 30);
             fitPeak(i) = mean(varP(i,Index)); 
         end;
         hold off;
@@ -275,9 +283,9 @@ switch typestr
         for i = 1:length(I)
             plot(delay(i,:),discN(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
-            Index = find(delay(i,:)>= -5 & delay(i,:)<= 5);
+            Index = find(delay(i,:)>= -30 & delay(i,:)<= 30);
             fitPeak(i) = mean(discN(i,Index-2:Index+2)); 
-        end;
+        end
         hold off;
         legend('location','northwest');
         xlabel(['Delay (' xUnit ')']);
@@ -291,7 +299,7 @@ switch typestr
         for i = 1:length(I)
             plot(delay(i,:),g2vals(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
-        end;
+        end
         hold off;
         legend('location','northeast');
         xlabel(['Delay (' xUnit ')']);
@@ -357,9 +365,11 @@ if any(fitTau)
             ylabel(['\tau_c of Gaussian (' xUnit ')']);
         case 'voigt'
             ylabel(['FWHM of Voigt Profile (' xUnit ')']);
+        case 'exponential'
+            ylabel(['\tau of exp. function (' xUnit ')']);
     end
     graphicsSettings;
-    title([filename '-' typestr '-fitWidthsVsRadius']);
+    title([filename '-' typestr '-' fitType '-fitWidthsVsRadius']);
     savefig([filename '-' typestr '-fitWidthsVsRadius.fig']);
     print([filename '-' typestr '-fitWidthsVsRadius.png'],'-dpng');
     close all;
@@ -370,9 +380,9 @@ if any(fitPeak)
     xlabel('A_{ps} set for postselection');
     ylabel('Peakheight');
     graphicsSettings;
-    title([filename '-' typestr '-PeaksVsRadius']);
-    savefig([filename '-' typestr '-PeaksVsRadius.fig']);
-    print([filename '-' typestr '-PeaksVsRadius.png'],'-dpng');
+    title([filename '-' typestr '-' fitType '-PeaksVsRadius']);
+    savefig([filename '-' typestr '-' fitType '-PeaksVsRadius.fig']);
+    print([filename '-' typestr '-' fitType '-PeaksVsRadius.png'],'-dpng');
     close all;
 end
 
@@ -384,11 +394,13 @@ if any(fitTau)
             ylabel(['\tau_c of Gaussian (' xUnit ')']);
         case 'voigt'
             ylabel(['FWHM of Voigt Profile (' xUnit ')']);
+         case 'exponential'
+            ylabel(['\tau of exp. function (' xUnit ')']);
     end
     graphicsSettings;
-    title([filename '-' typestr '-fitWidthsVsThickness']);
-    savefig([filename '-' typestr '-fitWidthsVsThickness.fig']);
-    print([filename '-' typestr '-fitWidthsVsThickness.png'],'-dpng');
+    title([filename '-' typestr '-' fitType '-fitWidthsVsThickness']);
+    savefig([filename '-' typestr '-' fitType '-fitWidthsVsThickness.fig']);
+    print([filename '-' typestr '-' fitType '-fitWidthsVsThickness.png'],'-dpng');
     close all;
 end
 
@@ -397,9 +409,9 @@ if any(fitPeak)
     xlabel('Ring Thickness set for postselection');
     ylabel('Peakheight');
     graphicsSettings;
-    title([filename '-' typestr '-PeaksVsThickness']);
-    savefig([filename '-' typestr '-PeaksVsThickness.fig']);
-    print([filename '-' typestr '-PeaksVsThickness.png'],'-dpng');
+    title([filename '-' typestr '-' fitType '-PeaksVsThickness']);
+    savefig([filename '-' typestr '-' fitType '-PeaksVsThickness.fig']);
+    print([filename '-' typestr '-' fitType '-PeaksVsThickness.png'],'-dpng');
     close all;
 end
 % plot(Yt(:,1),fitWidth,'o-');
