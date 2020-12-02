@@ -16,7 +16,7 @@ defaultDebug = false;
 addParameter(p,'Debug',defaultDebug,@islogical);
 defaultHistory = false;
 addParameter(p,'History',defaultHistory,@islogical);
-defaultIterations = 100;
+defaultIterations = 200;
 addParameter(p,'Iterations',defaultIterations,@isnumeric);
 defaultMaxFockState = 30;
 addParameter(p,'MaxFockState',defaultMaxFockState,@isnumeric);

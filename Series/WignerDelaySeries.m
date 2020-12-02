@@ -1,6 +1,33 @@
-%get Wigner function for one delay, several postselection parameters
-directory = 'C:\Users\Carolin Lüders\Documents\archived-data\Wigner';
-zeroDelay = 108.96;
+function [] = WignerDelaySeries(varargin)
+%get Wigner function for one delay, several postselection parameters, from
+%data located in 'post-data'. 
+%% Validate and parse input arguments
+p = inputParser;
+% directory where the Wigner tables are stored
+defaultDirectory = 'C:\Users\Carolin Lüders\Documents\archived-data\Wigner';
+%'C:\Users\lab\Documents\@archived-data\Wigner';
+addParameter(p,'Directory',defaultDirectory,@isstr);
+% maximum Fock state for density matrix
+defaultMaxFockState = 60;
+addParameter(p,'MaxFockState',defaultMaxFockState,@isnumeric);
+% Iterations for density matrix
+defaultIterations = 200;
+addParameter(p,'Iterations',defaultIterations,@isnumeric);
+% The position in mm of the zero delay
+defaultZeroDelay = 108.96;
+addParameter(p,'ZeroDelay',defaultZeroDelay,@isnumeric);
+% Whether already existent rho and WF are used 
+defaultLoadExistent = false;
+addParameter(p,'LoadExistent',defaultLoadExistent,@islogical);
+% Whether the WF is smoothed after calculating it  
+defaultSmooth = false;
+addParameter(p,'Smooth',defaultSmooth,@islogical);
+% Half width for the moving average smoothing
+defaultSmoothWidth = 2;
+addParameter(p,'SmoothWidth',defaultSmoothWidth,@isnumeric);
+parse(p,varargin{:});
+c = struct2cell(p.Results);
+[directory,Iterations,loadExistent,maxFockState,smooth,smoothWidth,zeroDelay] = c{:};
 
 if ~exist([pwd 'Wignerplots'],'dir')
     mkdir('Wignerplots')
@@ -9,10 +36,10 @@ end
 foldername = 'Wignerplots';
 filestruct = dir('post-data\*.mat');
 files = {filestruct.name};
-
+filenameOverview = [foldername '\Iterations-' num2str(Iterations) '-maxN-' num2str(maxFockState) '-smooth-' num2str(smooth)];
 MaxQuad = 20;
 Resolution = 0.125;
-[Q,P,varQ,varP,n,Delay,meanPhases,meanAmps,varPhases,varAmps] = deal(zeros(length(files),1));
+[Q,P,varQ,varP,n,Delay,meanPhases,meanAmps,varPhases,varAmps,meanAbsPhases] = deal(zeros(length(files),1));
 
 %% Iterate through data files
 
@@ -20,6 +47,7 @@ for i = 1:length(files)
     %% Load data
     C = strsplit(files{i},'.');
     filename = C{1};
+    filenameFig = [foldername '\' filename '-Iterations-' num2str(Iterations) '-maxN-' num2str(maxFockState) '-smooth-' num2str(smooth)];
     dispstat(['Loading ',files{i},' ...'],'timestamp',0);
     clear X1 X2 X3 theta piezoSign
     clear O1 O2 O3 oTheta selX selTheta;
@@ -40,37 +68,46 @@ for i = 1:length(files)
     delay = 2*(delay-zeroDelay)/1000/c*10^12; %delay in ps
     Delay(i) = delay;
      
-%     load(['post-data/',files{i}],'selX','selTheta');
-%     
-%         tic;
-%         rho = computeDensityMatrix(selX,selTheta,'MaxFockState',60,'Iterations',200);
-%         WF = mainWignerFromRho(rho,'Directory',directory);
-%         toc;
-%        % save(['post-data\' filename selStr '-remMod-0-range-0.3-varyAPS-0.mat'],'rho','WF','-append');
-%        save(['post-data\' files{i}],'rho','WF','-append');
-         load(['post-data/',files{i}],'WF','rho');  
-        plotWigner(WF,'Style','2D','Colormap','hot');
-        title(['Delay =' num2str(delay) 'ps, ' num2str(delayMm) 'mm']);
-        savefig([foldername '\' filename '-WF.fig']);
-         print([foldername '\' filename '-WF.png'],'-dpng');
-         close all;
-         plotRho(rho);
-        title(['Delay =' num2str(delay) 'ps, ' num2str(delayMm) 'mm']);
-        savefig([foldername '\' filename '-rho.fig']);
-         print([foldername '\' filename '-rho.png'],'-dpng');
-         close all;
-         [meanPhase,meanAmp,~,~,varPhase,varAmp,~,~ ] = ReturnPhaseAndAmplitudeWigner( real(WF),...
-             MaxQuad, Resolution,100,[foldername '\' filename] );
-         meanPhases(i) = meanPhase;
-         meanAmps(i) = meanAmp;
-         varPhases(i) = varPhase;
-         varAmps(i) = varAmp;
-         [Qx,Qy,FullQx2,FullQy2,VarQx,VarQy,PhotonNr ] = ReturnQuadsWigner( real(WF), MaxQuad, Resolution );
-       Q(i) = Qx;
-       P(i) = Qy;
-       varQ(i) = VarQx;
-        varP(i) = VarQy;
-         n(i) = PhotonNr; 
+    if loadExistent
+        load(['post-data/',files{i}],'WF','rho'); 
+    else
+        load(['post-data/',files{i}],'selX','selTheta');
+        dispstat('compute rho','timestamp',0);
+        rho = computeDensityMatrix(selX,selTheta,'MaxFockState',maxFockState,'Iterations',Iterations);
+        dispstat('compute WF','timestamp',0);
+        tic;
+        WF = mainWignerFromRho(rho,'Directory',directory);
+        toc;
+        save(['post-data\' files{i}],'rho','WF','-append');
+    end
+       
+    if smooth
+        WF = moving_average(WF,smoothWidth,1);
+        WF = moving_average(WF,smoothWidth,2);
+    end
+    plotWigner(WF,'Style','2D','Colormap','hot');
+    title(['Delay =' num2str(delay) 'ps,' char(10) num2str(delayMm) 'mm']);       
+    savefig([filenameFig '-WF.fig']);
+    print([filenameFig '-WF.png'],'-dpng');
+    close all;
+    plotRho(rho);
+    title(['Delay =' num2str(delay) 'ps, ' num2str(delayMm) 'mm']);
+    savefig([filenameFig '-rho.fig']);
+    print([filenameFig '-rho.png'],'-dpng');
+    close all;
+    [meanPhase,meanAmp,~,~,varPhase,varAmp,~,~,meanAbsPhase] = ReturnPhaseAndAmplitudeWigner( real(WF),...
+    MaxQuad, Resolution,100,filenameFig );
+    meanPhases(i) = meanPhase;
+    meanAmps(i) = meanAmp;
+    varPhases(i) = varPhase;
+    varAmps(i) = varAmp;
+    meanAbsPhases(i) = meanAbsPhase;
+    [Qx,Qy,FullQx2,FullQy2,VarQx,VarQy,PhotonNr ] = ReturnQuadsWigner( real(WF), MaxQuad, Resolution );
+    Q(i) = Qx;
+    P(i) = Qy;
+    varQ(i) = VarQx;
+    varP(i) = VarQy;
+    n(i) = PhotonNr; 
 end
 
 [Delay,I]=sort(Delay);
@@ -83,42 +120,37 @@ meanPhases = meanPhases(I);
 meanAmps = meanAmps(I);
 varPhases = varPhases(I);
 varAmps = varAmps(I);
+meanAbsPhases = meanAbsPhases(I);
 save([foldername '\Wignerresults.mat'],'Delay','Q','P','varQ','varP','n','meanPhases','meanAmps','varPhases','varAmps');
 
-plot(Delay,Q,'-o',Delay,P,'-o',Delay,meanAmps,'-o');
-legend('<Q>','<P>','<r>','location','best');
+plot(Delay,Q,'-o',Delay,P,'-o',Delay,meanAmps,'-o',Delay,meanPhases,'-o',Delay,meanAbsPhases,'-o');
+legend('<Q>','<P>','<r>','<\phi>','<|\phi|>','location','bestoutside');
 xlabel('Delay (ps)');
-ylabel('Amplitude');
+ylabel('Mean values');
 graphicsSettings;
-savefig([foldername '\Amplitudes.fig']);
-print([foldername '\Amplitudes.png'],'-dpng');
+savefig([filenameOverview '-Amplitudes.fig']);
+print([filenameOverview '-Amplitudes.png'],'-dpng');
+ylim([-1 5]);
 close all;
 
 plot(Delay,varQ,'-o',Delay,varP,'-o',Delay,varAmps,'-o',Delay,varPhases,'-o');
-legend('Var_{Q}','Var_{P}','Var_{r}','Var(\phi)','location','best');
+legend('Var(Q)','Var(P)','Var(r)','Var(\phi)','location','bestoutside');
 xlabel('Delay (ps)');
 ylabel('Variance');
 graphicsSettings;
-savefig([foldername '\Variance.fig']);
-print([foldername '\Variance.png'],'-dpng');
+savefig([filenameOverview '-Variance.fig']);
+print([filenameOverview '-Variance.png'],'-dpng');
 close all;
 
 plot(Delay,n,'-o');
-legend('n','location','best');
+legend('n','location','bestoutside');
 xlabel('Delay (ps)');
 ylabel('Photon Number');
+ylim([5 12]);
 graphicsSettings;
-savefig([foldername '\nPhotons.fig']);
-print([foldername '\nPhotons.png'],'-dpng');
+savefig([filenameOverview '-nPhotons.fig']);
+print([filenameOverview '-nPhotons.png'],'-dpng');
 close all;
 
-plot(Delay,meanPhases,'-o');
-legend('<\phi>','location','best');
-xlabel('Delay (ps)');
-ylabel('Mean Phase');
-graphicsSettings;
-savefig([foldername '\meanPhase.fig']);
-print([foldername '\meanPhase.png'],'-dpng');
-close all;
-
+end
 

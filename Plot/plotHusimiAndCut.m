@@ -16,9 +16,13 @@ defaultnBinsB = 100;
 addParameter(p,'nBinsB',defaultnBinsB,@isnumeric);
 defaultMakeFit = true;
 addParameter(p,'MakeFit',defaultMakeFit,@islogical);
+defaultiSelect = []; % Indices of selected points shown in green. 
+addParameter(p,'iSelect',defaultiSelect,@isvector);
+defaultShowLegend = true;
+addParameter(p,'ShowLegend',defaultShowLegend,@islogical);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[filename,limits,makeFit,nBinsA,nBinsB] = c{:};
+[filename,iSelect,limits,makeFit,nBinsA,nBinsB,showLegend] = c{:};
 
 %% For the Husimi function, the quadratures are scaled so they correspond to
 % those quadratures before the Husimi beam splitter
@@ -100,16 +104,21 @@ theoryHFCut = theoryHFCut/max(theoryHFCut);
 %subplot(2,1,1,'align');
 %subplot('Position',[0.2 0.5 0.4 0.4]); %[left bottom width height].
 pcolor(binsO1,binsO2,H/max(max(H))); shading 'flat'; axis on; colormap hot; colorbar; hold on;
-plot(binsO1,Hcut*0.5*max(binsO2)-max(binsO2),'w','Linewidth',2);
+scatter(O1(iSelect),O2(iSelect),'.g','DisplayName','Postselection'); 
+plot(binsO1,Hcut*0.5*max(binsO2)-max(binsO2),'w','Linewidth',2,'DisplayName','Cut');
 hold on;
-plot(binsO1,theoryHFCut*0.5*max(binsO2)-max(binsO2),'r','Linewidth',2);
+plot(binsO1,theoryHFCut*0.5*max(binsO2)-max(binsO2),'r','Linewidth',2,'DisplayName',...
+    ['Theory, n_{Th} = ' num2str(nTherm,'%.1f') ', n_{Coh} = ' num2str(nCoherent,'%.1f') ]);
 %set(gca,'XLim',limits,'YLim',limits);
 xlabel('q');
 ylabel('p');
 title('H(q,p)');
-pbaspect([1 1 1]); 
-legend('Data','Cut', ['Theory, n_{Th} = ' num2str(nTherm,'%.1f') ', n_{Coh} = ' num2str(nCoherent,'%.1f') ],'location','northwest');
+pbaspect([1 1 1]);
 graphicsSettings;grid;
+if showLegend
+    legend('location','bestoutside','Fontsize',10);
+end
+
 
 %%
 % %ax2 = subplot(2,1,2,'align');

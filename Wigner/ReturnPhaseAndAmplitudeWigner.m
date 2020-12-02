@@ -1,4 +1,4 @@
-function [meanPhase,meanAmp,meanPhaseBinned,meanAmpBinned,varPhase,varAmp,varPhaseBinned,varAmpBinned ] = ReturnPhaseAndAmplitudeWigner( WF, MaxQuad, Resolution, varBins,filename )
+function [meanPhase,meanAmp,meanPhaseBinned,meanAmpBinned,varPhase,varAmp,varPhaseBinned,varAmpBinned,meanAbsPhase ] = ReturnPhaseAndAmplitudeWigner( WF, MaxQuad, Resolution, varBins,filename )
 %UNTITLED2 Computes the expectation values of Phase and Amplitude, derived from quadratures, for a given
 %Wigner function. The maximum quadrature value MaxQuad and their Resolution
 %need to match those used for computing the Wigner function. 
@@ -19,6 +19,7 @@ WF = WF(iCirc);
 WF=WF./(sum(sum(WF)));
 
 meanPhase=sum(sum(PhaseMatrix.*WF));
+meanAbsPhase=sum(sum(abs(PhaseMatrix).*WF));
 meanAmp=sum(sum(AmplMatrix.*WF));
 
 varPhase=sum(sum((PhaseMatrix-meanPhase).^2.*WF));
@@ -45,12 +46,11 @@ fontsize2 = 15;
 bar(PhAxis,WFPhaseBinned );
 xlabel('Phase \phi = atan2(P,Q)');
 ylabel('WF(\phi)');
-text('Units','normalized','position',[0.6,0.85],'String',...
+text('Units','normalized','position',[0.6,0.8],'String',...
     ['<\phi> = ' num2str(meanPhase,'%.2f') char(10) 'Var(\phi) = ' ...
     num2str(varPhase,'%.2f') char(10) '<\phi>_{Binned} = ' num2str(meanPhaseBinned,'%.2f') ...
     char(10) 'Var(\phi)_{Binned} = ' ...
     num2str(varPhaseBinned,'%.2f') ],'FontSize',fontsize2);
-title(filename);
 graphicsSettings; 
 print([filename '-Phasehistogram.png'],'-dpng');
 savefig([filename '-Phasehistogram.fig']);
@@ -73,13 +73,12 @@ meanAmpBinned = sum(AmpAxis.*WFAmpBinned, 'omitnan');
 varAmpBinned = sum(AmpAxis.^2.*WFAmpBinned, 'omitnan') - meanAmpBinned^2;
 
 bar(AmpAxis,WFAmpBinned );
-xlabel('Amplitude r = \sqrt{Q^{2} + P^{2}}');
+xlabel('$r = \sqrt{Q^2 + P^2}$','Interpreter','latex');
 ylabel('WF(r)');
-text('Units','normalized','position',[0.6,0.85],'String',...
+text('Units','normalized','position',[0.6,0.8],'String',...
     ['<r> = ' num2str(meanAmp,'%.2f') char(10) 'Var(r) = ' ...
     num2str(varAmp,'%.2f') char(10) '<r>_{Binned} = ' num2str(meanAmpBinned,'%.2f') char(10) 'Var(r)_{Binned} = ' ...
     num2str(varAmpBinned,'%.2f') ],'FontSize',fontsize2);
-title(filename);
 graphicsSettings; 
 print([filename '-Amplitudehistogram.png'],'-dpng');
 savefig([filename '-Amplitudehistogram.fig']);
