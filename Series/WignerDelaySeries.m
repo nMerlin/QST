@@ -25,29 +25,41 @@ addParameter(p,'Smooth',defaultSmooth,@islogical);
 % Half width for the moving average smoothing
 defaultSmoothWidth = 2;
 addParameter(p,'SmoothWidth',defaultSmoothWidth,@isnumeric);
+defaultSelParams = struct('Type','fullcircle','Position',[7,0.4]);
+addParameter(p,'SelectionParameters',defaultSelParams,@isstruct);
+defaultRemoveModulation = false;
+addParameter(p,'RemoveModulation',defaultRemoveModulation,@islogical);
+defaultVaryAPS = false;
+addParameter(p,'VaryAPS',defaultVaryAPS,@islogical);
+defaultRange = [0 20];
+addParameter(p,'Range',defaultRange,@isvector);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[directory,Iterations,loadExistent,maxFockState,smooth,smoothWidth,zeroDelay] = c{:};
+[directory,Iterations,loadExistent,maxFockState,range,remMod,selParams,smooth,smoothWidth,varyAPS,zeroDelay] = c{:};
 
-if ~exist([pwd 'Wignerplots'],'dir')
-    mkdir('Wignerplots')
+
+%% preparation
+selStr = selParamsToStr(selParams);
+foldername = ['Wignerplots-',selStr,'-remMod-',...
+            num2str(remMod),'-range-',num2str(range),'-varyAPS-',num2str(varyAPS)];
+if ~exist([pwd foldername],'dir')
+    mkdir(foldername)
 end
-
-foldername = 'Wignerplots';
-filestruct = dir('post-data\*.mat');
+filestruct = dir('mat-data\*.mat');
 files = {filestruct.name};
-filenameOverview = [foldername '\Iterations-' num2str(Iterations) '-maxN-' num2str(maxFockState) '-smooth-' num2str(smooth)];
+filenamePlot = [foldername '\Iterations-' num2str(Iterations) '-maxN-' num2str(maxFockState) '-smooth-' num2str(smooth)];
 MaxQuad = 20;
 Resolution = 0.125;
 [Q,P,varQ,varP,n,Delay,meanPhases,meanAmps,varPhases,varAmps,meanAbsPhases] = deal(zeros(length(files),1));
 
 %% Iterate through data files
-
 for i = 1:length(files)
     %% Load data
     C = strsplit(files{i},'.');
     filename = C{1};
-    filenameFig = [foldername '\' filename '-Iterations-' num2str(Iterations) '-maxN-' num2str(maxFockState) '-smooth-' num2str(smooth)];
+    postFilename =  [filename,'-',selStr,'-remMod-',...
+            num2str(remMod),'-range-',num2str(range),'-varyAPS-',num2str(varyAPS),'.mat'];
+    filenameFig = [foldername '\' postFilename '-Iterations-' num2str(Iterations) '-maxN-' num2str(maxFockState) '-smooth-' num2str(smooth)];
     dispstat(['Loading ',files{i},' ...'],'timestamp',0);
     clear X1 X2 X3 theta piezoSign
     clear O1 O2 O3 oTheta selX selTheta;
@@ -67,18 +79,19 @@ for i = 1:length(files)
     c = 299792458; % in m/s
     delay = 2*(delay-zeroDelay)/1000/c*10^12; %delay in ps
     Delay(i) = delay;
-     
+    
+    dispstat(['load file ' filename],'timestamp',0);
     if loadExistent
-        load(['post-data/',files{i}],'WF','rho'); 
+        load(['post-data/',postFilename],'WF','rho'); 
     else
-        load(['post-data/',files{i}],'selX','selTheta');
+        load(['post-data/',postFilename],'selX','selTheta');
         dispstat('compute rho','timestamp',0);
         rho = computeDensityMatrix(selX,selTheta,'MaxFockState',maxFockState,'Iterations',Iterations);
         dispstat('compute WF','timestamp',0);
         tic;
         WF = mainWignerFromRho(rho,'Directory',directory);
         toc;
-        save(['post-data\' files{i}],'rho','WF','-append');
+        save(['post-data\' postFilename],'rho','WF','-append');
     end
        
     if smooth
@@ -128,8 +141,8 @@ legend('<Q>','<P>','<r>','<\phi>','<|\phi|>','location','bestoutside');
 xlabel('Delay (ps)');
 ylabel('Mean values');
 graphicsSettings;
-savefig([filenameOverview '-Amplitudes.fig']);
-print([filenameOverview '-Amplitudes.png'],'-dpng');
+savefig([filenamePlot '-Amplitudes.fig']);
+print([filenamePlot '-Amplitudes.png'],'-dpng');
 ylim([-1 5]);
 close all;
 
@@ -138,8 +151,17 @@ legend('Var(Q)','Var(P)','Var(r)','Var(\phi)','location','bestoutside');
 xlabel('Delay (ps)');
 ylabel('Variance');
 graphicsSettings;
-savefig([filenameOverview '-Variance.fig']);
-print([filenameOverview '-Variance.png'],'-dpng');
+savefig([filenamePlot '-Variance.fig']);
+print([filenamePlot '-Variance.png'],'-dpng');
+close all;
+
+plot(Delay,varAmps,'-o');
+legend('Var(r)','location','bestoutside');
+xlabel('Delay (ps)');
+ylabel('Variance');
+graphicsSettings;
+savefig([filenamePlot '-VarianceR.fig']);
+print([filenamePlot '-VarianceR.png'],'-dpng');
 close all;
 
 plot(Delay,n,'-o');
@@ -148,8 +170,8 @@ xlabel('Delay (ps)');
 ylabel('Photon Number');
 ylim([5 12]);
 graphicsSettings;
-savefig([filenameOverview '-nPhotons.fig']);
-print([filenameOverview '-nPhotons.png'],'-dpng');
+savefig([filenamePlot '-nPhotons.fig']);
+print([filenamePlot '-nPhotons.png'],'-dpng');
 close all;
 
 end
