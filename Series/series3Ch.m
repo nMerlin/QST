@@ -122,6 +122,9 @@ c = struct2cell(p.Results);
 [chAssign,corrRemove,filenumber,filerange,fitexp,nDisc,parameter,periodsPerSeg,range,recomputeOrth,recomputeTheta,remMod,rewriteRho,rewriteWigner,rhoParams, ...
     saveOrth,saveps,saverho,savetheta,saveWigner,selParams,varyAPS,zeroDelay] = c{:};
 
+meanNPsFast = 13.8739; %the mean photon numbers over the total delay series, used for remMod. Make these arguments! 
+meanNPsSlow = 14.8419;
+meanNTg = 9.3581;
 % Dependencies among optional input arguments
 if saveWigner || rewriteWigner
     saverho = true;
@@ -231,15 +234,19 @@ for ii = 1:length(filerange)
                 nTgVec = photonNumberVector(Xtg);
                 nPsFastVec = photonNumberVector(XpsFast);
                 nPsSlowVec = photonNumberVector(XpsSlow);
-                %nTgVec = nTgVec(iOrth);
+                nTgVec = nTgVec(iOrth);
                 nPsFastVec = nPsFastVec(iOrth);
-                %nPsSlowVec = nPsSlowVec(iOrth);
+                nPsSlowVec = nPsSlowVec(iOrth);
+                O1 = O1*sqrt(meanNPsFast)./sqrt(nPsFastVec); %meanNPsFast is the mean of the mean nPsFast over the total delay series 
+                O2 = O2*sqrt(meanNPsSlow)./sqrt(nPsSlowVec);
+                O3 = O3*sqrt(meanNTg)./sqrt(nTgVec);
                 iSel = find(nPsFastVec >= min(range) & nPsFastVec <= max(range));
                 O1 = O1(iSel);
                 O2 = O2(iSel);
                 O3 = O3(iSel);
-                oTheta = oTheta(iSel);                
-               % [O3,O1,O2,oTheta] = removeNBelowLimit(O3,O1,O2,oTheta,nTgVec,nPsFastVec,nPsSlowVec,range);
+                oTheta = oTheta(iSel);
+                iOrth = iOrth(iSel);
+                % [O3,O1,O2,oTheta] = removeNBelowLimit(O3,O1,O2,oTheta,nTgVec,nPsFastVec,nPsSlowVec,range);
 %             end
         end
         
@@ -322,7 +329,16 @@ for ii = 1:length(filerange)
     end
     
     if saveOrth
+        if remMod
+            O1rem = O1;
+            O2rem = O2;
+            O3rem = O3;
+            oThetaRem = oTheta;
+            iOrthRem = iOrth;
+            save(['mat-data/',files{i}],'O1rem','O2rem','O3rem','oThetaRem','iOrthRem','-append');
+        else
             save(['mat-data/',files{i}],'O1','O2','O3','oTheta','iOrth','-append');
+        end
     end
     
     % Save postselected variables
