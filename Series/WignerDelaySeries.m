@@ -150,8 +150,8 @@ plot(Delay,meanAmps,'-o');
 xlabel('Delay (ps)');
 ylabel('Mean radius <r>');
 graphicsSettings;
-savefig([filenamePlot '-Amplitudes.fig']);
-print([filenamePlot '-Amplitudes.png'],'-dpng');
+savefig([filenamePlot '-AmplitudeR.fig']);
+print([filenamePlot '-AmplitudeR.png'],'-dpng');
 ylim([-1 5]);
 close all;
 
@@ -173,10 +173,8 @@ print([filenamePlot '-VarianceR.png'],'-dpng');
 close all;
 
 plot(Delay,n,'-o');
-legend('n','location','bestoutside');
 xlabel('Delay (ps)');
 ylabel('Photon Number');
-ylim([5 12]);
 graphicsSettings;
 savefig([filenamePlot '-nPhotons.fig']);
 print([filenamePlot '-nPhotons.png'],'-dpng');
