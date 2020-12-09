@@ -111,6 +111,10 @@ g2std = g2std(I,:);
 nTg = nTg(1,:);
 nPsFast = nPsFast(1,:);
 nPsSlow = nPsSlow(1,:);
+meanNPsFast = mean(nPsFast);
+meanNPsSlow = mean(nPsSlow);
+meanNTg = mean(nTg);
+save('Photonnumbers.mat','nPsFast','nPsSlow','nTg','meanNPsFast','meanNPsSlow','meanNTg');
 [fitTau,fitPeak,tauError] = deal(zeros(length(I),1));
 
 %% Create figure
