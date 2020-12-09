@@ -8,7 +8,7 @@ defaultDirectory = 'C:\Users\Carolin Lüders\Documents\archived-data\Wigner';
 %'C:\Users\lab\Documents\@archived-data\Wigner';
 addParameter(p,'Directory',defaultDirectory,@isstr);
 % maximum Fock state for density matrix
-defaultMaxFockState = 60;
+defaultMaxFockState = 69;
 addParameter(p,'MaxFockState',defaultMaxFockState,@isnumeric);
 % Iterations for density matrix
 defaultIterations = 200;
@@ -134,12 +134,21 @@ meanAmps = meanAmps(I);
 varPhases = varPhases(I);
 varAmps = varAmps(I);
 meanAbsPhases = meanAbsPhases(I);
-save([foldername '\Wignerresults.mat'],'Delay','Q','P','varQ','varP','n','meanPhases','meanAmps','varPhases','varAmps');
+save([foldername '\Wignerresults.mat'],'Delay','Q','P','varQ','varP','n','meanPhases','meanAmps','varPhases','varAmps','meanAbsPhases');
 
 plot(Delay,Q,'-o',Delay,P,'-o',Delay,meanAmps,'-o',Delay,meanPhases,'-o',Delay,meanAbsPhases,'-o');
 legend('<Q>','<P>','<r>','<\phi>','<|\phi|>','location','bestoutside');
 xlabel('Delay (ps)');
 ylabel('Mean values');
+graphicsSettings;
+savefig([filenamePlot '-Amplitudes.fig']);
+print([filenamePlot '-Amplitudes.png'],'-dpng');
+ylim([-1 5]);
+close all;
+
+plot(Delay,meanAmps,'-o');
+xlabel('Delay (ps)');
+ylabel('Mean radius <r>');
 graphicsSettings;
 savefig([filenamePlot '-Amplitudes.fig']);
 print([filenamePlot '-Amplitudes.png'],'-dpng');
@@ -156,9 +165,8 @@ print([filenamePlot '-Variance.png'],'-dpng');
 close all;
 
 plot(Delay,varAmps,'-o');
-legend('Var(r)','location','bestoutside');
 xlabel('Delay (ps)');
-ylabel('Variance');
+ylabel('Variance (r)');
 graphicsSettings;
 savefig([filenamePlot '-VarianceR.fig']);
 print([filenamePlot '-VarianceR.png'],'-dpng');
