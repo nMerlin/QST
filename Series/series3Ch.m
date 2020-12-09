@@ -117,14 +117,19 @@ defaultChannelAssignment = [3,1,2]; %[target,ps_piezo_fast,ps_piezo_slow]
 addParameter(p,'ChannelAssignment',defaultChannelAssignment,@isvector);
 defaultZeroDelay = 0;
 addParameter(p,'ZeroDelay',defaultZeroDelay,@isnumeric);
+defaultMeanNs = [13 13 9]; %the mean photon numbers over the total delay series, used for remMod.
+% [meanNPsFast,meanNPsSlow,meanNTg]
+addParameter(p,'MeanNs',defaultMeanNs,@isvector);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[chAssign,corrRemove,filenumber,filerange,fitexp,nDisc,parameter,periodsPerSeg,range,recomputeOrth,recomputeTheta,remMod,rewriteRho,rewriteWigner,rhoParams, ...
+[chAssign,corrRemove,filenumber,filerange,fitexp,meanNs,nDisc,parameter,...
+    periodsPerSeg,range,recomputeOrth,recomputeTheta,remMod,rewriteRho,rewriteWigner,rhoParams, ...
     saveOrth,saveps,saverho,savetheta,saveWigner,selParams,varyAPS,zeroDelay] = c{:};
 
-meanNPsFast = 13.8739; %the mean photon numbers over the total delay series, used for remMod. Make these arguments! 
-meanNPsSlow = 14.8419;
-meanNTg = 9.3581;
+meanNPsFast = meanNs(1);
+meanNPsSlow = meanNs(2);
+meanNTg = meanNs(3);
+
 % Dependencies among optional input arguments
 if saveWigner || rewriteWigner
     saverho = true;
