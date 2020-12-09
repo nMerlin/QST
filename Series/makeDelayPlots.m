@@ -36,9 +36,12 @@ defaultCorrRemove = 'yes';
 addParameter(p,'CorrRemove',defaultCorrRemove,@isstr);
 defaultZeroDelay = 0;
 addParameter(p,'ZeroDelay',defaultZeroDelay,@isnumeric);
+defaultMeanNs = [13 13 9]; %the mean photon numbers over the total delay series, used for remMod.
+% [meanNPsFast,meanNPsSlow,meanNTg]
+addParameter(p,'MeanNs',defaultMeanNs,@isvector);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[chAssign,corrRemove,figurepath,parameter,periodsPerSeg,range,recomputeOrth,recomputeTheta,remMod, ...
+[chAssign,corrRemove,figurepath,meanNs,parameter,periodsPerSeg,range,recomputeOrth,recomputeTheta,remMod, ...
     saveOrth,saveps,savetheta,selParams,varyAPS,xUnit,zeroDelay] = c{:};
 
 % Constants
@@ -116,7 +119,7 @@ if makeTable
         'RecomputeOrth',recomputeOrth,'SaveOrth',saveOrth,'Range',range,...
         'SavePostselection',saveps,'SaveTheta',savetheta,'Parameter',parameter,...
         'RemoveModulation',remMod,'VaryAPS',varyAPS,'ChannelAssignment',chAssign,...
-        'CorrRemove',corrRemove,'Period',periodsPerSeg,'ZeroDelay',zeroDelay);    
+        'CorrRemove',corrRemove,'Period',periodsPerSeg,'ZeroDelay',zeroDelay,'MeanNs',meanNs);    
 else
     T = seriesRead3ChTable(selParams,'VaryAPS',varyAPS,'RemoveModulation',remMod,'Range',range);
 end
