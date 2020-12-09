@@ -35,9 +35,12 @@ defaultCorrRemove = 'yes';
 addParameter(p,'CorrRemove',defaultCorrRemove,@isstr);
 defaultZeroDelay = 0;
 addParameter(p,'ZeroDelay',defaultZeroDelay,@isnumeric);
+defaultMeanNs = [13 13 9]; %the mean photon numbers over the total delay series, used for remMod.
+% [meanNPsFast,meanNPsSlow,meanNTg]
+addParameter(p,'MeanNs',defaultMeanNs,@isvector);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[chAssign,corrRemove,fitType,listOfParams,parameter,periodsPerSeg,range,recomputeOrth,recomputeTheta,remMod, ...
+[chAssign,corrRemove,fitType,listOfParams,meanNs,parameter,periodsPerSeg,range,recomputeOrth,recomputeTheta,remMod, ...
     saveOrth,saveps,savetheta,varyAPS,xUnit,zeroDelay] = c{:};
 
 % Constants
@@ -120,7 +123,7 @@ if makeTable
         'Period',periodsPerSeg,'RecomputeTheta',recomputeTheta,'RecomputeOrth',recomputeOrth,...
         'SaveOrth',saveOrth,'SavePostselection',saveps,'SaveTheta',savetheta,'Parameter',parameter,...
         'RemoveModulation',remMod,'Range',range,'XUnit',xUnit,'VaryAPS',varyAPS,'ChannelAssignment',...
-        chAssign,'CorrRemove',corrRemove,'ZeroDelay',zeroDelay);  
+        chAssign,'CorrRemove',corrRemove,'ZeroDelay',zeroDelay,'MeanNs',meanNs);  
     end
 end
 if delayPlots
@@ -129,7 +132,7 @@ if delayPlots
         'Period',periodsPerSeg,'RecomputeTheta',recomputeTheta,'RecomputeOrth',recomputeOrth,...
         'SaveOrth',saveOrth,'SavePostselection',saveps,'SaveTheta',savetheta,'Parameter',parameter,...
         'RemoveModulation',remMod,'Range',range,'XUnit',xUnit,'VaryAPS',varyAPS,'fitType',fitType,...
-        'ChannelAssignment',chAssign,'CorrRemove',corrRemove,'ZeroDelay',zeroDelay);  
+        'ChannelAssignment',chAssign,'CorrRemove',corrRemove,'ZeroDelay',zeroDelay,'MeanNs',meanNs);  
     end
 end
 if radiusDiscAmpl
