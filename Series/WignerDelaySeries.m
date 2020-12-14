@@ -50,7 +50,7 @@ files = {filestruct.name};
 filenamePlot = [foldername '\Iterations-' num2str(Iterations) '-maxN-' num2str(maxFockState) '-smooth-' num2str(smooth)];
 MaxQuad = 20;
 Resolution = 0.125;
-[Q,P,varQ,varP,n,Delay,meanPhases,meanAmps,varPhases,varAmps,meanAbsPhases] = deal(zeros(length(files),1));
+[Q,P,varQ,varP,n,Delay,meanPhases,meanAmps,varPhases,varAmps,meanAbsPhases,nCirc] = deal(zeros(length(files),1));
 
 %% Iterate through data files
 for i = 1:length(files)
@@ -108,7 +108,7 @@ for i = 1:length(files)
     savefig([filenameFig '-rho.fig']);
     print([filenameFig '-rho.png'],'-dpng');
     close all;
-    [meanPhase,meanAmp,~,~,varPhase,varAmp,~,~,meanAbsPhase] = ReturnPhaseAndAmplitudeWigner( real(WF),...
+    [meanPhase,meanAmp,~,~,varPhase,varAmp,~,~,meanAbsPhase,PhotonNrCirc] = ReturnPhaseAndAmplitudeWigner( real(WF),...
     MaxQuad, Resolution,100,filenameFig );
     meanPhases(i) = meanPhase;
     meanAmps(i) = meanAmp;
@@ -121,6 +121,7 @@ for i = 1:length(files)
     varQ(i) = VarQx;
     varP(i) = VarQy;
     n(i) = PhotonNr; 
+    nCirc(i) = PhotonNrCirc;
 end
 
 [Delay,I]=sort(Delay);
@@ -129,12 +130,14 @@ P=P(I);
 varQ=varQ(I);
 varP=varP(I);
 n=n(I);
+nCirc = nCirc(I);
 meanPhases = meanPhases(I);
 meanAmps = meanAmps(I);
 varPhases = varPhases(I);
 varAmps = varAmps(I);
 meanAbsPhases = meanAbsPhases(I);
-save([foldername '\Wignerresults.mat'],'Delay','Q','P','varQ','varP','n','meanPhases','meanAmps','varPhases','varAmps','meanAbsPhases');
+save([foldername '\Wignerresults-smooth-' num2str(smooth) '.mat'],'Delay','Q','P','varQ','varP','n',...
+    'meanPhases','meanAmps','varPhases','varAmps','meanAbsPhases','nCirc');
 
 plot(Delay,Q,'-o',Delay,P,'-o',Delay,meanAmps,'-o',Delay,meanPhases,'-o',Delay,meanAbsPhases,'-o');
 legend('<Q>','<P>','<r>','<\phi>','<|\phi|>','location','bestoutside');
@@ -178,6 +181,14 @@ ylabel('Photon Number');
 graphicsSettings;
 savefig([filenamePlot '-nPhotons.fig']);
 print([filenamePlot '-nPhotons.png'],'-dpng');
+close all;
+
+plot(Delay,nCirc,'-o');
+xlabel('Delay (ps)');
+ylabel('Photon Number');
+graphicsSettings;
+savefig([filenamePlot '-nPhotonsCirc.fig']);
+print([filenamePlot '-nPhotonsCirc.png'],'-dpng');
 close all;
 
 end
