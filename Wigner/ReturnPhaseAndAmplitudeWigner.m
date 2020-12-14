@@ -1,4 +1,4 @@
-function [meanPhase,meanAmp,meanPhaseBinned,meanAmpBinned,varPhase,varAmp,varPhaseBinned,varAmpBinned,meanAbsPhase ] = ReturnPhaseAndAmplitudeWigner( WF, MaxQuad, Resolution, varBins,filename )
+function [meanPhase,meanAmp,meanPhaseBinned,meanAmpBinned,varPhase,varAmp,varPhaseBinned,varAmpBinned,meanAbsPhase,PhotonNr] = ReturnPhaseAndAmplitudeWigner( WF, MaxQuad, Resolution, varBins,filename )
 %UNTITLED2 Computes the expectation values of Phase and Amplitude, derived from quadratures, for a given
 %Wigner function. The maximum quadrature value MaxQuad and their Resolution
 %need to match those used for computing the Wigner function. 
@@ -21,6 +21,7 @@ WF=WF./(sum(sum(WF)));
 meanPhase=sum(sum(PhaseMatrix.*WF));
 meanAbsPhase=sum(sum(abs(PhaseMatrix).*WF));
 meanAmp=sum(sum(AmplMatrix.*WF));
+PhotonNr=0.5*sum(sum(AmplMatrix.^2.*WF)) - 0.5; 
 
 varPhase=sum(sum((PhaseMatrix-meanPhase).^2.*WF));
 varAmp=sum(sum((AmplMatrix-meanAmp).^2.*WF));
