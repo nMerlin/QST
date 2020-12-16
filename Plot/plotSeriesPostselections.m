@@ -126,6 +126,9 @@ if plotrelative
     discMeanVar = discMeanVar./nTg;
     varQ = varQ./nTg;
     varP = varP./nTg;
+end
+
+if varyAPS
     sel = 'k'; %the selection radius or variable
 else
     sel = 'r';
