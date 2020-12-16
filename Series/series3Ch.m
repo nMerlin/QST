@@ -256,11 +256,13 @@ for ii = 1:length(filerange)
         end
         
         % Compute photon numbers for each channel
-        [nTg,nPsFast,nPsSlow] = nPhotons(Xtg,XpsFast,XpsSlow);       
+        [nTg,nPsFast,nPsSlow] = nPhotons(Xtg,XpsFast,XpsSlow); 
+        nPs = nPsFast+nPsSlow;
         
         selParamsUse = selParams;
         if varyAPS    %choose the postselection radius according to photon numbers
-           selParamsUse.Position(1) = selParams.Position(1) * (1+nPsFast+nPsSlow)/sqrt(2*nTg*(nPsFast+nPsSlow));
+           k = selParamsUse.Position(1); % Here, this is chosen as the desired factor q_tg^2 /nTg
+           selParamsUse.Position(1) = sqrt(abs(k)) * (1+nPs)/sqrt(2*nPs)*sign(k);
            quantities.APS(i) = selParamsUse.Position(1);
         end
                
