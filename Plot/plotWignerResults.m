@@ -17,9 +17,11 @@ defaultZeroDelay = 0;
 addParameter(p,'ZeroDelay',defaultZeroDelay,@isnumeric); % in mm
 defaultSmooth = false;
 addParameter(p,'Smooth',defaultSmooth,@islogical);
+defaultPlotrelative = false; %plots the data relative to the target photon number
+addParameter(p,'Plotrelative',defaultPlotrelative,@islogical);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[fitType,range,remMod,smooth,varyAPS,xUnit,zeroDelay] = c{:};
+[fitType,plotrelative,range,remMod,smooth,varyAPS,xUnit,zeroDelay] = c{:};
 
 
 
@@ -31,6 +33,8 @@ end
 % Constants
 figurepath = 'Wigner-figures-fig/';
 
+load('Photonnumbers.mat','nPsFast','nPsSlow','nTg'); %loads the photon numbers of each channel without postselection,...
+%which was created with plotSeriesPostselections
 %% Gather data
 [delay,Yr,Yt,Qs,Ps,varQs,varPs,discN,meanPh,meanR,varPh,varR,meanAbsPh] = deal([]);
 for iParams = 1:length(listOfParams)
@@ -69,10 +73,25 @@ discN = discN(I,:);
 meanPh = meanPh(I,:);
 meanR = meanR(I,:);varPh = varPh(I,:);varR = varR(I,:);meanAbsPh = meanAbsPh(I,:);
 [fitTau,fitPeak,tauError] = deal(zeros(length(I),1));
+if plotrelative
+    meanR = meanR./sqrt(nTg);
+    Qs = Qs./sqrt(nTg);
+    Ps = Ps./sqrt(nTg);
+    discN = discN./nTg;
+    varQs = varQs./nTg;
+    varPs = varPs./nTg;
+end
+
+if varyAPS
+    sel = 'k'; %the selection radius or variable
+else
+    sel = 'r';
+end
 
 %% Plot
 typestrVector = {'R','Q','P','RLog','meanPh','meanAbsPh','discN','varR','varPh','varQ','varP'};
 %typestrVector = {'R','discN','varR'};
+%typestrVector = {'R'};
 for typeI = 1:length(typestrVector)
     plotStuff(cell2mat(typestrVector(typeI)))
 end
@@ -81,14 +100,14 @@ end
 %% Create figure
 fig = figure;
 filename = [figurepath,typestr,'-',fitType,'-remMod-',...
-            num2str(remMod),'-range-',num2str(range),'-varyAPS-',num2str(varyAPS),'-smooth-',num2str(smooth) '.fig'];
+            num2str(remMod),'-range-',num2str(range),'-varyAPS-',num2str(varyAPS),'-smooth-',num2str(smooth),'-plotrelative-' num2str(plotrelative),'.fig'];
 %formatFigA5(fig);
 switch typestr
     case 'R'
         figure(1);
         ax = gca;
         for i = 1:length(I)
-            plot(ax,delay(i,:),meanR(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+            plot(ax,delay(i,:),meanR(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
             x = delay(i,:);
             if ~any(~isnan(meanR(i,:))) %if there are only nans
@@ -99,21 +118,49 @@ switch typestr
             ys = meanR(i,:);
             switch fitType
                 case 'gauss'
-                    [res,gof,~] = fit(x',ys','gauss1'); %f(x) =  a1*exp(-((x-b1)/c1)^2)
-                    fitTau(i) = res.c1;
+                    g = fittype(@(a,b,c,d,x) a*exp(-pi/2*((x-b)/c).^2)+d);                   
+                    b0 = zeroDelay;
+                    c0 = 0.5*max(x);
+                    d0 = mean(ys(end-5:end)); % saturation value
+                    a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay))) - d0;
+                    [res,gof,~] = fit(x',ys',g,'StartPoint',[a0 b0 c0 d0]); 
+                    fitTau(i) = res.c;
                     level = 2*tcdf(-1,gof.dfe);
                     m = confint(res,1-level); 
-                    tauError(i) = m(end,end) - res.c1;
-                    fitPeak(i) = res(res.b1);  
+                    tauError(i) = m(end,3) - res.c;
+                    fitPeak(i) = res(res.b);  
                     plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(min(delay(i,:)):1:max(delay(i,:))),'r','DisplayName','');
                 case 'exponential'
-                    [res,gof,~] = fit(abs(x)',ys','exp1'); %f(x) =  a*exp(bx)
-                    fitTau(i) = res.b;
+                    ex = fittype(@(m,c,x) m - x/c);                   
+                    b0 = zeroDelay;
+                    c0 = 0.5*max(x);                
+                    d= mean(ys(end-5:end));
+                    ys = ys-d; 
+                    a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay)));
+                    sig = sign(a0);
+                    ys = abs(ys);
+                    a0 = abs(a0);
+                    m0 = log(a0) + b0/c0;
+                    [res,gof,~] = fit(abs(x)',log(ys)',ex,'StartPoint',[m0 c0]); 
+                    fitTau(i) = res.c;
                     level = 2*tcdf(-1,gof.dfe);
                     m = confint(res,1-level); 
-                    tauError(i) = m(end,end) - res.b;
-                    fitPeak(i) = res.a;  
-                    plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(abs(min(delay(i,:)):1:max(delay(i,:)))),'r','DisplayName','');   
+                    tauError(i) = m(end,2) - res.c;         
+                    fitPeak(i) = sig*exp(res(b0))+d;  
+                    plot(ax,min(delay(i,:)):1:max(delay(i,:)),sig*exp(res(abs(min(delay(i,:)):1:max(delay(i,:)))))+d,'r','DisplayName',''); 
+                case 'sech'
+                    se = fittype(@(a,b,c,d,x) a./(cosh(-pi/2*(x-b)/c)).^2+d);                   
+                    b0 = zeroDelay;
+                    c0 = 0.5*max(x);
+                    d0 = mean(ys(end-5:end)); % saturation value
+                    a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay))) - d0;
+                    [res,gof,~] = fit(x',ys',se,'StartPoint',[a0 b0 c0 d0]); 
+                    fitTau(i) = res.c;
+                    level = 2*tcdf(-1,gof.dfe);
+                    m = confint(res,1-level); 
+                    tauError(i) = m(end,3) - res.c;
+                    fitPeak(i) = res(res.b);  
+                    plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(min(delay(i,:)):1:max(delay(i,:))),'r','DisplayName','');
                  case 'lorentz'
                      % starting values 
                     p02 = zeroDelay;
@@ -168,50 +215,66 @@ switch typestr
             index = length(f)-((1:length(I))-1).*2;
             legend(f(index),'location','best');
         end
-        xlabel(ax,['Delay (' xUnit ')']); 
-        ylabel(ax,'mean amplitude <r>'); 
+        xlabel(ax,['Delay (' xUnit ')']);
+        if plotrelative
+            ylabel(ax,'$mean amplitude <r>/\sqrt{n_{Tg}}$','Interpreter','latex'); 
+        else            
+            ylabel(ax,'mean amplitude <r>'); 
+        end
         fig = figure(1);       
     case 'RLog'
         figure(1);
         ax = gca;
         for i = 1:length(I)
-            semilogy(ax,delay(i,:),meanR(i,:)*2^i,'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+            semilogy(ax,delay(i,:),meanR(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;   
         end
         hold off;
         legend('location','best');
         xlabel(ax,['Delay (' xUnit ')']); 
-        ylabel(ax,'mean amplitude <r>'); 
+        if plotrelative
+            ylabel(ax,'$mean amplitude <r>/\sqrt{n_{Tg}}$','Interpreter','latex'); 
+        else            
+            ylabel(ax,'mean amplitude <r>'); 
+        end
         fig = figure(1);   
     case 'Q'
         figure(1);
         ax = gca;
         for i = 1:length(I)
-            plot(ax,delay(i,:),Qs(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+            plot(ax,delay(i,:),Qs(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;   
         end
         hold off;
         legend('location','best');
         xlabel(ax,['Delay (' xUnit ')']); 
-        ylabel(ax,'<Q>'); 
+        if plotrelative
+            ylabel(ax,'$<Q>/\sqrt{n_{Tg}}$','Interpreter','latex'); 
+        else            
+            ylabel(ax,'<Q>'); 
+        end
         fig = figure(1);              
     case 'P'
         figure(1);
         ax = gca;
         for i = 1:length(I)
-            plot(ax,delay(i,:),Ps(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+            plot(ax,delay(i,:),Ps(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;   
         end
         hold off;
         legend('location','best');
         xlabel(ax,['Delay (' xUnit ')']); 
-        ylabel(ax,'<P>'); 
+        if plotrelative
+            ylabel(ax,'$<P>/\sqrt{n_{Tg}}$','Interpreter','latex'); 
+        else            
+            ylabel(ax,'<P>'); 
+        end
         fig = figure(1);
     case 'meanPh'
         figure(1);
         ax = gca;
         for i = 1:length(I)
-            plot(ax,delay(i,:),meanPh(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+            plot(ax,delay(i,:),meanPh(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;   
         end
         hold off;
@@ -223,7 +286,7 @@ switch typestr
         figure(1);
         ax = gca;
         for i = 1:length(I)
-            plot(ax,delay(i,:),meanAbsPh(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+            plot(ax,delay(i,:),meanAbsPh(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;   
         end
         hold off;
@@ -235,7 +298,7 @@ switch typestr
          figure(1);
          ax = gca;
         for i = 1:length(I)
-            plot(ax,delay(i,:),varPh(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+            plot(ax,delay(i,:),varPh(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
             Index = find(delay(i,:)>= -30 & delay(i,:)<= 30);
             fitPeak(i) = mean(varPh(i,Index)); 
@@ -249,7 +312,7 @@ switch typestr
         figure(1);
         ax= gca;
         for i = 1:length(I)
-            plot(delay(i,:),varR(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+            plot(delay(i,:),varR(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
             x = delay(i,:);
             if ~any(~isnan(varR(i,:))) %if there are only nans
@@ -260,21 +323,49 @@ switch typestr
             ys = varR(i,:);
             switch fitType
                 case 'gauss'
-                    [res,gof,~] = fit(x',ys','gauss1'); %f(x) =  a1*exp(-((x-b1)/c1)^2)
-                    fitTau(i) = res.c1;
+                   g = fittype(@(a,b,c,d,x) a*exp(-pi/2*((x-b)/c).^2)+d);                   
+                    b0 = zeroDelay;
+                    c0 = 0.5*max(x);
+                    d0 = mean(ys(end-5:end)); % saturation value
+                    a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay))) - d0;
+                    [res,gof,~] = fit(x',ys',g,'StartPoint',[a0 b0 c0 d0]); 
+                    fitTau(i) = res.c;
                     level = 2*tcdf(-1,gof.dfe);
                     m = confint(res,1-level); 
-                    tauError(i) = m(end,end) - res.c1;
-                    fitPeak(i) = res(res.b1);  
+                    tauError(i) = m(end,3) - res.c;
+                    fitPeak(i) = res(res.b);  
                     plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(min(delay(i,:)):1:max(delay(i,:))),'r','DisplayName','');
                 case 'exponential'
-                    [res,gof,~] = fit(abs(x)',ys','exp1'); %f(x) =  a*exp(bx)
-                    fitTau(i) = res.b;
+                   ex = fittype(@(m,c,x) m - x/c);                   
+                    b0 = zeroDelay;
+                    c0 = 0.5*max(x);                
+                    d= mean(ys(end-5:end));
+                    ys = ys-d; 
+                    a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay)));
+                    sig = sign(a0);
+                    ys = abs(ys);
+                    a0 = abs(a0);
+                    m0 = log(a0) + b0/c0;
+                    [res,gof,~] = fit(abs(x)',log(ys)',ex,'StartPoint',[m0 c0]); 
+                    fitTau(i) = res.c;
                     level = 2*tcdf(-1,gof.dfe);
                     m = confint(res,1-level); 
-                    tauError(i) = m(end,end) - res.b;
-                    fitPeak(i) = res.a;  
-                    plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(abs(min(delay(i,:)):1:max(delay(i,:)))),'r','DisplayName','');   
+                    tauError(i) = m(end,2) - res.c;         
+                    fitPeak(i) = sig*exp(res(b0))+d;  
+                    plot(ax,min(delay(i,:)):1:max(delay(i,:)),sig*exp(res(abs(min(delay(i,:)):1:max(delay(i,:)))))+d,'r','DisplayName','');  
+                case 'sech'
+                    se = fittype(@(a,b,c,d,x) a./(cosh(-pi/2*(x-b)/c)).^2+d);                   
+                    b0 = zeroDelay;
+                    c0 = 0.5*max(x);
+                    d0 = mean(ys(end-5:end)); % saturation value
+                    a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay))) - d0;
+                    [res,gof,~] = fit(x',ys',se,'StartPoint',[a0 b0 c0 d0]); 
+                    fitTau(i) = res.c;
+                    level = 2*tcdf(-1,gof.dfe);
+                    m = confint(res,1-level); 
+                    tauError(i) = m(end,3) - res.c;
+                    fitPeak(i) = res(res.b);  
+                    plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(min(delay(i,:)):1:max(delay(i,:))),'r','DisplayName','');
                  case 'lorentz'
                       % starting values 
                     p02 = zeroDelay;
@@ -338,35 +429,43 @@ switch typestr
          figure(1);
          ax = gca;
         for i = 1:length(I)
-            plot(delay(i,:),varQs(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+            plot(delay(i,:),varQs(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
             Index = find(delay(i,:)>= -30 & delay(i,:)<= 30);
             fitPeak(i) = mean(varQs(i,Index)); 
         end;
         hold off;
         legend('location','southeast');
-        ylabel('Variance in Q');
+        if plotrelative
+            ylabel(ax,'$Var(Q)/n_{Tg}$','Interpreter','latex'); 
+        else            
+            ylabel(ax,'Var(Q)'); 
+        end
         xlabel(['Delay (' xUnit ')']);
         fig = figure(1);
      case 'varP'
          figure(1);
          ax = gca;
         for i = 1:length(I)
-            plot(delay(i,:),varPs(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+            plot(delay(i,:),varPs(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
             Index = find(delay(i,:)>= -30 & delay(i,:)<= 30);
             fitPeak(i) = mean(varPs(i,Index)); 
         end;
         hold off;
         legend('location','southeast');
-        ylabel('Variance in P');
+        if plotrelative
+            ylabel(ax,'$Var(P)/n_{Tg}$','Interpreter','latex'); 
+        else            
+            ylabel(ax,'Var(P)'); 
+        end
         xlabel(['Delay (' xUnit ')']);
         fig = figure(1);
     case 'discN'
         figure(1);
         ax = gca;
         for i = 1:length(I)
-            plot(ax,delay(i,:),discN(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+            plot(ax,delay(i,:),discN(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
              x = delay(i,:);
             if ~any(~isnan(discN(i,:))) %if there are only nans
@@ -377,21 +476,49 @@ switch typestr
             ys = discN(i,:);
             switch fitType
                 case 'gauss'
-                    [res,gof,~] = fit(x',ys','gauss1'); %f(x) =  a1*exp(-((x-b1)/c1)^2)
-                    fitTau(i) = res.c1;
+                    g = fittype(@(a,b,c,d,x) a*exp(-pi/2*((x-b)/c).^2)+d);                   
+                    b0 = zeroDelay;
+                    c0 = 0.5*max(x);
+                    d0 = mean(ys(end-5:end)); % saturation value
+                    a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay))) - d0;
+                    [res,gof,~] = fit(x',ys',g,'StartPoint',[a0 b0 c0 d0]); 
+                    fitTau(i) = res.c;
                     level = 2*tcdf(-1,gof.dfe);
                     m = confint(res,1-level); 
-                    tauError(i) = m(end,end) - res.c1;
-                    fitPeak(i) = res(res.b1);  
+                    tauError(i) = m(end,3) - res.c;
+                    fitPeak(i) = res(res.b);  
                     plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(min(delay(i,:)):1:max(delay(i,:))),'r','DisplayName','');
                 case 'exponential'
-                    [res,gof,~] = fit(abs(x)',ys','exp1'); %f(x) =  a*exp(bx)
-                    fitTau(i) = res.b;
+                    ex = fittype(@(m,c,x) m - x/c);                   
+                    b0 = zeroDelay;
+                    c0 = 0.5*max(x);                
+                    d= mean(ys(end-5:end));
+                    ys = ys-d; 
+                    a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay)));
+                    sig = sign(a0);
+                    ys = abs(ys);
+                    a0 = abs(a0);
+                    m0 = log(a0) + b0/c0;
+                    [res,gof,~] = fit(abs(x)',log(ys)',ex,'StartPoint',[m0 c0]); 
+                    fitTau(i) = res.c;
                     level = 2*tcdf(-1,gof.dfe);
                     m = confint(res,1-level); 
-                    tauError(i) = m(end,end) - res.b;
-                    fitPeak(i) = res.a;  
-                    plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(abs(min(delay(i,:)):1:max(delay(i,:)))),'r','DisplayName','');   
+                    tauError(i) = m(end,2) - res.c;         
+                    fitPeak(i) = sig*exp(res(b0))+d;  
+                    plot(ax,min(delay(i,:)):1:max(delay(i,:)),sig*exp(res(abs(min(delay(i,:)):1:max(delay(i,:)))))+d,'r','DisplayName','');
+                case 'sech'
+                    se = fittype(@(a,b,c,d,x) a./(cosh(-pi/2*(x-b)/c)).^2+d);                   
+                    b0 = zeroDelay;
+                    c0 = 0.5*max(x);
+                    d0 = mean(ys(end-5:end)); % saturation value
+                    a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay))) - d0;
+                    [res,gof,~] = fit(x',ys',se,'StartPoint',[a0 b0 c0 d0]); 
+                    fitTau(i) = res.c;
+                    level = 2*tcdf(-1,gof.dfe);
+                    m = confint(res,1-level); 
+                    tauError(i) = m(end,3) - res.c;
+                    fitPeak(i) = res(res.b);  
+                    plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(min(delay(i,:)):1:max(delay(i,:))),'r','DisplayName','');
                  case 'lorentz' 
                      % starting values 
                     p02 = zeroDelay;
@@ -447,7 +574,11 @@ switch typestr
             legend(f(index),'location','best');
         end
         xlabel(['Delay (' xUnit ')']);
-        ylabel('Photon number');
+        if plotrelative
+            ylabel(ax,'$n/n_{Tg}$','Interpreter','latex'); 
+        else            
+            ylabel(ax,'n'); 
+        end
         fig = figure(1);
 end
 set(fig,'Color','w','Units','centimeters','Position',[1,1,45,30],'PaperPositionMode','auto');
@@ -464,7 +595,7 @@ end
 if any(fitTau)
     YrPlot = Yr(:,1);
     [YrPlot,Ir]= sort(YrPlot);
-    fitTau = fitTau(Ir);
+    fitTau = real(fitTau(Ir));
     tauError = tauError(Ir);
     errorbar(YrPlot,fitTau,tauError,'o-','Linewidth',2);
     xlabel('A_{ps} set for postselection');
@@ -474,26 +605,28 @@ if any(fitTau)
         case 'voigt'
             ylabel(['FWHM of Voigt Profile (' xUnit ')']);
         case 'exponential'
-            ylabel(['\tau of exp. function (' xUnit ')']);
+            ylabel(['\tau_c of exp. function (' xUnit ')']);
+        case 'sech'
+            ylabel(['\tau_c of sech function (' xUnit ')']);
          case 'lorentz'
             ylabel(['FWHM of Lorentz Profile (' xUnit ')']);
     end
     graphicsSettings;
     title(typestr);
-    savefig([filename '-' typestr '-fitWidthsVsRadius.fig']);
-    print([filename '-' typestr '-fitWidthsVsRadius.png'],'-dpng');
+    savefig([filename '-fitWidthsVsRadius.fig']);
+    print([filename '-fitWidthsVsRadius.png'],'-dpng');
     close all;
 end
 
 if any(fitPeak)
-    fitPeak = fitPeak(Ir);
+    fitPeak = real(fitPeak(Ir));
     plot(YrPlot,fitPeak,'o-');
     xlabel('A_{ps} set for postselection');
     ylabel('Peakheight');
     graphicsSettings;
     title(typestr);
-    savefig([filename '-' typestr '-' fitType '-PeaksVsRadius.fig']);
-    print([filename '-' typestr '-' fitType '-PeaksVsRadius.png'],'-dpng');
+    savefig([filename '-PeaksVsRadius.fig']);
+    print([filename '-PeaksVsRadius.png'],'-dpng');
     close all;
 end
 % 
