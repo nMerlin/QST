@@ -73,6 +73,20 @@ discN = discN(I,:);
 meanPh = meanPh(I,:);
 meanR = meanR(I,:);varPh = varPh(I,:);varR = varR(I,:);meanAbsPh = meanAbsPh(I,:);
 [fitTau,fitPeak,tauError] = deal(zeros(length(I),1));
+if plotrelative
+    meanR = meanR./sqrt(nTg);
+    Qs = Qs./sqrt(nTg);
+    Ps = Ps./sqrt(nTg);
+    discN = discN./nTg;
+    varQs = varQs./nTg;
+    varPs = varPs./nTg;
+end
+
+if varyAPS
+    sel = 'k'; %the selection radius or variable
+else
+    sel = 'r';
+end
 
 %% Plot
 typestrVector = {'R','Q','P','RLog','meanPh','meanAbsPh','discN','varR','varPh','varQ','varP'};
@@ -86,14 +100,14 @@ end
 %% Create figure
 fig = figure;
 filename = [figurepath,typestr,'-',fitType,'-remMod-',...
-            num2str(remMod),'-range-',num2str(range),'-varyAPS-',num2str(varyAPS),'-smooth-',num2str(smooth) '.fig'];
+            num2str(remMod),'-range-',num2str(range),'-varyAPS-',num2str(varyAPS),'-smooth-',num2str(smooth),'-plotrelative-' num2str(plotrelative),'.fig'];
 %formatFigA5(fig);
 switch typestr
     case 'R'
         figure(1);
         ax = gca;
         for i = 1:length(I)
-            plot(ax,delay(i,:),meanR(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+            plot(ax,delay(i,:),meanR(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
             x = delay(i,:);
             if ~any(~isnan(meanR(i,:))) %if there are only nans
@@ -201,50 +215,66 @@ switch typestr
             index = length(f)-((1:length(I))-1).*2;
             legend(f(index),'location','best');
         end
-        xlabel(ax,['Delay (' xUnit ')']); 
-        ylabel(ax,'mean amplitude <r>'); 
+        xlabel(ax,['Delay (' xUnit ')']);
+        if plotrelative
+            ylabel(ax,'$mean amplitude <r>/\sqrt{n_{Tg}}$','Interpreter','latex'); 
+        else            
+            ylabel(ax,'mean amplitude <r>'); 
+        end
         fig = figure(1);       
     case 'RLog'
         figure(1);
         ax = gca;
         for i = 1:length(I)
-            semilogy(ax,delay(i,:),meanR(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+            semilogy(ax,delay(i,:),meanR(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;   
         end
         hold off;
         legend('location','best');
         xlabel(ax,['Delay (' xUnit ')']); 
-        ylabel(ax,'mean amplitude <r>'); 
+        if plotrelative
+            ylabel(ax,'$mean amplitude <r>/\sqrt{n_{Tg}}$','Interpreter','latex'); 
+        else            
+            ylabel(ax,'mean amplitude <r>'); 
+        end
         fig = figure(1);   
     case 'Q'
         figure(1);
         ax = gca;
         for i = 1:length(I)
-            plot(ax,delay(i,:),Qs(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+            plot(ax,delay(i,:),Qs(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;   
         end
         hold off;
         legend('location','best');
         xlabel(ax,['Delay (' xUnit ')']); 
-        ylabel(ax,'<Q>'); 
+        if plotrelative
+            ylabel(ax,'$<Q>/\sqrt{n_{Tg}}$','Interpreter','latex'); 
+        else            
+            ylabel(ax,'<Q>'); 
+        end
         fig = figure(1);              
     case 'P'
         figure(1);
         ax = gca;
         for i = 1:length(I)
-            plot(ax,delay(i,:),Ps(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+            plot(ax,delay(i,:),Ps(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;   
         end
         hold off;
         legend('location','best');
         xlabel(ax,['Delay (' xUnit ')']); 
-        ylabel(ax,'<P>'); 
+        if plotrelative
+            ylabel(ax,'$<P>/\sqrt{n_{Tg}}$','Interpreter','latex'); 
+        else            
+            ylabel(ax,'<P>'); 
+        end
         fig = figure(1);
     case 'meanPh'
         figure(1);
         ax = gca;
         for i = 1:length(I)
-            plot(ax,delay(i,:),meanPh(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+            plot(ax,delay(i,:),meanPh(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;   
         end
         hold off;
@@ -256,7 +286,7 @@ switch typestr
         figure(1);
         ax = gca;
         for i = 1:length(I)
-            plot(ax,delay(i,:),meanAbsPh(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+            plot(ax,delay(i,:),meanAbsPh(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;   
         end
         hold off;
@@ -268,7 +298,7 @@ switch typestr
          figure(1);
          ax = gca;
         for i = 1:length(I)
-            plot(ax,delay(i,:),varPh(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+            plot(ax,delay(i,:),varPh(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
             Index = find(delay(i,:)>= -30 & delay(i,:)<= 30);
             fitPeak(i) = mean(varPh(i,Index)); 
@@ -282,7 +312,7 @@ switch typestr
         figure(1);
         ax= gca;
         for i = 1:length(I)
-            plot(delay(i,:),varR(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+            plot(delay(i,:),varR(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
             x = delay(i,:);
             if ~any(~isnan(varR(i,:))) %if there are only nans
@@ -399,35 +429,43 @@ switch typestr
          figure(1);
          ax = gca;
         for i = 1:length(I)
-            plot(delay(i,:),varQs(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+            plot(delay(i,:),varQs(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
             Index = find(delay(i,:)>= -30 & delay(i,:)<= 30);
             fitPeak(i) = mean(varQs(i,Index)); 
         end;
         hold off;
         legend('location','southeast');
-        ylabel('Variance in Q');
+        if plotrelative
+            ylabel(ax,'$Var(Q)/n_{Tg}$','Interpreter','latex'); 
+        else            
+            ylabel(ax,'Var(Q)'); 
+        end
         xlabel(['Delay (' xUnit ')']);
         fig = figure(1);
      case 'varP'
          figure(1);
          ax = gca;
         for i = 1:length(I)
-            plot(delay(i,:),varPs(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+            plot(delay(i,:),varPs(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
             Index = find(delay(i,:)>= -30 & delay(i,:)<= 30);
             fitPeak(i) = mean(varPs(i,Index)); 
         end;
         hold off;
         legend('location','southeast');
-        ylabel('Variance in P');
+        if plotrelative
+            ylabel(ax,'$Var(P)/n_{Tg}$','Interpreter','latex'); 
+        else            
+            ylabel(ax,'Var(P)'); 
+        end
         xlabel(['Delay (' xUnit ')']);
         fig = figure(1);
     case 'discN'
         figure(1);
         ax = gca;
         for i = 1:length(I)
-            plot(ax,delay(i,:),discN(i,:),'o-','DisplayName',['r = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+            plot(ax,delay(i,:),discN(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
              x = delay(i,:);
             if ~any(~isnan(discN(i,:))) %if there are only nans
@@ -536,7 +574,11 @@ switch typestr
             legend(f(index),'location','best');
         end
         xlabel(['Delay (' xUnit ')']);
-        ylabel('Photon number');
+        if plotrelative
+            ylabel(ax,'$n/n_{Tg}$','Interpreter','latex'); 
+        else            
+            ylabel(ax,'n'); 
+        end
         fig = figure(1);
 end
 set(fig,'Color','w','Units','centimeters','Position',[1,1,45,30],'PaperPositionMode','auto');
@@ -546,9 +588,6 @@ set(ax,'FontSize',38);
 if ~isempty(filename)
     savefig(fig,filename);
     print([filename '.png'],'-dpng');
-    ax.YScale = 'log';
-    savefig(fig,[filename '-log.fig']);
-    print([filename 'log.png'],'-dpng');
     close all;
 end
 
