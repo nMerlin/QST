@@ -50,7 +50,7 @@ files = {filestruct.name};
 filenamePlot = [foldername '\Iterations-' num2str(Iterations) '-maxN-' num2str(maxFockState) '-smooth-' num2str(smooth)];
 MaxQuad = 20;
 Resolution = 0.125;
-[Q,P,varQ,varP,n,Delay,meanPhases,meanAmps,varPhases,varAmps,meanAbsPhases,nCirc] = deal(zeros(length(files),1));
+[Q,P,varQ,varP,n,Delay,meanPhases,meanAmps,varPhases,varAmps,meanAbsPhases,nCirc,g1WithAmps,g1WithoutAmps,g1WithoutAmpBinneds,g1WithAmpNorms] = deal(zeros(length(files),1));
 
 %% Iterate through data files
 for i = 1:length(files)
@@ -108,7 +108,7 @@ for i = 1:length(files)
     savefig([filenameFig '-rho.fig']);
     print([filenameFig '-rho.png'],'-dpng');
     close all;
-    [meanPhase,meanAmp,~,~,varPhase,varAmp,~,~,meanAbsPhase,PhotonNrCirc] = ReturnPhaseAndAmplitudeWigner( real(WF),...
+    [meanPhase,meanAmp,~,~,varPhase,varAmp,~,~,meanAbsPhase,PhotonNrCirc,g1WithAmp,g1WithoutAmp,g1WithoutAmpBinned,g1WithAmpNorm] = ReturnPhaseAndAmplitudeWigner( real(WF),...
     MaxQuad, Resolution,100,filenameFig );
     meanPhases(i) = meanPhase;
     meanAmps(i) = meanAmp;
@@ -122,6 +122,10 @@ for i = 1:length(files)
     varP(i) = VarQy;
     n(i) = PhotonNr; 
     nCirc(i) = PhotonNrCirc;
+    g1WithAmps(i) = g1WithAmp;
+    g1WithoutAmps(i) = g1WithoutAmp;
+    g1WithoutAmpBinneds(i) = g1WithoutAmpBinned;
+    g1WithAmpNorms(i) = g1WithAmpNorm;
 end
 
 [Delay,I]=sort(Delay);
@@ -136,8 +140,30 @@ meanAmps = meanAmps(I);
 varPhases = varPhases(I);
 varAmps = varAmps(I);
 meanAbsPhases = meanAbsPhases(I);
+g1WithAmps = g1WithAmps(I);
+g1WithoutAmps = g1WithoutAmps(I);
+g1WithoutAmpBinneds = g1WithoutAmpBinneds(I);
+g1WithAmpNorms = g1WithAmpNorms(I);
 save([foldername '\Wignerresults-smooth-' num2str(smooth) '.mat'],'Delay','Q','P','varQ','varP','n',...
-    'meanPhases','meanAmps','varPhases','varAmps','meanAbsPhases','nCirc');
+    'meanPhases','meanAmps','varPhases','varAmps','meanAbsPhases','nCirc',...
+    'g1WithAmps','g1WithoutAmps','g1WithoutAmpBinneds','g1WithAmpNorms');
+
+plot(Delay,g1WithoutAmps,'-o',Delay,g1WithoutAmpBinneds,'-o',Delay,g1WithAmpNorms,'-o');
+xlabel('Delay (ps)');
+ylabel('g^{(1)}');
+legend('only phase','only phase binned','with amplitude, norm.');
+graphicsSettings;
+savefig([filenamePlot '-g1.fig']);
+print([filenamePlot '-g1.png'],'-dpng');
+close all;
+
+plot(Delay,g1WithAmps,'-o');
+xlabel('Delay (ps)');
+ylabel('g^{(1)} with amplitude');
+graphicsSettings;
+savefig([filenamePlot '-g1WithAmp.fig']);
+print([filenamePlot '-g1WithAmp.png'],'-dpng');
+close all;
 
 plot(Delay,Q,'-o',Delay,P,'-o',Delay,meanAmps,'-o',Delay,meanPhases,'-o',Delay,meanAbsPhases,'-o');
 legend('<Q>','<P>','<r>','<\phi>','<|\phi|>','location','bestoutside');
