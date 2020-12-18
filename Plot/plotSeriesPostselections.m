@@ -271,6 +271,8 @@ switch typestr
         
         
     case 'MeanVar'
+        figure(1);
+        ax = gca;
         for i = 1:length(I)
             plot(delay(i,:),discMeanVar(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
@@ -286,6 +288,8 @@ switch typestr
             ylabel('Average Variance'); 
         end
      case 'VarQ'
+         figure(1);
+        ax = gca;
         for i = 1:length(I)
             plot(delay(i,:),varQ(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
@@ -301,6 +305,8 @@ switch typestr
         end
         xlabel(['Delay (' xUnit ')']);
      case 'VarP'
+         figure(1);
+        ax = gca;
         for i = 1:length(I)
             plot(delay(i,:),varP(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
@@ -316,6 +322,8 @@ switch typestr
         end
         xlabel(['Delay (' xUnit ')']);
     case 'MeanVarSigma'
+        figure(1);
+        ax = gca;
         errorbar(Yr(:,1),sigmas,abs(sigmas-sigmaConf(:,1)), ...
             abs(sigmas-sigmaConf(:,2)),'o-','DisplayName', ...
             'Standard Deviation of Gaussian with 95% confidence intervals');
@@ -430,6 +438,8 @@ switch typestr
         end
         fig = figure(1);
     case 'G2'
+        figure(1);
+        ax = gca;
         for i = 1:length(I)
             plot(delay(i,:),g2vals(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
             hold on;
@@ -444,7 +454,9 @@ switch typestr
         else
             title('G2 vs. A_c');
         end
-    case 'nWithoutPostselection'        
+    case 'nWithoutPostselection'
+        figure(1);
+        ax = gca;
         plot(delay(1,:),nTg,'o-','DisplayName','n_{tg}');
         hold on;
         plot(delay(1,:),nPsFast,'o-','DisplayName','n_{psFast}');
@@ -455,12 +467,16 @@ switch typestr
         ylabel('mean Photon Number');       
         title('Photon Numbers without Postselection');        
     case 'ThicknessMeanVar'
+        figure(1);
+        ax = gca;
         surf(delay,Yt,discMeanVar);
         view(-50,20);
         xlabel(['Delay (' xUnit ')']);
         zlabel('Average Variance');
         title('Variance vs. Thickness of Postselected Fullcircle');
     case 'ThicknessMeanVarSigma'
+        figure(1);
+        ax = gca;
         errorbar(Yt(:,1),sigmas,abs(sigmas-sigmaConf(:,1)), ...
             abs(sigmas-sigmaConf(:,2)),'o','DisplayName', ...
             'Standard Deviation of Gaussian with 95% confidence intervals');
@@ -469,6 +485,8 @@ switch typestr
         title('Width of Minimum Variance vs. Postselected Thickness');
         legend('show');
     case 'ThicknessMeanVarMin'
+        figure(1);
+        ax = gca;
         [~,iMin] = min(discMeanVar(1,:));
         plot(Yt(:,iMin),discMeanVar(:,iMin));
         xlabel('Ring Thickness');
@@ -483,6 +501,7 @@ switch typestr
 end
 set(fig,'Color','w','Units','centimeters','Position',[1,1,45,30],'PaperPositionMode','auto');
 graphicsSettings;
+set(ax,'FontSize',38);
 %% Write figure to file and close it
 if ~isempty(filename)
     savefig(fig,filename);
