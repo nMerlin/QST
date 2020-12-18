@@ -1,4 +1,4 @@
-function [meanPhase,meanAmp,meanPhaseBinned,meanAmpBinned,varPhase,varAmp,varPhaseBinned,varAmpBinned,meanAbsPhase,PhotonNr] = ReturnPhaseAndAmplitudeWigner( WF, MaxQuad, Resolution, varBins,filename )
+function [meanPhase,meanAmp,meanPhaseBinned,meanAmpBinned,varPhase,varAmp,varPhaseBinned,varAmpBinned,meanAbsPhase,PhotonNr,g1WithAmp,g1WithoutAmp,g1WithoutAmpBinned,g1WithAmpNorm] = ReturnPhaseAndAmplitudeWigner( WF, MaxQuad, Resolution, varBins,filename )
 %UNTITLED2 Computes the expectation values of Phase and Amplitude, derived from quadratures, for a given
 %Wigner function. The maximum quadrature value MaxQuad and their Resolution
 %need to match those used for computing the Wigner function. 
@@ -17,16 +17,18 @@ AmplMatrix = AmplMatrix(iCirc);
 WF=WF./(sum(sum(WF)));
 WF = WF(iCirc);
 WF=WF./(sum(sum(WF)));
-
+% compute expectation values 
 meanPhase=sum(sum(PhaseMatrix.*WF));
 meanAbsPhase=sum(sum(abs(PhaseMatrix).*WF));
 meanAmp=sum(sum(AmplMatrix.*WF));
 PhotonNr=0.5*sum(sum(AmplMatrix.^2.*WF)) - 0.5; 
-
 varPhase=sum(sum((PhaseMatrix-meanPhase).^2.*WF));
 varAmp=sum(sum((AmplMatrix-meanAmp).^2.*WF));
+g1WithAmp = abs(sum(sum(AmplMatrix.*exp(1i*PhaseMatrix).*WF)))^2;
+g1WithAmpNorm = g1WithAmp/abs(sum(sum(AmplMatrix.*WF)))^2; %normalizing
+g1WithoutAmp = abs(sum(sum(exp(1i*PhaseMatrix).*WF)))^2;
 
-%% Sorting of Wignerfunction Values into Phase Bins 
+%% Sorting of Wignerfunction Values and amplitude values into Phase Bins 
 [N,edges,bin] = histcounts(PhaseMatrix(:),varBins);
 [~,I] = sort(bin);
 WFsort=WF(:);
@@ -42,6 +44,8 @@ WFPhaseBinned = WFPhaseBinned/sum(WFPhaseBinned, 'omitnan');
 PhAxis=(0:1:varBins-1)*mean(diff(edges))+min(edges);
 meanPhaseBinned = sum(PhAxis.*WFPhaseBinned, 'omitnan');
 varPhaseBinned = sum(PhAxis.^2.*WFPhaseBinned, 'omitnan') - meanPhaseBinned.^2;
+%g1WithAmpBinned = abs(sum(AmplMatrix.*exp(1i*PhAxis).*WFPhaseBinned))^2;
+g1WithoutAmpBinned = abs(sum(exp(1i*PhAxis).*WFPhaseBinned))^2;
 
 fontsize2 = 15;
 bar(PhAxis,WFPhaseBinned );
