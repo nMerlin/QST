@@ -37,13 +37,14 @@ load('Photonnumbers.mat','nPsFast','nPsSlow','nTg'); %loads the photon numbers o
 %which was created with plotSeriesPostselections
 %% Gather data
 [delay,Yr,Yt,Qs,Ps,varQs,varPs,discN,meanPh,meanR,varPh,varR,meanAbsPh] = deal([]);
+%[delay,Yr,Yt,Qs,Ps,varQs,varPs,discN,meanPh,meanR,varPh,varR,meanAbsPh,g1WA,g1,g1Binned] = deal([]);
 for iParams = 1:length(listOfParams)
     selParams = listOfParams(iParams);
     selStr = selParamsToStr(selParams);
     foldername = ['Wignerplots-',selStr,'-remMod-',...
             num2str(remMod),'-range-',num2str(range),'-varyAPS-',num2str(varyAPS)];
     load([foldername '\Wignerresults-smooth-' num2str(smooth) '.mat'],'Delay','Q','P','varQ','varP','n',...
-        'meanPhases','meanAmps','varPhases','varAmps','meanAbsPhases');
+        'meanPhases','meanAmps','varPhases','varAmps','meanAbsPhases','g1WithAmps','g1WithoutAmps','g1WithoutAmpBinneds','g1WithAmpNorms');
     delay(iParams,:) = Delay; 
     H = length(delay);
     Radii = ones(H,1) * selParams.Position(1);
@@ -60,6 +61,10 @@ for iParams = 1:length(listOfParams)
     varPh(iParams,:) = varPhases;
     varR(iParams,:) = varAmps;
     meanAbsPh(iParams,:) = meanAbsPhases;
+    g1WA(iParams,:) = g1WithAmps;
+    g1(iParams,:) = g1WithoutAmps;
+    g1Binned(iParams,:) = g1WithoutAmpBinneds;
+    g1WAN(iParams,:) = g1WithAmpNorms;
 end
 [~,I] = sort(delay(:,1)); % Sort for Radii
 delay = delay(I,:); %delays
@@ -72,6 +77,7 @@ varPs = varPs(I,:);
 discN = discN(I,:);
 meanPh = meanPh(I,:);
 meanR = meanR(I,:);varPh = varPh(I,:);varR = varR(I,:);meanAbsPh = meanAbsPh(I,:);
+g1WA=g1WA(I,:); g1=g1(I,:); g1Binned = g1Binned(I,:); g1WAN = g1WAN(I,:);
 [fitTau,fitPeak,tauError] = deal(zeros(length(I),1));
 if plotrelative
     meanR = meanR./sqrt(nTg);
@@ -89,9 +95,10 @@ else
 end
 
 %% Plot
-typestrVector = {'R','Q','P','RLog','meanPh','meanAbsPh','discN','varR','varPh','varQ','varP'};
+typestrVector = {'R','Q','P','RLog','meanPh','meanAbsPh','discN','varR','varPh','varQ','varP','g1','g1WA','g1Binned','g1WAN','g1toOne'};
 %typestrVector = {'R','discN','varR'};
 %typestrVector = {'R'};
+%typestrVector = {'g1','g1WA','g1Binned','g1WAN','g1toOne'};
 for typeI = 1:length(typestrVector)
     plotStuff(cell2mat(typestrVector(typeI)))
 end
@@ -102,437 +109,176 @@ fig = figure;
 filename = [figurepath,typestr,'-',fitType,'-remMod-',...
             num2str(remMod),'-range-',num2str(range),'-varyAPS-',num2str(varyAPS),'-smooth-',num2str(smooth),'-plotrelative-' num2str(plotrelative),'.fig'];
 %formatFigA5(fig);
-switch typestr
-    case 'R'
-        figure(1);
-        ax = gca;
-        for i = 1:length(I)
-            plot(ax,delay(i,:),meanR(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
-            hold on;
-            x = delay(i,:);
-            if ~any(~isnan(meanR(i,:))) %if there are only nans
-                meanR(i,:) = zeros(1,H);
-            end
-%             ys = transpose(csaps(x,meanR(i,:),0.00001,x));  
-%             ys = ys';
+figure(1);
+ax = gca;
+for i = 1:length(I)
+    switch typestr
+        case 'R'
             ys = meanR(i,:);
-            switch fitType
-                case 'gauss'
-                    g = fittype(@(a,b,c,d,x) a*exp(-pi/2*((x-b)/c).^2)+d);                   
-                    b0 = zeroDelay;
-                    c0 = 0.5*max(x);
-                    d0 = mean(ys(end-5:end)); % saturation value
-                    a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay))) - d0;
-                    [res,gof,~] = fit(x',ys',g,'StartPoint',[a0 b0 c0 d0]); 
-                    fitTau(i) = res.c;
-                    level = 2*tcdf(-1,gof.dfe);
-                    m = confint(res,1-level); 
-                    tauError(i) = m(end,3) - res.c;
-                    fitPeak(i) = res(res.b);  
-                    plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(min(delay(i,:)):1:max(delay(i,:))),'r','DisplayName','');
-                case 'exponential'
-                    ex = fittype(@(m,c,x) m - x/c);                   
-                    b0 = zeroDelay;
-                    c0 = 0.5*max(x);                
-                    d= mean(ys(end-5:end));
-                    ys = ys-d; 
-                    a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay)));
-                    sig = sign(a0);
-                    ys = abs(ys);
-                    a0 = abs(a0);
-                    m0 = log(a0) + b0/c0;
-                    [res,gof,~] = fit(abs(x)',log(ys)',ex,'StartPoint',[m0 c0]); 
-                    fitTau(i) = res.c;
-                    level = 2*tcdf(-1,gof.dfe);
-                    m = confint(res,1-level); 
-                    tauError(i) = m(end,2) - res.c;         
-                    fitPeak(i) = sig*exp(res(b0))+d;  
-                    plot(ax,min(delay(i,:)):1:max(delay(i,:)),sig*exp(res(abs(min(delay(i,:)):1:max(delay(i,:)))))+d,'r','DisplayName',''); 
-                case 'sech'
-                    se = fittype(@(a,b,c,d,x) a./(cosh(-pi/2*(x-b)/c)).^2+d);                   
-                    b0 = zeroDelay;
-                    c0 = 0.5*max(x);
-                    d0 = mean(ys(end-5:end)); % saturation value
-                    a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay))) - d0;
-                    [res,gof,~] = fit(x',ys',se,'StartPoint',[a0 b0 c0 d0]); 
-                    fitTau(i) = res.c;
-                    level = 2*tcdf(-1,gof.dfe);
-                    m = confint(res,1-level); 
-                    tauError(i) = m(end,3) - res.c;
-                    fitPeak(i) = res(res.b);  
-                    plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(min(delay(i,:)):1:max(delay(i,:))),'r','DisplayName','');
-                 case 'lorentz'
-                     % starting values 
-                    p02 = zeroDelay;
-                    p03 = 0.5*max(x);
-                    C = mean(ys(end-5:end)); % saturation value 
-                    peakHeight = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay))); 
-                    p01 = (peakHeight- C)*p03;
-                    p0 = [p01 p02 p03 C];
-                     [res,params,RESNORM, RESIDUAL, JACOBIAN] = lorentzfit(x',ys',p0);
-                    p1 = params(1);  p2 = params(2);  p3 = params(3); C = params(4);
-                    fitTau(i) = 2*sqrt(p3);  %FWHM
-                    fitPeak(i) = p1/p3 + C;  
-                    plot(ax,delay(i,:),res,'r','DisplayName','');                   
-                case 'voigt' 
-%                     fo = fitoptions('Method','NonlinearLeastSquares', ...
-%                             'StartPoint',[50, 5]); %gamma, sigma
-%                     zeroDelay = 200;  %set this...  
-%                     ysFit = ys/max(ys);
-%                     ft = fittype( @(gam,sig,peakVal,x) myvoigt(x, peakVal, gam, sig) ,'problem','peakVal','options',fo);    
-%                     [res,gof,~] = fit(x',ysFit,ft,'problem',zeroDelay);
-%                     resPlot= res(min(delay(i,:)):1:max(delay(i,:)));
-%                     resPlot = resPlot * max(ys);
-%                     plot(ax,min(delay(i,:)):1:max(delay(i,:)),resPlot,'r','DisplayName','');              
-                    initGuess1 = [0,30, 1]; %peak x, gamma, sigma
-                    [estimates1, model1] = voigtfit(x, ys, initGuess1, [min(x), max(x)]);
-                    gamma = estimates1(2);
-                    sigma = estimates1(3);
-                    res = myvoigt(x, 0, gamma, sigma );%estimates1(1)
-                    res = res';
-                    c = abs(res\ys');
-                    res = res*c;             
-                    plot(ax,x,res,'r','DisplayName','');
-                    FWHM_Gauss = 2*sigma*sqrt(2*log(2));
-                    FWHM_Lorentz = 2*gamma;
-                    fitTau(i) = 0.5346*FWHM_Lorentz + sqrt(0.2166*FWHM_Lorentz^2 + FWHM_Gauss^2);
-                    fitPeak(i) = max(res);
-                    % https://en.wikipedia.org/wiki/Voigt_profile
-                    % Olivero, J. J.; R. L. Longbothum (February 1977). 
-%                     "Empirical fits to the Voigt line width: A brief review". 
-%                     Journal of Quantitative Spectroscopy and Radiative Transfer. 
-%                     17 (2): 233�236. Bibcode:1977JQSRT..17..233O. doi:10.1016/0022-4073(77)90161-3. ISSN 0022-4073.
-                case 'noFit'
-                    Index = find(delay(i,:)>= -30 & delay(i,:)<= 30);
-                    fitPeak(i) = mean(meanR(i,Index-2:Index+2)); 
-            end              
-        end
-        hold off;
-        if strcmp(fitType,'noFit')
-            legend('location','best');
-        else
-            f=get(ax,'Children');
-            index = length(f)-((1:length(I))-1).*2;
-            legend(f(index),'location','best');
-        end
-        xlabel(ax,['Delay (' xUnit ')']);
-        if plotrelative
-            ylabel(ax,'$mean amplitude <r>/\sqrt{n_{Tg}}$','Interpreter','latex'); 
-        else            
-            ylabel(ax,'mean amplitude <r>'); 
-        end
-        fig = figure(1);       
-    case 'RLog'
-        figure(1);
-        ax = gca;
-        for i = 1:length(I)
-            semilogy(ax,delay(i,:),meanR(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
-            hold on;   
-        end
-        hold off;
-        legend('location','best');
-        xlabel(ax,['Delay (' xUnit ')']); 
-        if plotrelative
-            ylabel(ax,'$mean amplitude <r>/\sqrt{n_{Tg}}$','Interpreter','latex'); 
-        else            
-            ylabel(ax,'mean amplitude <r>'); 
-        end
-        fig = figure(1);   
-    case 'Q'
-        figure(1);
-        ax = gca;
-        for i = 1:length(I)
-            plot(ax,delay(i,:),Qs(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
-            hold on;   
-        end
-        hold off;
-        legend('location','best');
-        xlabel(ax,['Delay (' xUnit ')']); 
-        if plotrelative
-            ylabel(ax,'$<Q>/\sqrt{n_{Tg}}$','Interpreter','latex'); 
-        else            
-            ylabel(ax,'<Q>'); 
-        end
-        fig = figure(1);              
-    case 'P'
-        figure(1);
-        ax = gca;
-        for i = 1:length(I)
-            plot(ax,delay(i,:),Ps(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
-            hold on;   
-        end
-        hold off;
-        legend('location','best');
-        xlabel(ax,['Delay (' xUnit ')']); 
-        if plotrelative
-            ylabel(ax,'$<P>/\sqrt{n_{Tg}}$','Interpreter','latex'); 
-        else            
-            ylabel(ax,'<P>'); 
-        end
-        fig = figure(1);
-    case 'meanPh'
-        figure(1);
-        ax = gca;
-        for i = 1:length(I)
-            plot(ax,delay(i,:),meanPh(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
-            hold on;   
-        end
-        hold off;
-        legend('location','best');
-        xlabel(ax,['Delay (' xUnit ')']); 
-        ylabel(ax,'<\phi> (rad)'); 
-        fig = figure(1);
-    case 'meanAbsPh'
-        figure(1);
-        ax = gca;
-        for i = 1:length(I)
-            plot(ax,delay(i,:),meanAbsPh(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
-            hold on;   
-        end
-        hold off;
-        legend('location','best');
-        xlabel(ax,['Delay (' xUnit ')']); 
-        ylabel(ax,'<|\phi|> (rad)'); 
-        fig = figure(1);
-     case 'varPh'
-         figure(1);
-         ax = gca;
-        for i = 1:length(I)
-            plot(ax,delay(i,:),varPh(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
-            hold on;
-            Index = find(delay(i,:)>= -30 & delay(i,:)<= 30);
-            fitPeak(i) = mean(varPh(i,Index)); 
-        end
-        hold off;
-        legend('location','southeast');
-        ylabel(ax,'Variance(\phi) (rad)');
-        xlabel(ax,['Delay (' xUnit ')']);
-        fig = figure(1);
-    case 'varR'
-        figure(1);
-        ax= gca;
-        for i = 1:length(I)
-            plot(delay(i,:),varR(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
-            hold on;
-            x = delay(i,:);
-            if ~any(~isnan(varR(i,:))) %if there are only nans
-                varR(i,:) = zeros(1,H);
+            if plotrelative
+                ylabel(ax,'$mean amplitude <r>/\sqrt{n_{Tg}}$','Interpreter','latex'); 
+            else            
+                ylabel(ax,'mean amplitude <r>'); 
             end
-%             ys = transpose(csaps(x,varR(i,:),0.00001,x));  
-%             ys = ys';
+        case 'RLog'
+            ax.YScale = 'log';
+            ys = meanR(i,:);
+            if plotrelative
+                ylabel(ax,'$mean amplitude <r>/\sqrt{n_{Tg}}$','Interpreter','latex'); 
+            else            
+                ylabel(ax,'mean amplitude <r>'); 
+            end
+        case 'Q'
+            ys = Qs(i,:);
+            if plotrelative
+                ylabel(ax,'$<Q>/\sqrt{n_{Tg}}$','Interpreter','latex'); 
+            else            
+                ylabel(ax,'<Q>'); 
+            end
+            fitType = 'noFit';        
+        case 'P'
+            ys = Ps(i,:);
+            if plotrelative
+                ylabel(ax,'$<P>/\sqrt{n_{Tg}}$','Interpreter','latex'); 
+            else            
+                ylabel(ax,'<P>'); 
+            end
+            fitType = 'noFit';          
+        case 'meanPh'
+            ys = meanPh(i,:);
+            fitType = 'noFit'; 
+            ylabel(ax,'<\phi> (rad)'); 
+        case 'meanAbsPh'
+             ys = meanAbsPh(i,:);          
+            ylabel(ax,'<|\phi|> (rad)'); 
+            fitType = 'noFit'; 
+        case 'varPh'
+            ys = varPh(i,:); 
+            ylabel(ax,'Variance(\phi) (rad)');
+            fitType = 'noFit'; 
+        case 'varR'    
             ys = varR(i,:);
-            switch fitType
-                case 'gauss'
-                   g = fittype(@(a,b,c,d,x) a*exp(-pi/2*((x-b)/c).^2)+d);                   
-                    b0 = zeroDelay;
-                    c0 = 0.5*max(x);
-                    d0 = mean(ys(end-5:end)); % saturation value
-                    a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay))) - d0;
-                    [res,gof,~] = fit(x',ys',g,'StartPoint',[a0 b0 c0 d0]); 
-                    fitTau(i) = res.c;
-                    level = 2*tcdf(-1,gof.dfe);
-                    m = confint(res,1-level); 
-                    tauError(i) = m(end,3) - res.c;
-                    fitPeak(i) = res(res.b);  
-                    plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(min(delay(i,:)):1:max(delay(i,:))),'r','DisplayName','');
-                case 'exponential'
-                   ex = fittype(@(m,c,x) m - x/c);                   
-                    b0 = zeroDelay;
-                    c0 = 0.5*max(x);                
-                    d= mean(ys(end-5:end));
-                    ys = ys-d; 
-                    a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay)));
-                    sig = sign(a0);
-                    ys = abs(ys);
-                    a0 = abs(a0);
-                    m0 = log(a0) + b0/c0;
-                    [res,gof,~] = fit(abs(x)',log(ys)',ex,'StartPoint',[m0 c0]); 
-                    fitTau(i) = res.c;
-                    level = 2*tcdf(-1,gof.dfe);
-                    m = confint(res,1-level); 
-                    tauError(i) = m(end,2) - res.c;         
-                    fitPeak(i) = sig*exp(res(b0))+d;  
-                    plot(ax,min(delay(i,:)):1:max(delay(i,:)),sig*exp(res(abs(min(delay(i,:)):1:max(delay(i,:)))))+d,'r','DisplayName','');  
-                case 'sech'
-                    se = fittype(@(a,b,c,d,x) a./(cosh(-pi/2*(x-b)/c)).^2+d);                   
-                    b0 = zeroDelay;
-                    c0 = 0.5*max(x);
-                    d0 = mean(ys(end-5:end)); % saturation value
-                    a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay))) - d0;
-                    [res,gof,~] = fit(x',ys',se,'StartPoint',[a0 b0 c0 d0]); 
-                    fitTau(i) = res.c;
-                    level = 2*tcdf(-1,gof.dfe);
-                    m = confint(res,1-level); 
-                    tauError(i) = m(end,3) - res.c;
-                    fitPeak(i) = res(res.b);  
-                    plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(min(delay(i,:)):1:max(delay(i,:))),'r','DisplayName','');
-                 case 'lorentz'
-                      % starting values 
-                    p02 = zeroDelay;
-                    p03 = 0.5*max(x);
-                    C = mean(ys(end-5:end)); % saturation value 
-                    peakHeight = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay))); 
-                    p01 = (peakHeight- C)*p03;
-                    p0 = [p01 p02 p03 C];
-                     [res,params,RESNORM, RESIDUAL, JACOBIAN] = lorentzfit(x',ys',p0);
-                    p1 = params(1);  p2 = params(2);  p3 = params(3); C = params(4);
-                    fitTau(i) = 2*sqrt(p3);  %FWHM
-                    fitPeak(i) = p1/p3 + C;  
-                    plot(ax,delay(i,:),res,'r','DisplayName','');                   
-                case 'voigt' 
-%                     fo = fitoptions('Method','NonlinearLeastSquares', ...
-%                             'StartPoint',[50, 5]); %gamma, sigma
-%                     zeroDelay = 200;  %set this...  
-%                     ysFit = ys/max(ys);
-%                     ft = fittype( @(gam,sig,peakVal,x) myvoigt(x, peakVal, gam, sig) ,'problem','peakVal','options',fo);    
-%                     [res,gof,~] = fit(x',ysFit,ft,'problem',zeroDelay);
-%                     resPlot= res(min(delay(i,:)):1:max(delay(i,:)));
-%                     resPlot = resPlot * max(ys);
-%                     plot(ax,min(delay(i,:)):1:max(delay(i,:)),resPlot,'r','DisplayName','');              
-                    initGuess1 = [0,30, 1]; %peak x, gamma, sigma
-                    [estimates1, model1] = voigtfit(x, ys, initGuess1, [min(x), max(x)]);
-                    gamma = estimates1(2);
-                    sigma = estimates1(3);
-                    res = myvoigt(x, 0, gamma, sigma );%estimates1(1)
-                    res = res';
-                    c = abs(res\ys');
-                    res = res*c;             
-                    plot(ax,x,res,'r','DisplayName','');
-                    FWHM_Gauss = 2*sigma*sqrt(2*log(2));
-                    FWHM_Lorentz = 2*gamma;
-                    fitTau(i) = 0.5346*FWHM_Lorentz + sqrt(0.2166*FWHM_Lorentz^2 + FWHM_Gauss^2);
-                    fitPeak(i) = max(res);
-                    % https://en.wikipedia.org/wiki/Voigt_profile
-                    % Olivero, J. J.; R. L. Longbothum (February 1977). 
-%                     "Empirical fits to the Voigt line width: A brief review". 
-%                     Journal of Quantitative Spectroscopy and Radiative Transfer. 
-%                     17 (2): 233�236. Bibcode:1977JQSRT..17..233O. doi:10.1016/0022-4073(77)90161-3. ISSN 0022-4073.
-                case 'noFit'
-                    Index = find(delay(i,:)>= -30 & delay(i,:)<= 30);
-                    fitPeak(i) = mean(meanR(i,Index-2:Index+2)); 
-            end              
-        end
-        hold off;
-        if strcmp(fitType,'noFit')
-            legend('location','best');
-        else
-            f=get(ax,'Children');
-            index = length(f)-((1:length(I))-1).*2;
-            legend(f(index),'location','best');
-        end
-%             Index = find(delay(i,:)>= -30 & delay(i,:)<= 30);
-%             fitPeak(i) = mean(varR(i,Index)); 
-        ylabel('Variance(r)');
-        xlabel(['Delay (' xUnit ')']);
-        fig = figure(1);
-     case 'varQ'
-         figure(1);
-         ax = gca;
-        for i = 1:length(I)
-            plot(delay(i,:),varQs(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
-            hold on;
-            Index = find(delay(i,:)>= -30 & delay(i,:)<= 30);
-            fitPeak(i) = mean(varQs(i,Index)); 
-        end;
-        hold off;
-        legend('location','southeast');
-        if plotrelative
-            ylabel(ax,'$Var(Q)/n_{Tg}$','Interpreter','latex'); 
-        else            
-            ylabel(ax,'Var(Q)'); 
-        end
-        xlabel(['Delay (' xUnit ')']);
-        fig = figure(1);
-     case 'varP'
-         figure(1);
-         ax = gca;
-        for i = 1:length(I)
-            plot(delay(i,:),varPs(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
-            hold on;
-            Index = find(delay(i,:)>= -30 & delay(i,:)<= 30);
-            fitPeak(i) = mean(varPs(i,Index)); 
-        end;
-        hold off;
-        legend('location','southeast');
-        if plotrelative
-            ylabel(ax,'$Var(P)/n_{Tg}$','Interpreter','latex'); 
-        else            
-            ylabel(ax,'Var(P)'); 
-        end
-        xlabel(['Delay (' xUnit ')']);
-        fig = figure(1);
-    case 'discN'
-        figure(1);
-        ax = gca;
-        for i = 1:length(I)
-            plot(ax,delay(i,:),discN(i,:),'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
-            hold on;
-             x = delay(i,:);
-            if ~any(~isnan(discN(i,:))) %if there are only nans
-                discN(i,:) = zeros(1,H);
+            ylabel('Variance(r)');
+        case 'varQ'
+            ys = varQs(i,:);
+             if plotrelative
+                ylabel(ax,'$Var(Q)/n_{Tg}$','Interpreter','latex'); 
+            else            
+                ylabel(ax,'Var(Q)'); 
             end
-%             ys = transpose(csaps(x,meanR(i,:),0.00001,x));  
-%             ys = ys';
+            fitType = 'noFit'; 
+         case 'varP'
+             ys = varPs(i,:);
+             if plotrelative
+                ylabel(ax,'$Var(P)/n_{Tg}$','Interpreter','latex'); 
+            else            
+                ylabel(ax,'Var(P)'); 
+            end
+            fitType = 'noFit';         
+        case 'discN'
             ys = discN(i,:);
-            switch fitType
-                case 'gauss'
-                    g = fittype(@(a,b,c,d,x) a*exp(-pi/2*((x-b)/c).^2)+d);                   
-                    b0 = zeroDelay;
-                    c0 = 0.5*max(x);
-                    d0 = mean(ys(end-5:end)); % saturation value
-                    a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay))) - d0;
-                    [res,gof,~] = fit(x',ys',g,'StartPoint',[a0 b0 c0 d0]); 
-                    fitTau(i) = res.c;
-                    level = 2*tcdf(-1,gof.dfe);
-                    m = confint(res,1-level); 
-                    tauError(i) = m(end,3) - res.c;
-                    fitPeak(i) = res(res.b);  
-                    plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(min(delay(i,:)):1:max(delay(i,:))),'r','DisplayName','');
-                case 'exponential'
-                    ex = fittype(@(m,c,x) m - x/c);                   
-                    b0 = zeroDelay;
-                    c0 = 0.5*max(x);                
-                    d= mean(ys(end-5:end));
-                    ys = ys-d; 
-                    a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay)));
-                    sig = sign(a0);
-                    ys = abs(ys);
-                    a0 = abs(a0);
-                    m0 = log(a0) + b0/c0;
-                    [res,gof,~] = fit(abs(x)',log(ys)',ex,'StartPoint',[m0 c0]); 
-                    fitTau(i) = res.c;
-                    level = 2*tcdf(-1,gof.dfe);
-                    m = confint(res,1-level); 
-                    tauError(i) = m(end,2) - res.c;         
-                    fitPeak(i) = sig*exp(res(b0))+d;  
-                    plot(ax,min(delay(i,:)):1:max(delay(i,:)),sig*exp(res(abs(min(delay(i,:)):1:max(delay(i,:)))))+d,'r','DisplayName','');
-                case 'sech'
-                    se = fittype(@(a,b,c,d,x) a./(cosh(-pi/2*(x-b)/c)).^2+d);                   
-                    b0 = zeroDelay;
-                    c0 = 0.5*max(x);
-                    d0 = mean(ys(end-5:end)); % saturation value
-                    a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay))) - d0;
-                    [res,gof,~] = fit(x',ys',se,'StartPoint',[a0 b0 c0 d0]); 
-                    fitTau(i) = res.c;
-                    level = 2*tcdf(-1,gof.dfe);
-                    m = confint(res,1-level); 
-                    tauError(i) = m(end,3) - res.c;
-                    fitPeak(i) = res(res.b);  
-                    plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(min(delay(i,:)):1:max(delay(i,:))),'r','DisplayName','');
-                 case 'lorentz' 
-                     % starting values 
-                    p02 = zeroDelay;
-                    p03 = 0.5*max(x);
-                    C = mean(ys(end-5:end)); % saturation value 
-                    peakHeight = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay))); 
-                    p01 = (peakHeight- C)*p03;
-                    p0 = [p01 p02 p03 C];
-                     [res,params,RESNORM, RESIDUAL, JACOBIAN] = lorentzfit(x',ys',p0);
-                    p1 = params(1);  p2 = params(2);  p3 = params(3); C = params(4);
-                    fitTau(i) = 2*sqrt(p3);  %FWHM
-                    fitPeak(i) = p1/p3 + C; 
-                    plot(ax,delay(i,:),res,'r','DisplayName','');                   
-                case 'voigt' 
+            if plotrelative
+                ylabel(ax,'$n/n_{Tg}$','Interpreter','latex'); 
+            else            
+                ylabel(ax,'n'); 
+            end
+        case 'g1'
+            ys = g1(i,:);
+            ylabel(ax,'g^{(1)} only phase'); 
+        case 'g1toOne'
+            ys = g1(i,:)/max(g1(i,:));
+            ylabel(ax,'g^{(1)} only phase');
+        case 'g1WA'
+            ys = g1WA(i,:);
+            ylabel(ax,'g^{(1)} with amplitude'); 
+        case 'g1Binned'
+            ys = g1Binned(i,:);
+            ylabel(ax,'g^{(1)} only phase, binned'); 
+        case 'g1WAN'
+            ys = g1WAN(i,:);
+            ylabel(ax,'g^{(1)} with amplitude, norm.'); 
+    end %typestr     
+        
+    plot(ax,delay(i,:),ys,'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
+    hold on;
+    x = delay(i,:);
+    if ~any(~isnan(ys)) %if there are only nans
+        ys = zeros(1,H);
+    end
+            ys = transpose(csaps(x,ys,0.00001,x));  
+            ys = ys';
+    switch fitType
+        case 'gauss'
+            g = fittype(@(a,b,c,d,x) a*exp(-pi/2*((x-b)/c).^2)+d);                   
+            b0 = zeroDelay;
+            c0 = 0.5*max(x);
+            d0 = mean(ys(end-5:end)); % saturation value
+            a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay))) - d0;
+            [res,gof,~] = fit(x',ys',g,'StartPoint',[a0 b0 c0 d0]); 
+            fitTau(i) = res.c;
+            level = 2*tcdf(-1,gof.dfe);
+            m = confint(res,1-level); 
+            tauError(i) = m(end,3) - res.c;
+            fitPeak(i) = res(res.b);  
+            plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(min(delay(i,:)):1:max(delay(i,:))),'r','DisplayName','');
+        case 'exponential'
+            ex = fittype(@(m,c,x) m - x/c);                   
+            b0 = zeroDelay;
+            c0 = 0.5*max(x);                
+            d= mean(ys(end-5:end));
+            ys = ys-d; 
+            a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay)));
+            sig = sign(a0);
+            ys = abs(ys);
+            a0 = abs(a0);
+            m0 = log(a0) + b0/c0;
+            [res,gof,~] = fit(abs(x)',log(ys)',ex,'StartPoint',[m0 c0]); 
+            fitTau(i) = res.c;
+            level = 2*tcdf(-1,gof.dfe);
+            m = confint(res,1-level); 
+            tauError(i) = m(end,2) - res.c;         
+            fitPeak(i) = sig*exp(res(b0))+d;  
+            plot(ax,min(delay(i,:)):1:max(delay(i,:)),sig*exp(res(abs(min(delay(i,:)):1:max(delay(i,:)))))+d,'r','DisplayName',''); 
+        case 'exp2'
+            g = fittype(@(a,b,c,d,x) a*exp(-((x-b)/c)) +d);                   
+            b0 = zeroDelay;
+            c0 = 0.5*max(x);
+            d0 = mean(ys(end-5:end)); % saturation value
+            a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay))) - d0;
+            [res,gof,~] = fit(abs(x)',ys',g,'StartPoint',[a0 b0 c0 d0]); 
+            fitTau(i) = res.c;
+            level = 2*tcdf(-1,gof.dfe);
+            m = confint(res,1-level); 
+            tauError(i) = m(end,3) - res.c;
+            fitPeak(i) = res(res.b);  
+            plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(abs(min(delay(i,:)):1:max(delay(i,:)))),'r','DisplayName','');
+        case 'sech'
+            se = fittype(@(a,b,c,d,x) a./(cosh(-pi/2*(x-b)/c)).^2+d);                   
+            b0 = zeroDelay;
+            c0 = 0.5*max(x);
+            d0 = mean(ys(end-5:end)); % saturation value
+            a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay))) - d0;
+            [res,gof,~] = fit(x',ys',se,'StartPoint',[a0 b0 c0 d0]); 
+            fitTau(i) = res.c;
+            level = 2*tcdf(-1,gof.dfe);
+            m = confint(res,1-level); 
+            tauError(i) = m(end,3) - res.c;
+            fitPeak(i) = res(res.b);  
+            plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(min(delay(i,:)):1:max(delay(i,:))),'r','DisplayName','');
+         case 'lorentz'
+             % starting values 
+            p02 = zeroDelay;
+            p03 = 0.5*max(x);
+            C = mean(ys(end-5:end)); % saturation value 
+            peakHeight = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay))); 
+            p01 = (peakHeight- C)*p03;
+            p0 = [p01 p02 p03 C];
+             [res,params,RESNORM, RESIDUAL, JACOBIAN] = lorentzfit(x',ys',p0);
+            p1 = params(1);  p2 = params(2);  p3 = params(3); C = params(4);
+            fitTau(i) = 2*sqrt(p3);  %FWHM
+            fitPeak(i) = p1/p3 + C;  
+            plot(ax,delay(i,:),res,'r','DisplayName','');                   
+        case 'voigt' 
 %                     fo = fitoptions('Method','NonlinearLeastSquares', ...
 %                             'StartPoint',[50, 5]); %gamma, sigma
 %                     zeroDelay = 200;  %set this...  
@@ -542,45 +288,38 @@ switch typestr
 %                     resPlot= res(min(delay(i,:)):1:max(delay(i,:)));
 %                     resPlot = resPlot * max(ys);
 %                     plot(ax,min(delay(i,:)):1:max(delay(i,:)),resPlot,'r','DisplayName','');              
-                    initGuess1 = [0,30, 1]; %peak x, gamma, sigma
-                    [estimates1, model1] = voigtfit(x, ys, initGuess1, [min(x), max(x)]);
-                    gamma = estimates1(2);
-                    sigma = estimates1(3);
-                    res = myvoigt(x, 0, gamma, sigma );%estimates1(1)
-                    res = res';
-                    c = abs(res\ys');
-                    res = res*c;             
-                    plot(ax,x,res,'r','DisplayName','');
-                    FWHM_Gauss = 2*sigma*sqrt(2*log(2));
-                    FWHM_Lorentz = 2*gamma;
-                    fitTau(i) = 0.5346*FWHM_Lorentz + sqrt(0.2166*FWHM_Lorentz^2 + FWHM_Gauss^2);
-                    fitPeak(i) = max(res);
-                    % https://en.wikipedia.org/wiki/Voigt_profile
-                    % Olivero, J. J.; R. L. Longbothum (February 1977). 
+            initGuess1 = [0,30, 1]; %peak x, gamma, sigma
+            [estimates1, model1] = voigtfit(x, ys, initGuess1, [min(x), max(x)]);
+            gamma = estimates1(2);
+            sigma = estimates1(3);
+            res = myvoigt(x, 0, gamma, sigma );%estimates1(1)
+            res = res';
+            c = abs(res\ys');
+            res = res*c;             
+            plot(ax,x,res,'r','DisplayName','');
+            FWHM_Gauss = 2*sigma*sqrt(2*log(2));
+            FWHM_Lorentz = 2*gamma;
+            fitTau(i) = 0.5346*FWHM_Lorentz + sqrt(0.2166*FWHM_Lorentz^2 + FWHM_Gauss^2);
+            fitPeak(i) = max(res);
+            % https://en.wikipedia.org/wiki/Voigt_profile
+            % Olivero, J. J.; R. L. Longbothum (February 1977). 
 %                     "Empirical fits to the Voigt line width: A brief review". 
 %                     Journal of Quantitative Spectroscopy and Radiative Transfer. 
 %                     17 (2): 233�236. Bibcode:1977JQSRT..17..233O. doi:10.1016/0022-4073(77)90161-3. ISSN 0022-4073.
-                case 'noFit'
-                    Index = find(delay(i,:)>= -30 & delay(i,:)<= 30);
-                    fitPeak(i) = mean(meanR(i,Index-2:Index+2)); 
-            end        
-        end
-        hold off;
-        if strcmp(fitType,'noFit')
-            legend('location','best');
-        else
-            f=get(ax,'Children');
-            index = length(f)-((1:length(I))-1).*2;
-            legend(f(index),'location','best');
-        end
-        xlabel(['Delay (' xUnit ')']);
-        if plotrelative
-            ylabel(ax,'$n/n_{Tg}$','Interpreter','latex'); 
-        else            
-            ylabel(ax,'n'); 
-        end
-        fig = figure(1);
+        case 'noFit'
+            fitPeak(i) = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay)));
+        end %fitType
+end %iloop
+hold off;
+if strcmp(fitType,'noFit')
+    legend('location','best');
+else
+    f=get(ax,'Children');
+    index = length(f)-((1:length(I))-1).*2;
+    legend(f(index),'location','best');
 end
+xlabel(ax,['Delay (' xUnit ')']);
+fig = figure(1);              
 set(fig,'Color','w','Units','centimeters','Position',[1,1,45,30],'PaperPositionMode','auto');
 graphicsSettings;
 set(ax,'FontSize',38);
@@ -606,12 +345,16 @@ if any(fitTau)
             ylabel(['FWHM of Voigt Profile (' xUnit ')']);
         case 'exponential'
             ylabel(['\tau_c of exp. function (' xUnit ')']);
+        case 'exp2'
+            ylabel(['\tau_c of exp. function (' xUnit ')']);
         case 'sech'
             ylabel(['\tau_c of sech function (' xUnit ')']);
          case 'lorentz'
             ylabel(['FWHM of Lorentz Profile (' xUnit ')']);
     end
     graphicsSettings;
+    ax = gca;
+    set(ax,'FontSize',30);
     title(typestr);
     savefig([filename '-fitWidthsVsRadius.fig']);
     print([filename '-fitWidthsVsRadius.png'],'-dpng');
@@ -619,11 +362,15 @@ if any(fitTau)
 end
 
 if any(fitPeak)
+    YrPlot = Yr(:,1);
+    [YrPlot,Ir]= sort(YrPlot);
     fitPeak = real(fitPeak(Ir));
     plot(YrPlot,fitPeak,'o-');
     xlabel('A_{ps} set for postselection');
     ylabel('Peakheight');
     graphicsSettings;
+    ax = gca;
+    set(ax,'FontSize',30);
     title(typestr);
     savefig([filename '-PeaksVsRadius.fig']);
     print([filename '-PeaksVsRadius.png'],'-dpng');
@@ -665,7 +412,7 @@ end
 % end
 % plot(Yt(:,1),fitWidth,'o-');
 % plot(Yt(:,1),fitPeak,'o-');
-    end
+    end %plotStuff
 
 end
 
