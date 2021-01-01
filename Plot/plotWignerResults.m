@@ -134,28 +134,23 @@ for i = 1:length(I)
                 ylabel(ax,'$<Q>/\sqrt{n_{Tg}}$','Interpreter','latex'); 
             else            
                 ylabel(ax,'<Q>'); 
-            end
-            fitType = 'noFit';        
+            end       
         case 'P'
             ys = Ps(i,:);
             if plotrelative
                 ylabel(ax,'$<P>/\sqrt{n_{Tg}}$','Interpreter','latex'); 
             else            
                 ylabel(ax,'<P>'); 
-            end
-            fitType = 'noFit';          
+            end        
         case 'meanPh'
             ys = meanPh(i,:);
-            fitType = 'noFit'; 
             ylabel(ax,'<\phi> (rad)'); 
         case 'meanAbsPh'
              ys = meanAbsPh(i,:);          
             ylabel(ax,'<|\phi|> (rad)'); 
-            fitType = 'noFit'; 
         case 'varPh'
             ys = varPh(i,:); 
             ylabel(ax,'Variance(\phi) (rad)');
-            fitType = 'noFit'; 
         case 'varR'    
             ys = varR(i,:);
             ylabel('Variance(r)');
@@ -165,16 +160,14 @@ for i = 1:length(I)
                 ylabel(ax,'$Var(Q)/n_{Tg}$','Interpreter','latex'); 
             else            
                 ylabel(ax,'Var(Q)'); 
-            end
-            fitType = 'noFit'; 
+             end
          case 'varP'
              ys = varPs(i,:);
              if plotrelative
                 ylabel(ax,'$Var(P)/n_{Tg}$','Interpreter','latex'); 
             else            
                 ylabel(ax,'Var(P)'); 
-            end
-            fitType = 'noFit';         
+             end       
         case 'discN'
             ys = discN(i,:);
             if plotrelative
@@ -308,7 +301,7 @@ for i = 1:length(I)
 %                     17 (2): 233�236. Bibcode:1977JQSRT..17..233O. doi:10.1016/0022-4073(77)90161-3. ISSN 0022-4073.
         case 'noFit'
             fitPeak(i) = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay)));
-        end %fitType
+    end %fitType
 end %iloop
 hold off;
 if strcmp(fitType,'noFit')
