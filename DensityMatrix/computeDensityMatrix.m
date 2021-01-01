@@ -38,11 +38,11 @@ dispstat('Strip X and THETA off their NaN values.','timestamp','keepthis');
 if sum(isnan(X))~=sum(isnan(theta))
     warning(['X and THETA should have the same ',...
         'length after stripping all NaN values!']);
-    X = X(~isnan(theta));
-else
-    X = X(~isnan(X));
 end
-theta = theta(~isnan(theta));
+Xtp = X(~isnan(theta) & ~isnan(X));
+theta = theta(~isnan(theta) & ~isnan(X));
+X = Xtp;
+clear Xtp;
 
 %% History
 % The _history_ variable will contain all calculated density
