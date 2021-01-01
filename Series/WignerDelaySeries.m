@@ -1,6 +1,6 @@
 function [] = WignerDelaySeries(varargin)
-%get Wigner function for one delay, several postselection parameters, from
-%data located in 'post-data'. 
+%compute Wigner functions for a delay series, several postselection parameters, from
+%data located in 'post-data', and compute expectation values. 
 %% Validate and parse input arguments
 p = inputParser;
 % directory where the Wigner tables are stored
@@ -33,9 +33,11 @@ defaultVaryAPS = false;
 addParameter(p,'VaryAPS',defaultVaryAPS,@islogical);
 defaultRange = [0 20];
 addParameter(p,'Range',defaultRange,@isvector);
+defaultPlot = true;
+addParameter(p,'Plot',defaultPlot,@islogical);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[directory,Iterations,loadExistent,maxFockState,range,remMod,selParams,smooth,smoothWidth,varyAPS,zeroDelay] = c{:};
+[directory,Iterations,loadExistent,maxFockState,plotOption,range,remMod,selParams,smooth,smoothWidth,varyAPS,zeroDelay] = c{:};
 
 
 %% preparation
@@ -98,18 +100,22 @@ for i = 1:length(files)
         WF = moving_average(WF,smoothWidth,1);
         WF = moving_average(WF,smoothWidth,2);
     end
-    plotWigner(WF,'Style','2D','Colormap','hot');
-    title(['Delay =' num2str(delay) 'ps,' char(10) num2str(delayMm) 'mm']);       
-    savefig([filenameFig '-WF.fig']);
-    print([filenameFig '-WF.png'],'-dpng');
-    close all;
-    plotRho(rho);
-    title(['Delay =' num2str(delay) 'ps, ' num2str(delayMm) 'mm']);
-    savefig([filenameFig '-rho.fig']);
-    print([filenameFig '-rho.png'],'-dpng');
-    close all;
-    [meanPhase,meanAmp,~,~,varPhase,varAmp,~,~,meanAbsPhase,PhotonNrCirc,g1WithAmp,g1WithoutAmp,g1WithoutAmpBinned,g1WithAmpNorm] = ReturnPhaseAndAmplitudeWigner( real(WF),...
-    MaxQuad, Resolution,100,filenameFig );
+    
+    if plotOption
+        plotWigner(WF,'Style','2D','Colormap','hot');
+        title(['Delay =' num2str(delay) 'ps,' char(10) num2str(delayMm) 'mm']);       
+        savefig([filenameFig '-WF.fig']);
+        print([filenameFig '-WF.png'],'-dpng');
+        close all;
+        plotRho(rho);
+        title(['Delay =' num2str(delay) 'ps, ' num2str(delayMm) 'mm']);
+        savefig([filenameFig '-rho.fig']);
+        print([filenameFig '-rho.png'],'-dpng');
+        close all;
+    end
+    [meanPhase,meanAmp,~,~,varPhase,varAmp,~,~,meanAbsPhase,PhotonNrCirc,...
+        g1WithAmp,g1WithoutAmp,g1WithoutAmpBinned,g1WithAmpNorm] = ReturnPhaseAndAmplitudeWigner( real(WF),...
+    MaxQuad, Resolution,100,filenameFig,'Plot',plotOption );
     meanPhases(i) = meanPhase;
     meanAmps(i) = meanAmp;
     varPhases(i) = varPhase;
