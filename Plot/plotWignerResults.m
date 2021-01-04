@@ -305,7 +305,7 @@ for i = 1:length(I)
 end %iloop
 hold off;
 if strcmp(fitType,'noFit')
-    legend('location','best');
+    legend('location','northeast');
 else
     f=get(ax,'Children');
     index = length(f)-((1:length(I))-1).*2;
