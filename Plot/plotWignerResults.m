@@ -95,10 +95,10 @@ else
 end
 
 %% Plot
-typestrVector = {'R','Q','P','RLog','meanPh','meanAbsPh','discN','varR','varPh','varQ','varP','g1','g1WA','g1Binned','g1WAN','g1toOne'};
+%typestrVector = {'R','Q','P','RLog','meanPh','meanAbsPh','discN','varR','varPh','varQ','varP','g1','g1WA','g1Binned','g1WAN','g1toOne'};
 %typestrVector = {'R','discN','varR'};
 %typestrVector = {'R'};
-%typestrVector = {'g1','g1WA','g1Binned','g1WAN','g1toOne'};
+typestrVector = {'g1','g1WA','g1Binned','g1WAN','g1toOne'};
 for typeI = 1:length(typestrVector)
     plotStuff(cell2mat(typestrVector(typeI)))
 end
@@ -107,7 +107,7 @@ end
 %% Create figure
 fig = figure;
 filename = [figurepath,typestr,'-',fitType,'-remMod-',...
-            num2str(remMod),'-range-',num2str(range),'-varyAPS-',num2str(varyAPS),'-smooth-',num2str(smooth),'-plotrelative-' num2str(plotrelative),'.fig'];
+            num2str(remMod),'-range-',num2str(min(range)),'-',num2str(max(range)),'-varyAPS-',num2str(varyAPS),'-smooth-',num2str(smooth),'-plotrelative-' num2str(plotrelative),'.fig'];
 %formatFigA5(fig);
 figure(1);
 ax = gca;
@@ -305,11 +305,11 @@ for i = 1:length(I)
 end %iloop
 hold off;
 if strcmp(fitType,'noFit')
-    legend('location','northeast');
+    legend('location','best');
 else
     f=get(ax,'Children');
     index = length(f)-((1:length(I))-1).*2;
-    legend(f(index),'location','best');
+    legend(f(index),'location','northeast');
 end
 xlabel(ax,['Delay (' xUnit ')']);
 fig = figure(1);              
