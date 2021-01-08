@@ -6,7 +6,7 @@ function [] = graphicsSettings
     set(h,'linewidth',2);
     set(ax,'linewidth',2,'XColor',[0 0 0], 'YColor', [0 0 0],'Box','on',...
         'FontSize',fontSize,'FontName',fontName,...
-        'TickDir','Out');
+        'TickDir','in');
     set(ax,'DefaultTextInterpreter','latex');
     grid;
     dcmObj = datacursormode;  % Turn on data cursors and return the
