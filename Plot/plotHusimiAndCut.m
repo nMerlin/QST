@@ -1,4 +1,4 @@
-function [H, binsO1, binsO2,r,nTherm, nThermErr,nCoherent,nCohErr,meanN,Coherence,CoherenceErr] = plotHusimiAndCut(O1,O2,H,binsO1,binsO2,varargin)
+function [H, binsO1, binsO2,r,nTherm, nThermErr,nCoherent,nCohErr,meanN,Coherence,CoherenceErr,poissonErr] = plotHusimiAndCut(O1,O2,H,binsO1,binsO2,varargin)
 %Plot histogram of Husimi-Q function and cut along q axis
 % Either make it new from the orthogonal postselection quadratures O1,O2.
 % Then set H, binsO1,binsO2 = 0.
@@ -14,15 +14,15 @@ defaultnBinsA = 100;
 addParameter(p,'nBinsA',defaultnBinsA,@isnumeric);
 defaultnBinsB = 100;
 addParameter(p,'nBinsB',defaultnBinsB,@isnumeric);
-defaultMakeFit = true;
-addParameter(p,'MakeFit',defaultMakeFit,@islogical);
+defaultFitMethod = 'NLSQ-LAR';
+addParameter(p,'FitMethod',defaultFitMethod,@isstr);
 defaultiSelect = []; % Indices of selected points shown in green. 
 addParameter(p,'iSelect',defaultiSelect,@isvector);
 defaultShowLegend = true;
 addParameter(p,'ShowLegend',defaultShowLegend,@islogical);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[filename,iSelect,limits,makeFit,nBinsA,nBinsB,showLegend] = c{:};
+[filename,fitMethod,iSelect,limits,nBinsA,nBinsB,showLegend] = c{:};
 
 %% For the Husimi function, the quadratures are scaled so they correspond to
 % those quadratures before the Husimi beam splitter
@@ -33,6 +33,9 @@ if H == 0
     [H, binsO1, binsO2] = histogram2D(O1,O2,'nBinsA',nBinsA,'nBinsB',nBinsB);
 end;
 H=H./(sum(sum(H)));
+totalNumber = length(O1);
+poissonErrors = sqrt(H.*(1-H)/totalNumber);
+poissonErr = sqrt(sum(sum(poissonErrors.^2)));
 
 %% get mean total photon number from averaging over Husimi function 
 [XAxis,YAxis]=meshgrid(binsO1,binsO2);
@@ -43,6 +46,8 @@ meanN=0.5*(FullQx2+FullQy2) -1;
 %% get cut of H along q axis
 Hcut = H(round(length(binsO2)/2),:);
 Hcut = Hcut/max(Hcut);
+%% get poisson error
+
 
 %% Get Theory
 WLength = max(binsO1);
@@ -53,49 +58,64 @@ ys = transpose(csaps(binsO1,Hcut,0.6,binsO1));
 r = abs(binsO1(I));
 nCoherent = 0.5*r^2;
 nTherm = meanN-nCoherent; % thermal state photon number
-
-if makeFit
-%     % old method: find optimum nTherm and nCoherent, which minimizes the function mini
-%     x0 = [nTherm,nCoherent];
-%     f = @(x)mini(x, WLength, WRes,H);
-%     % set constraints, so nTherm + nCoherent = meanN and both are >= 0
-%     A = []; b = []; Aeq = [1,1]; beq = meanN; lb = [0,0]; ub = [Inf,Inf];
-%     [x,~] = fmincon(f,x0,A,b,Aeq,beq,lb,ub);
-%     nTherm = x(1);
-%     nCoherent = x(2); 
-%     r = sqrt(2*nCoherent);
-%     [ HusFunc,~,~ ] = CreateDisplacedThermalHusimiPhaseAveraged( nTherm, WLength, WRes, r,'PlotOption',false);
-%     [~,~,~,~,~,hessian] = fminunc(f,x);
-%     err = sqrt(diag(inv(hessian)));
-%     nThermErr = err(1);
-%     nCohErr = err(2);
+xfit = x(:); %1D
+Hfit = H(:);
+    
+if strcmp(fitMethod,'NLSQ-LAR')  
+    HTheory = fittype('0.5*WRes^2*(pi*(a1+1))^-1 *exp(-(x.^2 + b1)/(a1+1)) .* besseli(0,2*x*sqrt(b1)/(a1+1))','problem','WRes'); 
+    %a1 = nTherm; b1 = |alpha0|^2 = nCoherent; 0.5*WRes^2 is for normalization      
+    [f,gof,~] = fit(xfit,Hfit,HTheory,'problem',WRes,'StartPoint', [nTherm,nCoherent],'Lower',[0,0],'Robust','LAR' );
+    nTherm = f.a1;    
+    nCoherent = f.b1;
+    [se]= getStandardErrorsFromFit(f,gof,'method1');   
+    nThermErr = se(1);
+    nCohErr = se(2);
+elseif strcmp(fitMethod,'NLSQ-Bisquare')
+    HTheory = fittype('0.5*WRes^2*(pi*(a1+1))^-1 *exp(-(x.^2 + b1)/(a1+1)) .* besseli(0,2*x*sqrt(b1)/(a1+1))','problem','WRes'); 
+    %a1 = nTherm; b1 = |alpha0|^2 = nCoherent; 0.5*WRes^2 is for normalization      
+    [f,gof,~] = fit(xfit,Hfit,HTheory,'problem',WRes,'StartPoint', [nTherm,nCoherent],'Lower',[0,0],'Robust','Bisquare' );
+    nTherm = f.a1;    
+    nCoherent = f.b1;
+    [se]= getStandardErrorsFromFit(f,gof,'method1');   
+    nThermErr = se(1);
+    nCohErr = se(2);
+elseif strcmp(fitMethod,'NLSQ-Off')
+    HTheory = fittype('0.5*WRes^2*(pi*(a1+1))^-1 *exp(-(x.^2 + b1)/(a1+1)) .* besseli(0,2*x*sqrt(b1)/(a1+1))','problem','WRes'); 
+    %a1 = nTherm; b1 = |alpha0|^2 = nCoherent; 0.5*WRes^2 is for normalization      
+    [f,gof,~] = fit(xfit,Hfit,HTheory,'problem',WRes,'StartPoint', [nTherm,nCoherent],'Lower',[0,0],'Robust','Off' );
+    nTherm = f.a1;    
+    nCoherent = f.b1;
+    [se]= getStandardErrorsFromFit(f,gof,'method1');   
+    nThermErr = se(1);
+    nCohErr = se(2);
+elseif strcmp(fitMethod,'fmincon')
+    % old method: find optimum nTherm and nCoherent, which minimizes the function f
+    p0 = [nTherm,nCoherent];  
+    %f = @(p)mini(p, WLength, WRes,H); 
+    f = @(p) sum(abs(Hfit - 0.5*WRes^2*(pi*(p(1)+1))^-1 *exp(-(xfit.^2 + p(2))/(p(1)+1)) .* besseli(0,2*xfit*sqrt(p(2))/(p(1)+1))));
+    % set constraints, so nTherm + nCoherent = meanN and both are >= 0
+    A = []; b = []; Aeq = [1,1]; beq = meanN; lb = [0,0]; ub = [Inf,Inf];
+    [p,~] = fmincon(f,p0,A,b,Aeq,beq,lb,ub);
+    nTherm = p(1);
+    nCoherent = p(2); 
+    [~,~,~,~,~,hessian] = fminunc(f,p);
+    err = sqrt(diag(inv(hessian)));
+    nThermErr = err(1);
+    nCohErr = err(2);
 %     %The key to the standard errors is the Hessian matrix. 
 %     %The variance-covariance-matrix of the coefficients is the inverse
 %     % of the Hessian matrix. So the standard errors are the square root of
 %     %the values on the diagonal of the inverse Hessian matrix.
 %     % The hessian of fminunc is accurate, the one of fmincon is not.
-%     % https://de.mathworks.com/matlabcentral/answers/153414-estimator-standard-errors-using-fmincon-portfolio-optimization-context
-    
-    %% Method with theory function 
-    xfit = x(:); %1D
-    Hfit = H(:);
-    HTheory = fittype('0.5*WRes^2*(pi*(a1+1))^-1 *exp(-(x.^2 + b1)/(a1+1)) .* besseli(0,2*x*sqrt(b1)/(a1+1))','problem','WRes'); 
-    %a1 = nTherm; b1 = |alpha0|^2 = nCoherent; 0.5*WRes^2 is for normalization  
-    [f,gof,~] = fit(xfit,Hfit,HTheory,'problem',WRes,'StartPoint', [nTherm,nCoherent],'Lower',[0,0] );
-    nTherm = f.a1;    
-    nCoherent = f.b1;
-    level = 2*tcdf(-1,gof.dfe);
-    m = confint(f,1-level);    
-    nThermErr = m(2,1) - nTherm; 
-    nCohErr = m(end,end) - nCoherent; 
-else 
+%     % https://de.mathworks.com/matlabcentral/answers/153414-estimator-standard-errors-using-fmincon-portfolio-optimization-context  
+else    
     [nThermErr, nCohErr] = deal(0);
 end
 
-% [Coherence, CoherenceErr,~, ~] = error_propagation( @(nTherm,nCoherent) coherencePDTS(nTherm,nCoherent), ...
-%     nTherm, nCoherent, nThermErr, nCohErr ); This gave nan values for
-%     some exc. Powers. Try sth else... 
-Coherence = coherencePDTS(nTherm,nCoherent);CoherenceErr = 0;
+[~, CoherenceErr,~, ~] = error_propagation( @(nTherm,nCoherent) coherencePDTS(nTherm,nCoherent), ...
+    nTherm, nCoherent, nThermErr, nCohErr );
+CoherenceErr(isnan(CoherenceErr)) = 0;
+Coherence = coherencePDTS(nTherm,nCoherent);
 HusFunc = 0.5*WRes^2*(pi*(nTherm+1))^-1 *exp(-(x.^2 + nCoherent)/(nTherm+1)) .* besseli(0,2*x*sqrt(nCoherent)/(nTherm+1));
 theoryHFCut = HusFunc(round(nBinsA/2),:);
 theoryHFCut = theoryHFCut/max(theoryHFCut);
@@ -112,9 +132,10 @@ plot(binsO1,theoryHFCut*0.5*max(binsO2)-max(binsO2),'r','Linewidth',2,'DisplayNa
 %set(gca,'XLim',limits,'YLim',limits);
 xlabel('q');
 ylabel('p');
-title('H(q,p)');
 pbaspect([1 1 1]);
 graphicsSettings;grid;
+ax = gca;
+set(ax,'FontSize',36,'FontName','Arial', 'TickDir','out');
 if showLegend
     legend('location','bestoutside','Fontsize',10);
 end
@@ -148,8 +169,8 @@ end
 % %ax3.XTick = (min(ax3.XLim):1:max(ax3.XLim));
 % graphicsSettings;grid;
 
-savefig([filename '-nbins-' num2str(nBinsA) '-Husimi.fig']);
-print([filename '-nbins-' num2str(nBinsA) '-Husimi.png'],'-dpng');
+savefig([filename '-nbins-' num2str(nBinsA) '-fitMethod-' fitMethod '-Husimi.fig']);
+print([filename '-nbins-' num2str(nBinsA) '-fitMethod-' fitMethod '-Husimi.png'],'-dpng','-r700');
 
 end
 

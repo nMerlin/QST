@@ -19,9 +19,15 @@ defaultPlotErrorbars = false; % if true, errorbars are plotted
 addParameter(p,'PlotErrorbars',defaultPlotErrorbars,@islogical);
 defaultLOpower = 4; % important to read out filename
 addParameter(p,'LOpower',defaultLOpower,@isnumeric);
+defaultShowLegend = true;
+addParameter(p,'ShowLegend',defaultShowLegend,@islogical);
+defaultFitMethod = 'NLSQ-LAR';
+addParameter(p,'FitMethod',defaultFitMethod,@isstr);
+defaultScale = true; %scales the O1 and O2 so they have the same photon number
+addParameter(p,'Scale',defaultScale,@islogical);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[loadExistent,LOpower,parameter,plotErrorbars,range,saveHusimi,xUnit] = c{:};
+[fitMethod,loadExistent,LOpower,parameter,plotErrorbars,range,saveHusimi,scale,showLegend,xUnit] = c{:};
 
 %% Variables
 dataStruct = struct; %will contain the quantities of interest 
@@ -96,108 +102,110 @@ for iStruct =  1:length(Contents)
             save(['mat-data\' filename],'O1','O2','iOrth','-append');
         end
     end
+    
+    if scale && mean([nPsFast nPsSlow]) >=1
+        % scaling works only properly for photon numbers >= 1
+        O1 = O1*sqrt(mean([nPsFast nPsSlow])/nPsFast);
+        O2 = O2*sqrt(mean([nPsFast nPsSlow])/nPsSlow);
+        scaled = true;
+    else 
+        scaled = false; 
+    end
   
-        
-        maxN = max(nPsFastVec(:));
-        minN = min(nPsFastVec(:));
-        medN = mean([maxN minN]);
-        if maxN-minN < range*medN  || nPsFast <1     
-        % If the fluctuation is small, there is probably only one state all the
-        % time, so one fit is enough. 
-            [H, binsO1, binsO2] = plotHusimiAndCut(O1,O2,0,0,0,'Filename',['Husimiplots\' filename],'MakeFit',false );
-            close all;
-            O1scaled = O1*sqrt(mean([nPsFast nPsSlow])/nPsFast);
-            O2scaled = O2*sqrt(mean([nPsFast nPsSlow])/nPsSlow);
-            [Hsc, binsO1sc, binsO2sc,rsc,nThermsc,nThermErr,nCoherentsc,nCohErr,meanNsc,Coherence,CoherenceErr] = ...
-                plotHusimiAndCut(O1scaled,O2scaled,0,0,0,'Filename',['Husimiplots\scaled-' filename],'MakeFit',true);
-             close all; 
-            if saveHusimi
-                save(['mat-data\' filename],'H','Hsc','binsO1','binsO1sc','binsO2','binsO2sc','-append');
-            end
-            rscMax = rsc;
-            [nThermscMax,nThermscHigh,nThermscLow] = deal(nThermsc);
-            [nCoherentscMax,nCoherentscHigh,nCoherentscLow] = deal(nCoherentsc);
-            [meanNscMax,meanNscHigh,meanNscLow] = deal(meanNsc);
-            [weightLow,weightHigh] = deal(0);
-            [CoherenceMax,CoherenceHigh,CoherenceLow] = deal(Coherence);
-            [nThermErrMax,nThermErrHigh,nThermErrLow] = deal(nThermErr);
-            [nCohErrMax,nCohErrHigh,nCohErrLow] = deal(nCohErr);
-            [CoherenceErrMax,CoherenceErrHigh,CoherenceErrLow] = deal(CoherenceErr);
-        else
-        % If the std is big, there is probably switching between states
-        % over time, so we make a fit for the lower and the higher state
-        % each. 
-            nPsFastVec = nPsFastVec(iOrth);
-            rangeLow = [0 medN];
-            %rangeLow = [0 (medN+minN)/2];
-            rangeHigh = [medN maxN];
-            %rangeHigh = [(medN+maxN)/2 maxN];
-            % for the low one 
-            iSelLow = find(nPsFastVec >= min(rangeLow) & nPsFastVec <= max(rangeLow));
-            O1s = O1(iSelLow);
-            O2s = O2(iSelLow);
-            [H, binsO1, binsO2] = plotHusimiAndCut(O1s,O2s,0,0,0,'Filename',['Husimiplots\' filename '-LowPhotonNumber'],'MakeFit',false );
-            close all;
-            O1scaled = O1s*sqrt(mean([nPsFast nPsSlow])/nPsFast);
-            O2scaled = O2s*sqrt(mean([nPsFast nPsSlow])/nPsSlow);
-            [Hsc, binsO1sc, binsO2sc,rscLow,nThermscLow,nThermErrLow,nCoherentscLow,nCohErrLow,meanNscLow,CoherenceLow,CoherenceErrLow] = ...
-                plotHusimiAndCut(O1scaled,O2scaled,0,0,0,'Filename',['Husimiplots\scaled-' filename '-LowPhotonNumber'],'MakeFit',true);
-             close all;
-             % for the high one 
-            iSelHigh = find(nPsFastVec >= min(rangeHigh) & nPsFastVec <= max(rangeHigh));
-            O1s = O1(iSelHigh);
-            O2s = O2(iSelHigh);
-            [H, binsO1, binsO2] = plotHusimiAndCut(O1s,O2s,0,0,0,'Filename',['Husimiplots\' filename '-HighPhotonNumber'],'MakeFit',false );
-            close all;
-            O1scaled = O1s*sqrt(mean([nPsFast nPsSlow])/nPsFast);
-            O2scaled = O2s*sqrt(mean([nPsFast nPsSlow])/nPsSlow);
-            [Hsc, binsO1sc, binsO2sc,rscHigh,nThermscHigh,nThermErrHigh,nCoherentscHigh,nCohErrHigh,meanNscHigh,CoherenceHigh,CoherenceErrHigh] = ...
-                plotHusimiAndCut(O1scaled,O2scaled,0,0,0,'Filename',['Husimiplots\scaled-' filename '-HighPhotonNumber'],'MakeFit',true);
-             close all;
-            % their respective weights
-            weightLow = length(iSelLow)/(length(iSelLow)+length(iSelHigh));
-            weightHigh = length(iSelHigh)/(length(iSelLow)+length(iSelHigh));
-            % weighted results
-            rsc = weightLow*rscLow + weightHigh*rscHigh;
-            nThermsc = weightLow*nThermscLow + weightHigh*nThermscHigh;
-            nCoherentsc = weightLow*nCoherentscLow + weightHigh*nCoherentscHigh;
-            meanNsc = weightLow*meanNscLow + weightHigh*meanNscHigh;
-            Coherence = weightLow*CoherenceLow + weightHigh*CoherenceHigh;
-            nThermErr = weightLow*nThermErrLow + weightHigh*nThermErrHigh;
-            nCohErr = weightLow*nCohErrLow + weightHigh*nCohErrHigh;
-            CoherenceErr = weightLow*CoherenceErrLow + weightHigh*CoherenceErrHigh;
-            % maximum results
-            rscMax = max([rscLow rscHigh]);
-            nThermscMax = max([nThermscLow nThermscHigh]);
-            nCoherentscMax = max([nCoherentscLow nCoherentscHigh]);
-            meanNscMax = max([meanNscLow meanNscHigh]);
-            CoherenceMax = max([CoherenceLow CoherenceHigh]);
-            nThermErrMax = max([nThermErrHigh nThermErrLow]);
-            nCohErrMax = max([nCohErrHigh nCohErrLow]);
-            CoherenceErrMax = max([CoherenceErrHigh CoherenceErrLow]);
-        end            
+    maxN = max(nPsFastVec(:));
+    minN = min(nPsFastVec(:));
+    medN = mean([maxN minN]);
+    if maxN-minN < range*medN  || nPsFast <1     
+    % If the fluctuation is small, there is probably only one state all the
+    % time, so one fit is enough. 
+        [H, binsO1, binsO2,r,nTherm,nThermErr,nCoherent,nCohErr,meanN,Coherence,CoherenceErr] = ...
+            plotHusimiAndCut(O1,O2,0,0,0,'Filename',['Husimiplots\' filename ...
+            '-scaled-' num2str(scaled) '-showLegend-' num2str(showLegend)],...
+            'ShowLegend',showLegend,'FitMethod',fitMethod);
+         close all; 
+        if saveHusimi
+            save(['mat-data\' filename],'H','binsO1','binsO2','-append');
+        end
+        rscMax = r;
+        [nThermMax,nThermHigh,nThermLow] = deal(nTherm);
+        [nCoherentMax,nCoherentHigh,nCoherentLow] = deal(nCoherent);
+        [meanNMax,meanNHigh,meanNLow] = deal(meanN);
+        [weightLow,weightHigh] = deal(0);
+        [CoherenceMax,CoherenceHigh,CoherenceLow] = deal(Coherence);
+        [nThermErrMax,nThermErrHigh,nThermErrLow] = deal(nThermErr);
+        [nCohErrMax,nCohErrHigh,nCohErrLow] = deal(nCohErr);
+        [CoherenceErrMax,CoherenceErrHigh,CoherenceErrLow] = deal(CoherenceErr);
+    else
+    % If the std is big, there is probably switching between states
+    % over time, so we make a fit for the lower and the higher state
+    % each. 
+        nPsFastVec = nPsFastVec(iOrth);
+        rangeLow = [0 medN];
+        %rangeLow = [0 (medN+minN)/2];
+        rangeHigh = [medN maxN];
+        %rangeHigh = [(medN+maxN)/2 maxN];
+        % for the low one 
+        iSelLow = find(nPsFastVec >= min(rangeLow) & nPsFastVec <= max(rangeLow));
+        O1s = O1(iSelLow);
+        O2s = O2(iSelLow);
+        [~, ~, ~,rLow,nThermLow,nThermErrLow,nCoherentLow,nCohErrLow,meanNLow,CoherenceLow,CoherenceErrLow] = ...
+            plotHusimiAndCut(O1s,O2s,0,0,0,'Filename',...
+            ['Husimiplots\' filename '-scaled-' num2str(scaled) '-showLegend-' num2str(showLegend) '-LowPhotonNumber'],...
+            'ShowLegend',showLegend,'FitMethod',fitMethod);
+         close all;
+         % for the high one 
+        iSelHigh = find(nPsFastVec >= min(rangeHigh) & nPsFastVec <= max(rangeHigh));
+        O1s = O1(iSelHigh);
+        O2s = O2(iSelHigh);
+        [~, ~, ~,rHigh,nThermHigh,nThermErrHigh,nCoherentHigh,nCohErrHigh,meanNHigh,CoherenceHigh,CoherenceErrHigh] = ...
+            plotHusimiAndCut(O1s,O2s,0,0,0,'Filename',...
+            ['Husimiplots\' filename '-scaled-' num2str(scaled) '-showLegend-' num2str(showLegend) '-HighPhotonNumber'],...
+            'ShowLegend',showLegend,'FitMethod',fitMethod);
+         close all;
+        % their respective weights
+        weightLow = length(iSelLow)/(length(iSelLow)+length(iSelHigh));
+        weightHigh = length(iSelHigh)/(length(iSelLow)+length(iSelHigh));
+        % weighted results
+        r = weightLow*rLow + weightHigh*rHigh;
+        nTherm = weightLow*nThermLow + weightHigh*nThermHigh;
+        nCoherent = weightLow*nCoherentLow + weightHigh*nCoherentHigh;
+        meanN = weightLow*meanNLow + weightHigh*meanNHigh;
+        Coherence = weightLow*CoherenceLow + weightHigh*CoherenceHigh;
+        nThermErr = weightLow*nThermErrLow + weightHigh*nThermErrHigh;
+        nCohErr = weightLow*nCohErrLow + weightHigh*nCohErrHigh;
+        CoherenceErr = weightLow*CoherenceErrLow + weightHigh*CoherenceErrHigh;
+        % maximum results
+        rscMax = max([rLow rHigh]);
+        nThermMax = max([nThermLow nThermHigh]);
+        nCoherentMax = max([nCoherentLow nCoherentHigh]);
+        meanNMax = max([meanNLow meanNHigh]);
+        CoherenceMax = max([CoherenceLow CoherenceHigh]);
+        nThermErrMax = max([nThermErrHigh nThermErrLow]);
+        nCohErrMax = max([nCohErrHigh nCohErrLow]);
+        CoherenceErrMax = max([CoherenceErrHigh CoherenceErrLow]);
+    end            
 %     end  
-    clear X1 X2 X3 theta piezoSign O1 O2 'H' 'Hsc' 'binsO1' 'binsO1sc' 'binsO2' 'binsO2sc' O1scaled O2scaled 
+    clear X1 X2 X3 theta piezoSign O1 O2 'H' 'binsO1' 'binsO2' 
     clear XpsFast XpsSlow nPsFast nPsSlow nPsFastVec
-    dataStruct(iStruct).r = rsc;
-    dataStruct(iStruct).nTherm = nThermsc;
-    dataStruct(iStruct).nCoherent = nCoherentsc;
-    dataStruct(iStruct).meanN = meanNsc;  
+    dataStruct(iStruct).r = r;
+    dataStruct(iStruct).nTherm = nTherm;
+    dataStruct(iStruct).nCoherent = nCoherent;
+    dataStruct(iStruct).meanN = meanN;  
     dataStruct(iStruct).Coherence = Coherence;
     dataStruct(iStruct).rMax = rscMax;
-    dataStruct(iStruct).nThermMax = nThermscMax;
-    dataStruct(iStruct).nCoherentMax = nCoherentscMax;
-    dataStruct(iStruct).meanNMax = meanNscMax; 
+    dataStruct(iStruct).nThermMax = nThermMax;
+    dataStruct(iStruct).nCoherentMax = nCoherentMax;
+    dataStruct(iStruct).meanNMax = meanNMax; 
     dataStruct(iStruct).CoherenceMax = CoherenceMax;  
     dataStruct(iStruct).weightLow = weightLow;
     dataStruct(iStruct).weightHigh = weightHigh;
-    dataStruct(iStruct).nThermHigh = nThermscHigh;
-    dataStruct(iStruct).nCoherentHigh = nCoherentscHigh;
-    dataStruct(iStruct).meanNHigh = meanNscHigh; 
+    dataStruct(iStruct).nThermHigh = nThermHigh;
+    dataStruct(iStruct).nCoherentHigh = nCoherentHigh;
+    dataStruct(iStruct).meanNHigh = meanNHigh; 
     dataStruct(iStruct).CoherenceHigh = CoherenceHigh;  
-    dataStruct(iStruct).nThermLow = nThermscLow;
-    dataStruct(iStruct).nCoherentLow = nCoherentscLow;
-    dataStruct(iStruct).meanNLow = meanNscLow;
+    dataStruct(iStruct).nThermLow = nThermLow;
+    dataStruct(iStruct).nCoherentLow = nCoherentLow;
+    dataStruct(iStruct).meanNLow = meanNLow;
     dataStruct(iStruct).CoherenceLow = CoherenceLow;     
     dataStruct(iStruct).nThermErr = nThermErr; 
     dataStruct(iStruct).nCohErr = nCohErr;  
@@ -235,33 +243,72 @@ nThermErrMax = cell2mat({dataStruct.nThermErrMax});
 nCohErrMax = cell2mat({dataStruct.nCohErrMax});
 CoherenceErrMax = cell2mat({dataStruct.CoherenceErrMax});
 
-save('Husimiplots\HusimiResultsScaled.mat','Is','r','nTherm','meanN','nCoherent',...
+save(['Husimiplots\HusimiResultsScaled-FitMethod-' fitMethod '-scaled-' num2str(scaled) '.mat'],'Is','r','nTherm','meanN','nCoherent',...
     'rMax','nThermMax','meanNMax','nCoherentMax','weightLow', 'weightHigh', 'nThermHigh', 'nCoherentHigh', 'meanNHigh', 'nThermLow', 'meanNLow','nCoherentLow',...
     'CoherenceHigh','CoherenceMax','Coherence','CoherenceLow','nThermErr','nCohErr','CoherenceErr','nThermErrMax','nCohErrMax','CoherenceErrMax');
-xlswrite('Husimiplots\HusimiResultsScaled.xls',[Is' r' nTherm' meanN' nCoherent' ...
+xlswrite(['Husimiplots\HusimiResultsScaled-' fitMethod '-scaled-' num2str(scaled) '.xls'],[Is' r' nTherm' meanN' nCoherent' ...
     rMax' nThermMax' meanNMax' nCoherentMax' weightLow' weightHigh' nThermHigh' nCoherentHigh' meanNHigh' nThermLow' meanNLow' nCoherentLow' ...
      CoherenceHigh' CoherenceMax' Coherence' CoherenceLow' nThermErr' nCohErr' CoherenceErr' nThermErrMax' nCohErrMax' CoherenceErrMax']);
 
+ %% plotting
 if strcmp(parameter,'Power')
-    parameter = 'Excitation power';
+    parameter = 'Excitation power P';
 end
- 
+fontsize = 20;
+fontname = 'Arial';
+filenameOptions = ['-scaled-' num2str(scale) '-FitMethod-' fitMethod '-errorbars-' num2str(plotErrorbars)]; 
+
+%% coherence
 if plotErrorbars
-    errorbar(Is,CoherenceLow,CoherenceErr,'o','linewidth',1.5);
+    errorbar(Is,CoherenceLow,zeros(length(Is),1),CoherenceErr,'ok','linewidth',1.5,'markerSize',10);
     f = gca;f.XScale = 'log'; hold on; 
-    errorbar(Is,CoherenceHigh,CoherenceErr,'o','linewidth',1.5);
-    errorbar(Is,Coherence,CoherenceErr,'o','linewidth',1.5);
+    errorbar(Is,CoherenceHigh,zeros(length(Is),1),CoherenceErr,'*k','linewidth',1.5,'markerSize',10);
 else
-    semilogx(Is,CoherenceLow,'ok',Is,CoherenceHigh,'*k');
+    semilogx(Is,CoherenceLow,'ok',Is,CoherenceHigh,'*k','markerSize',10);
 end
-legend('Coherence_{Low}','Coherence_{High}','location','northwest');
+l=legend('$\mathcal{C}_\mathrm{low}$','$\mathcal{C}_\mathrm{high}$','location',...
+    'northwest');
+l.Interpreter = 'latex';
+l.FontSize = fontsize+8;
 ylabel('Coherence');
 xlabel([parameter ' (' xUnit ')']);
 graphicsSettings;
-savefig('Husimiplots\CoherenceFromHusimiFunctions-semilogx.fig');
-print('Husimiplots\CoherenceFromHusimiFunctions-semilogx.png','-dpng');
+ax = gca;
+set(ax,'FontSize',fontsize,'FontName',fontname);
+savefig(['Husimiplots\CoherenceFromHusimiFunctions-semilogx' filenameOptions '.fig']);
+print(['Husimiplots\CoherenceFromHusimiFunctions-semilogx' filenameOptions '.png'],'-dpng','-r700');
 clf();
 
+%% photon numbers all together
+if plotErrorbars
+    errorbar(Is,nThermLow,zeros(length(Is),1),nThermErr,'ok','linewidth',1.5);
+    f = gca; f.XScale = 'log';f.YScale = 'log';hold on; 
+    errorbar(Is,nCoherentLow,zeros(length(Is),1),nCohErr,'or','linewidth',1.5);
+    errorbar(Is,nThermHigh,zeros(length(Is),1),nThermErr,'*k','linewidth',1.5);
+    errorbar(Is,nCoherentHigh,zeros(length(Is),1),nCohErr,'*r','linewidth',1.5);
+else
+    loglog(Is,nThermLow,'ok',Is,nCoherentLow,'or',Is,nThermHigh,'*k',Is,nCoherentHigh,'*r','markerSize',7);
+end
+l = legend('$\bar n_\mathrm{low}$','$|\alpha_{0,\mathrm{low}}|^2$','$\bar n_\mathrm{high}$',...
+    '$|\alpha_{0,\mathrm{high}}|^2$','location','northwest');
+l.Interpreter = 'latex';
+l.FontSize = fontsize+8;
+ylabel('Photon number');
+xlabel([parameter ' (' xUnit ')']);
+graphicsSettings;
+ax = gca;
+set(ax,'FontSize',fontsize,'FontName',fontname);
+savefig(['Husimiplots\PhotonNumbersFromHusimiFunctionsLowAndHigh' filenameOptions '.fig']);
+print(['Husimiplots\PhotonNumbersFromHusimiFunctionsLowAndHigh' filenameOptions '.png'],'-dpng','-r700');
+clf();
+
+%% errors
+plot(Is,nThermErr,'o',Is,nCohErr,'o',Is(CoherenceErr>0),CoherenceErr(CoherenceErr>0),'o');
+legend('nThermErr','nCohErr','CoherenceErr');
+savefig(['Errors' filenameOptions '.fig']);
+print(['Errors' filenameOptions '.png'],'-dpng');
+
+%%
 if plotErrorbars
     errorbar(Is,nTherm,nThermErr,'o','linewidth',1.5);
     f = gca; f.XScale = 'log';f.YScale = 'log';hold on; 
@@ -273,8 +320,10 @@ legend('n_{Thermal}','n_{Coherent}','location','northwest');
 ylabel('Photon number');
 xlabel([parameter ' (' xUnit ')']);
 graphicsSettings;
-savefig('Husimiplots\PhotonNumbersFromHusimiFunctionsWeighted.fig');
-print('Husimiplots\PhotonNumbersFromHusimiFunctionsWeighted.png','-dpng');
+ax = gca;
+set(ax,'FontSize',fontsize,'FontName',fontname);
+savefig(['Husimiplots\PhotonNumbersFromHusimiFunctionsWeighted' filenameOptions '.fig']);
+print(['Husimiplots\PhotonNumbersFromHusimiFunctionsWeighted' filenameOptions '.png'],'-dpng');
 clf();
 
 loglog(Is,nCoherent./nTherm,'o');
@@ -282,8 +331,10 @@ legend('n_{Coherent}/n_{Thermal}','location','northwest');
 ylabel('Ratio');
 xlabel([parameter ' (' xUnit ')']);
 graphicsSettings;
-savefig('Husimiplots\PhotonNumberRatioFromHusimiFunctionsWeighted.fig');
-print('Husimiplots\PhotonNumberRatioFromHusimiFunctionsWeighted.png','-dpng');
+ax = gca;
+set(ax,'FontSize',fontsize,'FontName',fontname);
+savefig(['Husimiplots\PhotonNumberRatioFromHusimiFunctionsWeighted' filenameOptions '.fig']);
+print(['Husimiplots\PhotonNumberRatioFromHusimiFunctionsWeighted' filenameOptions '.png'],'-dpng');
 clf();
 
 semilogx(Is,nCoherent./nTherm,'o');
@@ -291,8 +342,10 @@ legend('n_{Coherent}/n_{Thermal}','location','northwest');
 ylabel('Ratio');
 xlabel([parameter ' (' xUnit ')']);
 graphicsSettings;
-savefig('Husimiplots\PhotonNumberRatioFromHusimiFunctionsWeighted-semilogx.fig');
-print('Husimiplots\PhotonNumberRatioFromHusimiFunctionsWeighted-semilogx.png','-dpng');
+ax = gca;
+set(ax,'FontSize',fontsize,'FontName',fontname);
+savefig(['Husimiplots\PhotonNumberRatioFromHusimiFunctionsWeighted-semilogx' filenameOptions '.fig']);
+print(['Husimiplots\PhotonNumberRatioFromHusimiFunctionsWeighted-semilogx' filenameOptions '.png'],'-dpng');
 clf();
 
 loglog(Is,nThermMax,'o');hold on;loglog(Is,nCoherentMax,'o');
@@ -300,8 +353,10 @@ legend('n_{Thermal}','n_{Coherent}','location','northwest');
 ylabel('Photon number');
 xlabel([parameter ' (' xUnit ')']);
 graphicsSettings;
-savefig('Husimiplots\PhotonNumbersFromHusimiFunctionsMax.fig');
-print('Husimiplots\PhotonNumbersFromHusimiFunctionsMax.png','-dpng');
+ax = gca;
+set(ax,'FontSize',fontsize,'FontName',fontname);
+savefig(['Husimiplots\PhotonNumbersFromHusimiFunctionsMax-FitMethod' filenameOptions '.fig']);
+print(['Husimiplots\PhotonNumbersFromHusimiFunctionsMax-FitMethod' filenameOptions '.png'],'-dpng');
 clf();
 
 loglog(Is,nCoherentMax./nThermMax,'o');
@@ -309,17 +364,10 @@ legend('n_{Coherent}/n_{Thermal}','location','northwest');
 ylabel('Ratio');
 xlabel([parameter ' (' xUnit ')']);
 graphicsSettings;
-savefig('Husimiplots\PhotonNumberRatioFromHusimiFunctionsMax.fig');
-print('Husimiplots\PhotonNumberRatioFromHusimiFunctionsMax.png','-dpng');
-clf();
-
-loglog(Is,nThermLow,'ok',Is,nCoherentLow,'or',Is,nThermHigh,'*k',Is,nCoherentHigh,'*r');
-legend('n_{Thermal,Low}','n_{Coherent,Low}','n_{Thermal,High}','n_{Coherent,High}','location','northwest');
-ylabel('Photon number');
-xlabel([parameter ' (' xUnit ')']);
-graphicsSettings;
-savefig('Husimiplots\PhotonNumbersFromHusimiFunctionsLowAndHigh.fig');
-print('Husimiplots\PhotonNumbersFromHusimiFunctionsLowAndHigh.png','-dpng');
+ax = gca;
+set(ax,'FontSize',fontsize,'FontName',fontname);
+savefig(['Husimiplots\PhotonNumberRatioFromHusimiFunctionsMax-FitMethod' filenameOptions '.fig']);
+print(['Husimiplots\PhotonNumberRatioFromHusimiFunctionsMax-FitMethod' filenameOptions '.png'],'-dpng');
 clf();
 
 semilogx(Is,nThermLow,'o',Is,nCoherentLow,'o',Is,nThermHigh,'o',Is,nCoherentHigh,'o');
@@ -327,8 +375,10 @@ legend('n_{Thermal,Low}','n_{Coherent,Low}','n_{Thermal,High}','n_{Coherent,High
 ylabel('Photon number');
 xlabel([parameter ' (' xUnit ')']);
 graphicsSettings;
-savefig('Husimiplots\PhotonNumbersFromHusimiFunctionsLowAndHigh-semilogx.fig');
-print('Husimiplots\PhotonNumbersFromHusimiFunctionsLowAndHigh-semilogx.png','-dpng');
+ax = gca;
+set(ax,'FontSize',fontsize,'FontName',fontname);
+savefig(['Husimiplots\PhotonNumbersFromHusimiFunctionsLowAndHigh-semilogx' filenameOptions '.fig']);
+print(['Husimiplots\PhotonNumbersFromHusimiFunctionsLowAndHigh-semilogx' filenameOptions '.png'],'-dpng');
 clf();
 
 loglog(Is,meanNLow,'o',Is,meanNHigh,'o');
@@ -336,8 +386,10 @@ legend('n_{total,Low}','n_{total,High}','location','northwest');
 ylabel('Photon number');
 xlabel([parameter ' (' xUnit ')']);
 graphicsSettings;
-savefig('Husimiplots\PhotonNumbersFromHusimiFunctionsMeanNLowAndHigh.fig');
-print('Husimiplots\PhotonNumbersFromHusimiFunctionsMeanNLowAndHigh.png','-dpng');
+ax = gca;
+set(ax,'FontSize',fontsize,'FontName',fontname);
+savefig(['Husimiplots\PhotonNumbersFromHusimiFunctionsMeanNLowAndHigh' filenameOptions '.fig']);
+print(['Husimiplots\PhotonNumbersFromHusimiFunctionsMeanNLowAndHigh' filenameOptions '.png'],'-dpng');
 clf();
 
 semilogx(Is,weightLow,'o',Is,weightHigh,'o');
@@ -345,8 +397,10 @@ legend('Low','High','location','northwest');
 ylabel('Relative abundance');
 xlabel([parameter ' (' xUnit ')']);
 graphicsSettings;
-savefig('Husimiplots\PhotonNumbersFromHusimiFunctionsWeights.fig');
-print('Husimiplots\PhotonNumbersFromHusimiFunctionsWeights.png','-dpng');
+ax = gca;
+set(ax,'FontSize',fontsize,'FontName',fontname);
+savefig(['Husimiplots\PhotonNumbersFromHusimiFunctionsWeights' filenameOptions '.fig']);
+print(['Husimiplots\PhotonNumbersFromHusimiFunctionsWeights' filenameOptions '.png'],'-dpng');
 clf();
 
 
