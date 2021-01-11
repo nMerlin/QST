@@ -1,5 +1,5 @@
 function HusimiSeriesFromQuadratures( chAssign, varargin)
-%chAssign... 
+%computes and plots Husimi functions from quadrature data located in the folder 'mat-data'. 
 
 % Optional input arguments
 %% Validate and parse input arguments
@@ -21,13 +21,20 @@ defaultLOpower = 4; % important to read out filename
 addParameter(p,'LOpower',defaultLOpower,@isnumeric);
 defaultShowLegend = true;
 addParameter(p,'ShowLegend',defaultShowLegend,@islogical);
-defaultFitMethod = 'NLSQ-LAR';
+defaultFitMethod = 'NLSQ-LAR'; %this is the most stable method 
 addParameter(p,'FitMethod',defaultFitMethod,@isstr);
 defaultScale = true; %scales the O1 and O2 so they have the same photon number
 addParameter(p,'Scale',defaultScale,@islogical);
+defaultPlotOption = true;
+addParameter(p,'PlotOption',defaultPlotOption,@islogical);
+defaultMonteCarloError = true; %get errors from MonteCarlo error estimation
+addParameter(p,'MonteCarloError',defaultMonteCarloError,@islogical);
+defaultNMonteCarlo = 1000; % size of sample for MonteCarlo error estimation
+addParameter(p,'NMonteCarlo',defaultNMonteCarlo,@isnumeric);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[fitMethod,loadExistent,LOpower,parameter,plotErrorbars,range,saveHusimi,scale,showLegend,xUnit] = c{:};
+[fitMethod,loadExistent,LOpower,monteCarloError,NMonteCarlo,parameter,...
+    plotErrorbars,plotOption,range,saveHusimi,scale,showLegend,xUnit] = c{:};
 
 %% Variables
 dataStruct = struct; %will contain the quantities of interest 
@@ -118,15 +125,37 @@ for iStruct =  1:length(Contents)
     if maxN-minN < range*medN  || nPsFast <1     
     % If the fluctuation is small, there is probably only one state all the
     % time, so one fit is enough. 
-        [H, binsO1, binsO2,r,nTherm,nThermErr,nCoherent,nCohErr,meanN,Coherence,CoherenceErr] = ...
+        [H, binsO1, binsO2,r,nTherm,nThermErr,nCoherent,nCohErr,meanN,Coherence,CoherenceErr,poissonErrors] = ...
             plotHusimiAndCut(O1,O2,0,0,0,'Filename',['Husimiplots\' filename ...
             '-scaled-' num2str(scaled) '-showLegend-' num2str(showLegend)],...
-            'ShowLegend',showLegend,'FitMethod',fitMethod);
+            'ShowLegend',showLegend,'FitMethod',fitMethod,'Plot',plotOption,'MonteCarloError',false);
          close all; 
         if saveHusimi
             save(['mat-data\' filename],'H','binsO1','binsO2','-append');
         end
         rscMax = r;
+        
+        if monteCarloError
+        % make Monte Carlo Error Propagation
+            [nThermRand,nCoherentRand,CoherenceRand] = deal(zeros(NMonteCarlo,1));
+            fitFunction = fittype('0.5*WRes^2*(pi*(a1+1))^-1 *exp(-(x.^2 + b1)/(a1+1)) .* besseli(0,2*x*sqrt(b1)/(a1+1))','problem','WRes'); 
+            parfor i = 1:NMonteCarlo
+                Hrandom = normrnd(H,poissonErrors);               
+                [~, ~, ~,~,nTh,~,nC,~,~,C,~,~] = ...
+                plotHusimiAndCut(O1,O2,Hrandom,binsO1,binsO2,'Filename','-',...
+                'FitMethod',fitMethod,'Plot',false,'fitFunction',fitFunction,'MonteCarloError',true);
+                nThermRand(i) = nTh;
+                nCoherentRand(i) = nC;
+                CoherenceRand(i) = C;
+            end
+            nThermMean = mean(nThermRand);
+            nThermErr = std(nThermRand);
+            nCohMean = mean(nCoherentRand);
+            nCohErr = std(nCoherentRand);
+            CoherenceMean = mean(CoherenceRand);        
+            CoherenceErr = std(CoherenceRand);
+        end
+        
         [nThermMax,nThermHigh,nThermLow] = deal(nTherm);
         [nCoherentMax,nCoherentHigh,nCoherentLow] = deal(nCoherent);
         [meanNMax,meanNHigh,meanNLow] = deal(meanN);
@@ -151,7 +180,7 @@ for iStruct =  1:length(Contents)
         [~, ~, ~,rLow,nThermLow,nThermErrLow,nCoherentLow,nCohErrLow,meanNLow,CoherenceLow,CoherenceErrLow] = ...
             plotHusimiAndCut(O1s,O2s,0,0,0,'Filename',...
             ['Husimiplots\' filename '-scaled-' num2str(scaled) '-showLegend-' num2str(showLegend) '-LowPhotonNumber'],...
-            'ShowLegend',showLegend,'FitMethod',fitMethod);
+            'ShowLegend',showLegend,'FitMethod',fitMethod,'Plot',plotOption);
          close all;
          % for the high one 
         iSelHigh = find(nPsFastVec >= min(rangeHigh) & nPsFastVec <= max(rangeHigh));
@@ -160,7 +189,7 @@ for iStruct =  1:length(Contents)
         [~, ~, ~,rHigh,nThermHigh,nThermErrHigh,nCoherentHigh,nCohErrHigh,meanNHigh,CoherenceHigh,CoherenceErrHigh] = ...
             plotHusimiAndCut(O1s,O2s,0,0,0,'Filename',...
             ['Husimiplots\' filename '-scaled-' num2str(scaled) '-showLegend-' num2str(showLegend) '-HighPhotonNumber'],...
-            'ShowLegend',showLegend,'FitMethod',fitMethod);
+            'ShowLegend',showLegend,'FitMethod',fitMethod,'Plot',plotOption);
          close all;
         % their respective weights
         weightLow = length(iSelLow)/(length(iSelLow)+length(iSelHigh));
@@ -243,10 +272,10 @@ nThermErrMax = cell2mat({dataStruct.nThermErrMax});
 nCohErrMax = cell2mat({dataStruct.nCohErrMax});
 CoherenceErrMax = cell2mat({dataStruct.CoherenceErrMax});
 
-save(['Husimiplots\HusimiResultsScaled-FitMethod-' fitMethod '-scaled-' num2str(scaled) '.mat'],'Is','r','nTherm','meanN','nCoherent',...
+save(['Husimiplots\HusimiResultsScaled-FitMethod-' fitMethod '-scaled-' num2str(scaled) '-MCErr-' num2str(monteCarloError) '.mat'],'Is','r','nTherm','meanN','nCoherent',...
     'rMax','nThermMax','meanNMax','nCoherentMax','weightLow', 'weightHigh', 'nThermHigh', 'nCoherentHigh', 'meanNHigh', 'nThermLow', 'meanNLow','nCoherentLow',...
     'CoherenceHigh','CoherenceMax','Coherence','CoherenceLow','nThermErr','nCohErr','CoherenceErr','nThermErrMax','nCohErrMax','CoherenceErrMax');
-xlswrite(['Husimiplots\HusimiResultsScaled-' fitMethod '-scaled-' num2str(scaled) '.xls'],[Is' r' nTherm' meanN' nCoherent' ...
+xlswrite(['Husimiplots\HusimiResultsScaled-' fitMethod '-scaled-' num2str(scaled) '-MCErr-' num2str(monteCarloError) '.xls'],[Is' r' nTherm' meanN' nCoherent' ...
     rMax' nThermMax' meanNMax' nCoherentMax' weightLow' weightHigh' nThermHigh' nCoherentHigh' meanNHigh' nThermLow' meanNLow' nCoherentLow' ...
      CoherenceHigh' CoherenceMax' Coherence' CoherenceLow' nThermErr' nCohErr' CoherenceErr' nThermErrMax' nCohErrMax' CoherenceErrMax']);
 
@@ -256,7 +285,7 @@ if strcmp(parameter,'Power')
 end
 fontsize = 20;
 fontname = 'Arial';
-filenameOptions = ['-scaled-' num2str(scale) '-FitMethod-' fitMethod '-errorbars-' num2str(plotErrorbars)]; 
+filenameOptions = ['-scaled-' num2str(scale) '-FitMethod-' fitMethod '-errorbars-' num2str(plotErrorbars) '-MCErr-' num2str(monteCarloError)]; 
 
 %% coherence
 if plotErrorbars
