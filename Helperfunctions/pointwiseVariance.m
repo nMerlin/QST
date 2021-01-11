@@ -45,7 +45,7 @@ end
 %pvar = var(double(data),0,2);
 
 %% Find peaks
-options.MinPeakHeight = mean(pvar);
+options.MinPeakHeight = 0.5*mean(pvar);
 options.MinPeakDistance = minPeakDist;
 [~,locs] = findpeaks(pvar,options);
 if strcmp(plotOpt,'show')

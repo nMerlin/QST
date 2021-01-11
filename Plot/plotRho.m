@@ -12,7 +12,15 @@ parse(p,varargin{:});
 c = struct2cell(p.Results);
 [axes_handle] = c{:};
 
-h = bar3(axes_handle,real(rho));
+h = bar3(axes_handle, abs(rho));
+%h = bar3(axes_handle,real(rho));
+%h = bar3(axes_handle,imag(rho));
+
+for k = 1:length(h)
+    zdata = h(k).ZData;
+    h(k).CData = zdata;
+    h(k).FaceColor = 'interp';
+end
 
 end
 

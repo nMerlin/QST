@@ -25,7 +25,7 @@ text(locs+10,pks,num2str(locs'));
 title('Single-Sided Amplitude Spectrum');
 xlabel('f (Hz)');
 ylabel('|P1(f)|');
-axis([0 500 0 max(P1)]);
+%axis([0 500 0 max(P1)]);
 
 % Saving 
 outputFilename = ['FFT-' filename '.jpg'];

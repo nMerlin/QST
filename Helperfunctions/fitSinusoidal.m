@@ -38,39 +38,39 @@ c = struct2cell(p.Results);
 
 %% Correcting input data format
 % Remove NaN-entries
-y = y(~isnan(y));
-x = x(~isnan(x));
+yNew = y((~isnan(y)&(~isnan(x))));
+xNew = x((~isnan(y)&(~isnan(x))));
 % Ensure row-vectors
-if ~isrow(y)
-    y = y';
+if ~isrow(yNew)
+    yNew = yNew';
 end
-if ~isrow(x)
-    x = x';
+if ~isrow(xNew)
+    xNew = xNew';
 end
 % Sort according to x values
-[x,sortedI] = sort(x);
-y = y(sortedI);
+[xNew,sortedI] = sort(xNew);
+yNew = yNew(sortedI);
 
 %% Estimate fit paramters
 % Estimate offset
-yMax = max(y);
-yMin = min(y);
+yMax = max(yNew);
+yMin = min(yNew);
 yRange = (yMax-yMin);
-yZero = y-yMax+(yRange/2);
+yZero = yNew-yMax+(yRange/2);
 yOffset = yMin + yRange/2;
 if periods == -1
     % Estimate periods by finding zero crossings
     zeroIndicator = yZero.* circshift(yZero, [0 1]);
-    zerosX = x([1 zeroIndicator(2:end)] <= 0);
+    zerosX = xNew([1 zeroIndicator(2:end)] <= 0);
     period = 2*mean(diff(zerosX));
 else
-    period = (x(end)-x(1))/periods;
+    period = (xNew(end)-xNew(1))/periods;
 end
 
 % Function to fit
 fitFunction = @(b,x)  b(1).*(sin(2*pi*x./b(2) + b(3))) + b(4);
 % Least-Squares cost function
-squaresFunction = @(b) sum((fitFunction(b,x) - y).^2);
+squaresFunction = @(b) sum((fitFunction(b,xNew) - yNew).^2);
 % Minimize Least-Squares (with lower boundaries)
 [fitParams,~,exitFlag] = fminsearchbnd(squaresFunction, ...
     [yRange/2;period;phase;yOffset], [0;0;-inf;-inf]);
@@ -79,7 +79,7 @@ squaresFunction = @(b) sum((fitFunction(b,x) - y).^2);
 if rmFlag
     fitFunction = @(b,x)  b(1).*(sin(2*pi*x./b(2) + 2*pi/b(3))) ...
         + b(4) + b(5) .* x;
-    squaresFunction = @(b) sum((fitFunction(b,x) - y).^2);
+    squaresFunction = @(b) sum((fitFunction(b,xNew) - yNew).^2);
     [fitParams,~,exitFlag] = fminsearchbnd(squaresFunction, ...
     [fitParams; 0], [0; 0; -inf; -inf; -inf]);
 end
@@ -87,7 +87,7 @@ end
 %% Plot raw data and fitted function
 if strcmp(plotOpt,'show')
     figure(1)
-    plot(x,y,'.',x,fitFunction(fitParams,x),'r')
+    plot(xNew,yNew,'.',xNew,fitFunction(fitParams,xNew),'r')
     grid
 end
     

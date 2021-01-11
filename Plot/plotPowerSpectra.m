@@ -162,11 +162,11 @@ title(['CMRR = ' num2str(peakOneDiode-peakTwoDiodes,3) ' dB']);
 set(gca,'FontSize',12);
 
 % Saving figure
-%print([outputFilename,'.jpg'],outputFiletype);
-%saveA5Landscape(outputFilename);
+print([outputFilename,'.jpg'],outputFiletype);
+saveA5Landscape(outputFilename);
 set(gcf,'Color','w');
-formatFigA5;
-export_fig power-spectra.pdf
+% formatFigA5;
+% export_fig power-spectra.pdf
 
 dispstat('Finished!','timestamp',quiet);
 
