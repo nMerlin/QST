@@ -1,4 +1,4 @@
-function [H, binsO1, binsO2,r,nTherm, nThermErr,nCoherent,nCohErr,meanN,Coherence,CoherenceErr,poissonErrors] = plotHusimiAndCut(O1,O2,H,binsO1,binsO2,varargin)
+function [H, binsO1, binsO2,r,nTherm, nThermErr,nCoherent,nCohErr,meanN,Coherence,CoherenceErr,poissonErrors,nRatio,g2] = plotHusimiAndCut(O1,O2,H,binsO1,binsO2,varargin)
 %Plot histogram of Husimi-Q function and cut along q axis
 % Either make it new from the orthogonal postselection quadratures O1,O2.
 % Then set H, binsO1,binsO2 = 0.
@@ -133,6 +133,9 @@ else
     [nThermErr, nCohErr] = deal(0);
 end
 
+nRatio = nCoherent/nTherm;
+g2 = 2 - (nCoherent/(nCoherent+nTherm))^2;
+%masterthesis Lueders, p.12,13
 Coherence = coherencePDTS(nTherm,nCoherent);
 if monteCarloError
     CoherenceErr = 0;
@@ -147,7 +150,7 @@ end
 %% plot
 if plotOption
     %% plot Husimi function
-    pcolor(binsO1,binsO2,H); shading 'flat'; axis on; colormap hot; colorbar; hold on;
+    pcolor(binsO1,binsO2,H); shading 'flat'; axis on; colormap hot; hBar = colorbar; hold on;
     scatter(O1(iSelect),O2(iSelect),'.g','DisplayName','Postselection'); 
     % plot(binsO1,Hcut/max(Hcut)*0.5*max(binsO2)-max(binsO2),'w','Linewidth',2,'DisplayName','Cut');
     % hold on;
@@ -163,23 +166,27 @@ if plotOption
     if showLegend
         legend('location','bestoutside','Fontsize',10);
     end
+    xL = ax.XLim;
+    BarPos = get(hBar,'Position');
+    set(hBar,'Position',BarPos+[0.03 0 0 -0.1]);
     savefig([filename '-nbins-' num2str(nBinsA) '-fitMethod-' fitMethod '-Husimi.fig']);
     print([filename '-nbins-' num2str(nBinsA) '-fitMethod-' fitMethod '-Husimi.png'],'-dpng','-r700');
     clf();
 
 
     %%  plot Cut through Husimi function 
-    line = shadedErrorBar(binsO1,Hcut,poissonErrorsCut);
+    line = shadedErrorBar(binsO1,Hcut,poissonErrorsCut,'lineProps',{'k-','Linewidth',3});
     line.DisplayName= 'Data';
     hold on;
-    plot(binsO1,theoryHFCut,'r','Linewidth',2,'DisplayName',...
+    plot(binsO1,theoryHFCut,'r','Linewidth',3,'DisplayName',...
         ['Theory, n_{Th} = ' num2str(nTherm,'%.0f') ', n_{Coh} = ' num2str(nCoherent,'%.0f') ]);
     xlabel('q');
     ylabel('Q(q,p)');
     %legend('location','southwest');
     graphicsSettings;
     ax = gca;
-    set(ax,'FontSize',36,'FontName','Arial');
+    set(ax,'FontSize',50,'FontName','Arial','linewidth',3);
+    ax.XLim=xL;
     savefig([filename '-nbins-' num2str(nBinsA) '-fitMethod-' fitMethod '-Cut.fig']);
     print([filename '-nbins-' num2str(nBinsA) '-fitMethod-' fitMethod '-Cut.png'],'-dpng','-r700');
 end
