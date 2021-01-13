@@ -12,11 +12,13 @@ c = struct2cell(p.Results);
     nAvs1 = nAvs;
     g2Avs1 = g2Avs;
     g2Stds1 = g2Stds;
-    load(['AverageNandG2-X2-' filename '.mat']);
-    Is2 = Is;
-    nAvs2 = nAvs;
-    g2Avs2 = g2Avs;
-    g2Stds2 = g2Stds;
+    if ChNumber == 2|| ChNumber ==3
+        load(['AverageNandG2-X2-' filename '.mat']);
+        Is2 = Is;
+        nAvs2 = nAvs;
+        g2Avs2 = g2Avs;
+        g2Stds2 = g2Stds;
+    end
     if ChNumber == 3
         load(['AverageNandG2-X3-' filename '.mat']);
         Is3 = Is;
@@ -25,11 +27,14 @@ c = struct2cell(p.Results);
         g2Stds3 = g2Stds;
     end
     
-    errorbar(Is1, g2Avs1,g2Stds1,'ro','markerSize',7,'markerFaceColor','r','markerEdgeColor','r','linewidth',1.2,'DisplayName','Channel 1');
+    l = errorbar(Is1, g2Avs1,g2Stds1,'ro','markerSize',7,'markerFaceColor','r','markerEdgeColor','r','linewidth',1.2);
     f = gca;
     f.XScale = 'log';
-    hold on;
-    errorbar(Is2, g2Avs2,g2Stds2,'ko','markerSize',7,'markerFaceColor','k','markerEdgeColor','k','linewidth',1.2,'DisplayName','Channel 2');
+    if ChNumber ==2 || ChNumber ==3
+        l.DisplayName='Channel 1';
+        hold on;
+        errorbar(Is2, g2Avs2,g2Stds2,'ko','markerSize',7,'markerFaceColor','k','markerEdgeColor','k','linewidth',1.2,'DisplayName','Channel 2');
+    end
     if ChNumber == 3    
         errorbar(Is3, g2Avs3,g2Stds3,'bo','markerSize',7,'markerFaceColor','b','markerEdgeColor','b','linewidth',1.2,'DisplayName','Channel 3');
     end
@@ -48,8 +53,8 @@ c = struct2cell(p.Results);
     ylim([0.5 2.5]);
 
     %print('g2overCurrent','-dpng');
-    print(['g2overPower-allCh-' filename],'-dpng');
-    savefig(['g2overPower-allCh-' filename '.fig']);
+    print(['g2overPower-allCh-ChNumber-' num2str(ChNumber) filename],'-dpng');
+    savefig(['g2overPower-allCh-ChNumber-' num2str(ChNumber) filename '.fig']);
 
     clf();
     % 
@@ -70,6 +75,6 @@ c = struct2cell(p.Results);
     end
     legend('location','northwest');
     graphicsSettings
-    print(['NoverPower-allCh-' filename],'-dpng');
-    savefig(['NoverPower-allCh-' filename '.fig']);
+    print(['NoverPower-allCh-ChNumber-' num2str(ChNumber) filename],'-dpng');
+    savefig(['NoverPower-allCh-ChNumber-' num2str(ChNumber) filename '.fig']);
 end
