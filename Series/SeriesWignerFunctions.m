@@ -1,10 +1,15 @@
-loadExistent = true;
+loadExistent = false;
 %get Wigner function for one delay, several postselection parameters
 t = 0.4;
 listOfParams = struct('Type',{'fullcircle'},'Position',{[0.5 t],[1,t],[1.5 t],...
-[2 t],[3 t],[4,t],[5 t],[6 t],[7 t],[8 t],[9 t],[10 t],[11 t],[12 t],[13 t]});
-filename = '278--4,600mm-493,904mW-4mW-LOwithDL-corrRemove-Wigner';
-foldername = ['Wignerfunctions-278--4.6mm-radiusSeries-thickness-' num2str(t) '-corrRemove'];
+[2 t],[3 t],[4,t],[5 t],[6 t],[7 t],[8 t]});
+directory = 'C:\Users\Carolin Lüders\Documents\archived-data\Wigner';
+filename = '56-30,000mm-4mW-LOwithDL-corrRemove-Wigner-scaledO-';
+foldername = ['Wignerfunctions-56-30,000mm-radiusSeries-thickness-' num2str(t) '-corrRemove'];
+% filename = '218-30,000mm-355,030mW-4mW-LOwithDL-corrRemove-Wigner-scaledO-';
+% foldername = ['Wignerfunctions-218-30,000mm-radiusSeries-thickness-' num2str(t) '-corrRemove'];
+% filename = '278--4,600mm-493,904mW-4mW-LOwithDL-corrRemove-Wigner';
+% foldername = ['Wignerfunctions-278--4.6mm-radiusSeries-thickness-' num2str(t) '-corrRemove'];
 %filename = '278--4,600mm-493,904mW-4mW-LOwithDL-corrRemove-orthwidth-0.02-Wigner';
 %foldername = ['Wignerfunctions-278--4.6mm-radiusSeries-thickness-' num2str(t) '-corrRemove-orthwidth-0.02'];
 
@@ -19,8 +24,8 @@ if ~loadExistent
         %         load(['post-data\' filename selStr '-remMod-0-range-0.3-varyAPS-0.mat']);
         [selX,selTheta] = selectRegion(O1,O2,O3,oTheta,selParams);
         tic;
-        rho = computeDensityMatrix(selX,selTheta,'MaxFockState',60);
-        WF = mainWignerFromRho(rho);
+        rho = computeDensityMatrix(selX,selTheta,'MaxFockState',60,'Iterations',200);
+        WF = mainWignerFromRho(rho,'Directory',directory);
         toc;
         % save(['post-data\' filename selStr '-remMod-0-range-0.3-varyAPS-0.mat'],'rho','WF','-append');
         save([foldername '\' filename selStr '-remMod-0-range-0.3-varyAPS-0.mat'],'rho','WF');
@@ -62,7 +67,7 @@ for iParams = 1:length(listOfParams)
     g1WithAmpNorms(iParams) = g1WithAmpNorm;
 end
 
-save([foldername '\Wignerresults.mat'],'Q','P','varQ','varP','n',...
+save([foldername '\Wignerresults.mat'],'Aps','Q','P','varQ','varP','n',...
     'meanPhases','meanAmps','varPhases','varAmps','meanAbsPhases',...
     'g1WithAmps','g1WithoutAmps','g1WithoutAmpBinneds','g1WithAmpNorms');
 
