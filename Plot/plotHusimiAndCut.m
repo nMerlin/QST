@@ -181,7 +181,7 @@ if plotOption
     plot(binsO1,theoryHFCut,'r','Linewidth',3,'DisplayName',...
         ['Theory, n_{Th} = ' num2str(nTherm,'%.0f') ', n_{Coh} = ' num2str(nCoherent,'%.0f') ]);
     xlabel('q');
-    ylabel('Q(q,p)');
+    ylabel('Q(q,p = 0)');
     %legend('location','southwest');
     graphicsSettings;
     ax = gca;
