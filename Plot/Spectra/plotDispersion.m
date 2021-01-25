@@ -26,7 +26,7 @@ defaultPlotMode = 'no';
 addParameter(parser,'PlotMode',defaultPlotMode); % if yes, the selected mode is indicated in the plot. 
 defaultMinY = 200; 
 addParameter(parser,'minY',defaultMinY,@isnumeric); % y position of k = 0 (y -->k, x --> energy or wavelength) 
-defaultXAperture = 330; 
+defaultXAperture = 330; %size of full Fourier space in pixels; NA corresponds to half of this. 
 addParameter(parser,'xAperture',defaultXAperture,@isnumeric);
 defaultModeK = [-0.66 0.66]; 
 addParameter(parser,'ModeK',defaultModeK,@isnumeric); % k range in which the mode is selected
@@ -46,9 +46,11 @@ defaultR = 9.5;  %Rabi splitting in meV
 addParameter(parser,'R',defaultR,@isnumeric);
 defaultEX = 1.6195;  %Exciton energy in eV
 addParameter(parser,'EX',defaultEX,@isnumeric);
+defaultPlotOption = true;
+addParameter(parser,'PlotOption',defaultPlotOption,@islogical);
 parse(parser,varargin{:});
 c = struct2cell(parser.Results);
-[aOld,E0Old,EX,fitoption,minY,modeE,modeK,plotMode,plottype,R,subtract,xAperture,y0Old,zoomE] = c{:};
+[aOld,E0Old,EX,fitoption,minY,modeE,modeK,plotMode,plotOption,plottype,R,subtract,xAperture,y0Old,zoomE] = c{:};
 
 %% fourier pixel
 % take values from calibration measurement
@@ -135,15 +137,15 @@ end
 %% compute k from y
 theta_max = asin(NA);
 theta = (y - y0)*2*theta_max/xAperture;
-k = E0*e0*2*pi/(h*c0) * sin(theta);
+k = E0*e0*2*pi/(h*c0) * sin(theta); %See Kasprak 2006:Bose–Einstein condensation ofexciton polaritons
 k = k *1e-6; %k in 1/micrometer
 
 %% get mode integrated intensity and energy of mode maximum
 modeRangeE = energy>=min(modeE) & energy <= max(modeE);
 modeRangeK = k >=min(modeK) & k <= max(modeK);
-modeInt = sum(sum(Int(modeRangeE, modeRangeK)));
+modeIntPreliminary = sum(sum(Int(modeRangeE, modeRangeK)));
 modeEnergy = energy(modeRangeE);
-[~,index]=max(modeInt);
+[~,index]=max(modeIntPreliminary);
 Emax = modeEnergy(index);
  
 %% make 2D surface plot
@@ -191,8 +193,10 @@ text(0.1, 0.1, ['integr. Int ' num2str(SumInt,'%.0f') ' counts'],'FontSize',font
     'Units','normalized','Color','w');
 
 cd('..');
+if plotOption
 print([filenameSIG '-2Dsurfplot-' plottype '-Subtract-' subtract '.png'],'-dpng','-r300');
 savefig([filenameSIG '-2Dsurfplot-' plottype '-Subtract-' subtract '.fig']);
+end
 clf();
 
 %% make 1D plot 
@@ -232,8 +236,14 @@ text(peakPosition-0.05, Max/2,...
 ylabel('integrated Intensity around k = 0 (a.u.)','FontSize',fontsize,'FontName',fontName);
 xlabel('Energy (eV)','FontSize',fontsize,'FontName',fontName);
 graphicsSettings;
+if plotOption
 print([filenameSIG '-cut.png'],'-dpng','-r300');
 savefig([filenameSIG '-cut.fig']);
+end
 clf();
+
+%get integrated intensity around mode
+EnergyRangeAdjusted = energy>= peakPosition - 4e-4 & energy <= peakPosition + 4e-4;
+modeInt = sum(sum(Int(EnergyRangeAdjusted, modeRangeK)));
     
 end
