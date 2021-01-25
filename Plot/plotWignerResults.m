@@ -258,6 +258,17 @@ for i = 1:length(I)
             tauError(i) = m(end,3) - res.c;
             fitPeak(i) = res(res.b);  
             plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(min(delay(i,:)):1:max(delay(i,:))),'r','DisplayName','');
+        case 'power-law'
+            g = fittype(@(a,b,alpha,x) a*abs(2*(x-b)).^(-alpha));                   
+            b0 = zeroDelay;
+            alpha0 = 0.22;
+            a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay)));
+            [res,gof,~] = fit(x',ys',g,'StartPoint',[a0 b0 alpha0]); 
+            fitTau(i) = res.alpha;
+            [se]= getStandardErrorsFromFit(res,gof,'method1');   
+            tauError(i) = se(3);
+            fitPeak(i) = res(res.a);  
+            plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(abs(min(delay(i,:)):1:max(delay(i,:)))),'r','DisplayName','');           
          case 'lorentz'
              % starting values 
             p02 = zeroDelay;
@@ -298,7 +309,7 @@ for i = 1:length(I)
             % Olivero, J. J.; R. L. Longbothum (February 1977). 
 %                     "Empirical fits to the Voigt line width: A brief review". 
 %                     Journal of Quantitative Spectroscopy and Radiative Transfer. 
-%                     17 (2): 233�236. Bibcode:1977JQSRT..17..233O. doi:10.1016/0022-4073(77)90161-3. ISSN 0022-4073.
+%                     17 (2): 233???236. Bibcode:1977JQSRT..17..233O. doi:10.1016/0022-4073(77)90161-3. ISSN 0022-4073.
         case 'noFit'
             fitPeak(i) = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay)));
     end %fitType
@@ -344,6 +355,8 @@ if any(fitTau)
             ylabel(['\tau_c of sech function (' xUnit ')']);
          case 'lorentz'
             ylabel(['FWHM of Lorentz Profile (' xUnit ')']);
+         case 'power-law'
+            ylabel('\alpha of power-law Profile');
     end
     graphicsSettings;
     ax = gca;
