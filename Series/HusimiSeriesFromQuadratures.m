@@ -138,14 +138,15 @@ for iStruct =  1:length(Contents)
         rscMax = r;
         nRatioErr=0;
         g2Err = 0;
+        meanNErr = 0;
         
         if monteCarloError
         % make Monte Carlo Error Propagation
-            [nThermRand,nCoherentRand,CoherenceRand,nRatioRand,g2Rand] = deal(zeros(NMonteCarlo,1));
+            [nThermRand,nCoherentRand,CoherenceRand,nRatioRand,g2Rand,meanNRand] = deal(zeros(NMonteCarlo,1));
             fitFunction = fittype('0.5*WRes^2*(pi*(a1+1))^-1 *exp(-(x.^2 + b1)/(a1+1)) .* besseli(0,2*x*sqrt(b1)/(a1+1))','problem','WRes'); 
             parfor i = 1:NMonteCarlo
                 Hrandom = normrnd(H,poissonErrors);               
-                [~, ~, ~,~,nTh,~,nC,~,~,C,~,~,nR,g] = ...
+                [~, ~, ~,~,nTh,~,nC,~,n,C,~,~,nR,g] = ...
                 plotHusimiAndCut(O1,O2,Hrandom,binsO1,binsO2,'Filename','-',...
                 'FitMethod',fitMethod,'Plot',false,'fitFunction',fitFunction,'MonteCarloError',true);
                 nThermRand(i) = nTh;
@@ -153,6 +154,7 @@ for iStruct =  1:length(Contents)
                 CoherenceRand(i) = C;
                 nRatioRand(i) = nR;
                 g2Rand(i) = g;
+                meanNRand(i) = n;
             end
             nThermMean = mean(nThermRand);
             nThermErr = std(nThermRand);
@@ -163,11 +165,11 @@ for iStruct =  1:length(Contents)
             nRatioMean = mean(nRatioRand);
             nRatioErr = std(nRatioRand);
             g2Err = std(g2Rand);
+            meanNErr = std(meanNRand);
         end
         
         [nThermMax,nThermHigh,nThermLow] = deal(nTherm);
         [nCoherentMax,nCoherentHigh,nCoherentLow] = deal(nCoherent);
-        [meanNMax,meanNHigh,meanNLow] = deal(meanN);
         [weightLow,weightHigh] = deal(0);
         [CoherenceMax,CoherenceHigh,CoherenceLow] = deal(Coherence);
         [nThermErrMax,nThermErrHigh,nThermErrLow] = deal(nThermErr);
@@ -177,6 +179,8 @@ for iStruct =  1:length(Contents)
         [nRatioErrLow,nRatioErrHigh]=deal(nRatioErr);
         [g2Low,g2High]=deal(g2);
         [g2ErrLow,g2ErrHigh]=deal(g2Err);
+        [meanNMax,meanNHigh,meanNLow] = deal(meanN);
+        [meanNErrLow,meanNErrHigh]=deal(meanNErr);
     else
     % If the std is big, there is probably switching between states
     % over time, so we make a fit for the lower and the higher state
@@ -197,13 +201,14 @@ for iStruct =  1:length(Contents)
          close all;
          nRatioErrLow=0;
          g2ErrLow = 0;
+         meanNErrLow = 0;
          if monteCarloError
         % make Monte Carlo Error Propagation
-            [nThermRand,nCoherentRand,CoherenceRand,nRatioRand,g2Rand] = deal(zeros(NMonteCarlo,1));
+            [nThermRand,nCoherentRand,CoherenceRand,nRatioRand,g2Rand,meanNRand] = deal(zeros(NMonteCarlo,1));
             fitFunction = fittype('0.5*WRes^2*(pi*(a1+1))^-1 *exp(-(x.^2 + b1)/(a1+1)) .* besseli(0,2*x*sqrt(b1)/(a1+1))','problem','WRes'); 
             parfor i = 1:NMonteCarlo
                 Hrandom = normrnd(H,poissonErrors);               
-                [~, ~, ~,~,nTh,~,nC,~,~,C,~,~,nR,g] = ...
+                [~, ~, ~,~,nTh,~,nC,~,n,C,~,~,nR,g] = ...
                 plotHusimiAndCut(O1,O2,Hrandom,binsO1,binsO2,'Filename','-',...
                 'FitMethod',fitMethod,'Plot',false,'fitFunction',fitFunction,'MonteCarloError',true);
                 nThermRand(i) = nTh;
@@ -211,12 +216,14 @@ for iStruct =  1:length(Contents)
                 CoherenceRand(i) = C;
                 nRatioRand(i) = nR;
                 g2Rand(i) = g;
+                meanNRand(i) = n;
             end
             nThermErrLow = std(nThermRand);
             nCohErrLow = std(nCoherentRand);    
             CoherenceErrLow = std(CoherenceRand);
             nRatioErrLow = std(nRatioRand);
             g2ErrLow = std(g2Rand);
+            meanNErrLow = std(meanNRand);
         end
         
          % for the high one 
@@ -232,11 +239,11 @@ for iStruct =  1:length(Contents)
          g2ErrHigh = 0;
          if monteCarloError
         % make Monte Carlo Error Propagation
-            [nThermRand,nCoherentRand,CoherenceRand,nRatioRand,g2Rand] = deal(zeros(NMonteCarlo,1));
+            [nThermRand,nCoherentRand,CoherenceRand,nRatioRand,g2Rand,meanNRand] = deal(zeros(NMonteCarlo,1));
             fitFunction = fittype('0.5*WRes^2*(pi*(a1+1))^-1 *exp(-(x.^2 + b1)/(a1+1)) .* besseli(0,2*x*sqrt(b1)/(a1+1))','problem','WRes'); 
             parfor i = 1:NMonteCarlo
                 Hrandom = normrnd(H,poissonErrors);               
-                [~, ~, ~,~,nTh,~,nC,~,~,C,~,~,nR,g] = ...
+                [~, ~, ~,~,nTh,~,nC,~,n,C,~,~,nR,g] = ...
                 plotHusimiAndCut(O1,O2,Hrandom,binsO1,binsO2,'Filename','-',...
                 'FitMethod',fitMethod,'Plot',false,'fitFunction',fitFunction,'MonteCarloError',true);
                 nThermRand(i) = nTh;
@@ -244,12 +251,14 @@ for iStruct =  1:length(Contents)
                 CoherenceRand(i) = C;
                 nRatioRand(i) = nR;
                 g2Rand(i) = g;
+                meanNRand(i) = n;
             end
             nThermErrHigh = std(nThermRand);
             nCohErrHigh = std(nCoherentRand);    
             CoherenceErrHigh = std(CoherenceRand);
             nRatioErrHigh = std(nRatioRand);
             g2ErrHigh = std(g2Rand);
+            meanNErrHigh = std(meanNRand);
         end
         % their respective weights
         weightLow = length(iSelLow)/(length(iSelLow)+length(iSelHigh));
@@ -309,7 +318,9 @@ for iStruct =  1:length(Contents)
     dataStruct(iStruct).g2Low = g2Low; 
     dataStruct(iStruct).g2ErrLow = g2ErrLow; 
     dataStruct(iStruct).g2High = g2High; 
-    dataStruct(iStruct).g2ErrHigh = g2ErrHigh; 
+    dataStruct(iStruct).g2ErrHigh = g2ErrHigh;     
+    dataStruct(iStruct).meanNErrLow = meanNErrLow;
+    dataStruct(iStruct).meanNErrHigh = meanNErrHigh; 
 end % iStruct
 
 Is = cell2mat({dataStruct.I});
@@ -347,19 +358,21 @@ g2Low = cell2mat({dataStruct.g2Low});
 g2ErrLow = cell2mat({dataStruct.g2ErrLow});
 g2High = cell2mat({dataStruct.g2High});
 g2ErrHigh = cell2mat({dataStruct.g2ErrHigh});
+meanNErrLow = cell2mat({dataStruct.meanNErrLow});
+meanNErrHigh = cell2mat({dataStruct.meanNErrHigh});
 
 save(['Husimiplots\HusimiResultsScaled-FitMethod-' fitMethod '-scaled-' num2str(scaled) '-MCErr-' num2str(monteCarloError) '.mat'],'Is','r','nTherm','meanN','nCoherent',...
     'rMax','nThermMax','meanNMax','nCoherentMax','weightLow', 'weightHigh', 'nThermHigh', 'nCoherentHigh', 'meanNHigh', 'nThermLow', 'meanNLow','nCoherentLow',...
     'CoherenceHigh','CoherenceMax','Coherence','CoherenceLow','nThermErr',...
     'nCohErr','CoherenceErr','nThermErrMax','nCohErrMax','CoherenceErrMax',...
     'nRatioLow','nRatioErrLow','nRatioHigh','nRatioErrHigh',...
-    'g2Low','g2ErrLow','g2High','g2ErrHigh');
+    'g2Low','g2ErrLow','g2High','g2ErrHigh','meanNErrLow','meanNErrHigh');
 xlswrite(['Husimiplots\HusimiResultsScaled-' fitMethod '-scaled-' num2str(scaled) '-MCErr-' num2str(monteCarloError) '.xls'],[Is' r' nTherm' meanN' nCoherent' ...
     rMax' nThermMax' meanNMax' nCoherentMax' weightLow' weightHigh' nThermHigh' nCoherentHigh' meanNHigh' nThermLow' meanNLow' nCoherentLow' ...
      CoherenceHigh' CoherenceMax' Coherence' CoherenceLow' nThermErr' nCohErr',...
      CoherenceErr' nThermErrMax' nCohErrMax' CoherenceErrMax' ...
      nRatioLow', nRatioErrLow', nRatioHigh', nRatioErrHigh' ...
-     g2Low', g2ErrLow', g2High', g2ErrHigh']);
+     g2Low', g2ErrLow', g2High', g2ErrHigh' meanNErrLow' meanNErrHigh']);
 
  %% plotting
 if strcmp(parameter,'Power')
@@ -386,7 +399,7 @@ l=legend('$\mathcal{C}_\mathrm{low}$','$\mathcal{C}_\mathrm{high}$','location',.
     'northwest');
 l.Interpreter = 'latex';
 l.FontSize = fontsize+5;
-ylabel('Coherence');
+ylabel('Quantum coherence');
 xlabel([parameter ' (' xUnit ')']);
 if Pthr > 0
     xlim([0.1 20]);
@@ -395,7 +408,7 @@ graphicsSettings;
 ax = gca;
 set(ax,'FontSize',fontsize,'FontName',fontname);
 savefig(['Husimiplots\CoherenceFromHusimiFunctions-semilogx' filenameOptions '.fig']);
-print(['Husimiplots\CoherenceFromHusimiFunctions-semilogx' filenameOptions '.png'],'-dpng','-r700');
+print(['Husimiplots\CoherenceFromHusimiFunctions-semilogx' filenameOptions '.png'],'-dpng','-r300');
 clf();
 
 %% photon numbers all together
@@ -404,14 +417,19 @@ if plotErrorbars
     f = gca; f.XScale = 'log';f.YScale = 'log';hold on; 
     errorbar(Is,nCoherentLow,zeros(length(Is),1),nCohErr,'or','linewidth',1.5,'markerSize',7);
     errorbar(Is,nThermHigh,zeros(length(Is),1),nThermErr,'*k','linewidth',1.5,'markerSize',7);
-    errorbar(Is,nCoherentHigh,zeros(length(Is),1),nCohErr,'*r','linewidth',1.5,'markerSize',7);
+    errorbar(Is,nCoherentHigh,zeros(length(Is),1),nCohErr,'*r','linewidth',1.5,'markerSize',7);    
+    errorbar(Is,meanNLow,zeros(length(Is),1),meanNErrLow,':k','linewidth',1.5,'markerSize',10);
+    errorbar(Is,meanNHigh,zeros(length(Is),1),meanNErrHigh,'-k','linewidth',1.5,'markerSize',10);
 else
     loglog(Is,nThermLow,'ok',Is,nCoherentLow,'or',Is,nThermHigh,'*k',Is,nCoherentHigh,'*r','markerSize',8);
+    hold on;
+     loglog(Is,meanNLow,':k',Is,meanNHigh,'-k','linewidth',1.5);
 end
 l = legend('$\bar n_\mathrm{low}$','$|\alpha_{0,\mathrm{low}}|^2$','$\bar n_\mathrm{high}$',...
-    '$|\alpha_{0,\mathrm{high}}|^2$','location','northwest');
+    '$|\alpha_{0,\mathrm{high}}|^2$','$\langle\hat n_{\mathrm{c,low}}\rangle$',...
+    '$\langle\hat n_{\mathrm{c,high}}\rangle$','location','northwest');
 l.Interpreter = 'latex';
-l.FontSize = fontsize+5;
+l.FontSize = fontsize+3;
 ylabel('Photon number');
 xlabel([parameter ' (' xUnit ')']);
 if Pthr > 0
@@ -421,7 +439,7 @@ graphicsSettings;
 ax = gca;
 set(ax,'FontSize',fontsize,'FontName',fontname);
 savefig(['Husimiplots\PhotonNumbersFromHusimiFunctionsLowAndHigh' filenameOptions '.fig']);
-print(['Husimiplots\PhotonNumbersFromHusimiFunctionsLowAndHigh' filenameOptions '.png'],'-dpng','-r700');
+print(['Husimiplots\PhotonNumbersFromHusimiFunctionsLowAndHigh' filenameOptions '.png'],'-dpng','-r300');
 clf();
 
 %% ratio of photon numbers 
@@ -443,7 +461,7 @@ graphicsSettings;
 ax = gca;
 set(ax,'FontSize',fontsize,'FontName',fontname);
 savefig(['Husimiplots\PhotonNumberRatioLowAndHigh' filenameOptions '.fig']);
-print(['Husimiplots\PhotonNumberRatioLowAndHigh' filenameOptions '.png'],'-dpng','-r700');
+print(['Husimiplots\PhotonNumberRatioLowAndHigh' filenameOptions '.png'],'-dpng','-r300');
 clf();
 
 %% g2
@@ -466,7 +484,7 @@ graphicsSettings;
 ax = gca;
 set(ax,'FontSize',fontsize,'FontName',fontname);
 savefig(['Husimiplots\g2LowAndHigh' filenameOptions '.fig']);
-print(['Husimiplots\g2LowAndHigh' filenameOptions '.png'],'-dpng','-r700');
+print(['Husimiplots\g2LowAndHigh' filenameOptions '.png'],'-dpng','-r300');
 clf();
 
 %% errors
@@ -485,6 +503,29 @@ ax = gca;
 set(ax,'FontSize',fontsize,'FontName',fontname);
 savefig(['Husimiplots\PhotonNumbersFromHusimiFunctionsWeights' filenameOptions '.fig']);
 print(['Husimiplots\PhotonNumbersFromHusimiFunctionsWeights' filenameOptions '.png'],'-dpng');
+clf();
+
+%% meanN
+
+if plotErrorbars
+    errorbar(Is,meanNLow,zeros(length(Is),1),meanNErrLow,'ok','linewidth',1.5,'markerSize',10);
+    f = gca; f.XScale = 'log';f.YScale = 'log';hold on; 
+    errorbar(Is,meanNHigh,zeros(length(Is),1),meanNErrHigh,'*k','linewidth',1.5,'markerSize',10);
+else
+   loglog(Is,meanNLow,'ok',Is,meanNHigh,'*k','markerSize',10,'markerSize',10);
+end
+l = legend('Low','High','location','northwest');
+l.FontSize = fontsize;
+ylabel('<n_{total}>');
+xlabel([parameter ' (' xUnit ')']);
+if Pthr > 0
+    xlim([0.1 20]);
+end
+graphicsSettings;
+ax = gca;
+set(ax,'FontSize',fontsize,'FontName',fontname);
+savefig(['Husimiplots\NTotalLowAndHigh' filenameOptions '.fig']);
+print(['Husimiplots\NTotalLowAndHigh' filenameOptions '.png'],'-dpng','-r300');
 clf();
 
 

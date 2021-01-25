@@ -135,7 +135,12 @@ end
 
 nRatio = nCoherent/nTherm;
 g2 = 2 - (nCoherent/(nCoherent+nTherm))^2;
-%masterthesis Lueders, p.12,13
+%see masterthesis Lueders, p.12,13
+%This is the same as the more complicated way:
+% nTotal = nCoherentHigh + nThermHigh;
+% VarN = nCoherentHigh.*(2*nThermHigh + 1) + nThermHigh.^2 + nThermHigh; %see Husimi paper Eq. 12b
+% g2 = 1 - 1./nTotal + VarN./nTotal.^2; %formula for single mode g^(2)(tau = 0)
+
 Coherence = coherencePDTS(nTherm,nCoherent);
 if monteCarloError
     CoherenceErr = 0;
@@ -170,7 +175,7 @@ if plotOption
     BarPos = get(hBar,'Position');
     set(hBar,'Position',BarPos+[0.03 0 0 -0.1]);
     savefig([filename '-nbins-' num2str(nBinsA) '-fitMethod-' fitMethod '-Husimi.fig']);
-    print([filename '-nbins-' num2str(nBinsA) '-fitMethod-' fitMethod '-Husimi.png'],'-dpng','-r700');
+    print([filename '-nbins-' num2str(nBinsA) '-fitMethod-' fitMethod '-Husimi.png'],'-dpng','-r300');
     clf();
 
 
@@ -188,7 +193,7 @@ if plotOption
     set(ax,'FontSize',50,'FontName','Arial','linewidth',3);
     ax.XLim=xL;
     savefig([filename '-nbins-' num2str(nBinsA) '-fitMethod-' fitMethod '-Cut.fig']);
-    print([filename '-nbins-' num2str(nBinsA) '-fitMethod-' fitMethod '-Cut.png'],'-dpng','-r700');
+    print([filename '-nbins-' num2str(nBinsA) '-fitMethod-' fitMethod '-Cut.png'],'-dpng','-r300');
 end
 
 

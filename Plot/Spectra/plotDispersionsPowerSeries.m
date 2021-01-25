@@ -1,4 +1,4 @@
-function plotDispersionsPowerSeries(varargin)
+function [PthFromModeInt,PthErrFromModeInt,PthFromFit,PthErrFromFit] = plotDispersionsPowerSeries(varargin)
 % this script makes spectrum plots for a series of dispersion measurements.
 % The data should be in folder 'raw-data'.
 % With 'Subtract', you can choose whether there are background measurements
@@ -30,13 +30,21 @@ defaultaOld = 4.4973e-7;
 addParameter(parser,'aOld',defaultaOld,@isnumeric);
 defaultY0Old = 217; 
 addParameter(parser,'y0Old',defaultY0Old,@isnumeric);
-defaultGetTime = 'no'; %
-addParameter(parser,'GetTime',defaultGetTime); % get exposure time from filename
+defaultGetTime =false; %
+addParameter(parser,'GetTime',defaultGetTime,@islogical); % get exposure time from filename
 defaultLabel = '-'; %
 addParameter(parser,'Label',defaultLabel); % use only files with specific label e.g. polarisation
+defaultGetThresholdFromFit = false; %get the threshold power from fit
+addParameter(parser,'GetThresholdFromFit',defaultGetThresholdFromFit,@islogical);
+defaultPlotOption = true;
+addParameter(parser,'PlotOption',defaultPlotOption,@islogical);
 parse(parser,varargin{:});
 c = struct2cell(parser.Results);
-[aOld,E0Old,fitoption,getTime,label,minY,modeE,modeK,plotMode,plottype,subtract,xAperture,y0Old,zoomE] = c{:};
+[aOld,E0Old,fitoption,getThresholdFromFit,getTime,label,minY,modeE,modeK,...
+    plotMode,plotOption,plottype,subtract,xAperture,y0Old,zoomE] = c{:};
+%for filename:
+options = ['-getTime-' num2str(getTime) '-modeE-' num2str(min(modeE)) '-' num2str(max(modeE)) ...
+     '-modeK-' num2str(min(modeK)) '-' num2str(max(modeK))];
 
 %% Sample char. for M3396
 R = 9.5; %Rabi splitting in meV
@@ -73,7 +81,7 @@ for name = {rawDataContents.name}
     power = str2double(cell2mat(powerToken{1}));
     dataStruct(number).Power = power;
     
-    if strcmp(getTime,'yes')
+    if getTime
         timeToken = regexpi(filename,'-([0123456789.]*)ms','tokens');
         time = str2double(cell2mat(timeToken{1}));
         dataStruct(number).time = time;
@@ -116,7 +124,8 @@ for number = 1:size(dataStruct,2)
     end
     [E0,~,~,Emax,modeInt,SumInt,FWHM,FWHMerror,peakPosition,peakHeight] = plotDispersion(filenameSIG, filenameBG,'Subtract',subtract,...
         'Plottype',plottype,'minY',minY,'xAperture',xAperture,'ModeE',modeE,...
-        'ModeK',modeK,'ZoomE',zoomE,'Fit',fitoption,'aOld',aOld,'E0Old',E0Old,'y0Old',y0Old,'PlotMode',plotMode,'R',R,'EX',EX);
+        'ModeK',modeK,'ZoomE',zoomE,'Fit',fitoption,'aOld',aOld,'E0Old',E0Old,...
+        'y0Old',y0Old,'PlotMode',plotMode,'R',R,'EX',EX,'PlotOption',plotOption);
     lambda = h*c0/e0*1./E0 *10^9;
     dataStruct(number).E0 = E0;
     dataStruct(number).lambda = lambda;
@@ -124,7 +133,7 @@ for number = 1:size(dataStruct,2)
     dataStruct(number).FWHM =FWHM; 
     dataStruct(number).FWHMerror = FWHMerror; 
     dataStruct(number).peakPosition = peakPosition; 
-    if strcmp(getTime,'yes')
+    if getTime
         dataStruct(number).modeInt = modeInt/dataStruct(number).time;
         dataStruct(number).SumInt = SumInt/dataStruct(number).time;
         dataStruct(number).peakHeight = peakHeight/dataStruct(number).time;
@@ -146,42 +155,169 @@ FWHM = cell2mat({dataStruct.FWHM});
 FWHMerror = cell2mat({dataStruct.FWHMerror});
 peakPosition = cell2mat({dataStruct.peakPosition});
 peakHeight = cell2mat({dataStruct.peakHeight});
+time = cell2mat({dataStruct.time});
+save(['powerSeries' options '.mat'],'power','E0','lambda','Emax','modeInt','SumInt','FWHM',...
+    'FWHMerror','peakPosition','peakHeight','time');
 
 %% write them in excel table
 T = struct2table(dataStruct);
-writetable(T,['powerSeries' label '.xls']);
+writetable(T,['powerSeries' label options '.xls']);
 
 %% make plots
+fontsize = 20;
+fontname = 'Arial';
+
+%%
+semilogx(power,peakPosition,'ko','markerFaceColor','k');
+xlabel('Excitation Power P (mW)');
+ylabel('Energy (eV)');
+graphicsSettings;
+ax = gca;
+set(ax,'FontSize',fontsize,'FontName',fontname);
+savefig(['powerSeries-peakPosition' label options '.fig']);
+print(['powerSeries-peakPosition' label options '.png'],'-dpng','-r200');
+clf();
+
+%%
+loglog(power,peakHeight,'ko','markerFaceColor','k');
+xlabel('Excitation Power P (mW)');
+if getTime
+   ylabel('Peak Height of Fit (counts/ms)'); 
+else
+    ylabel('Peak Height of Fit (counts)');
+end
+graphicsSettings;
+ax = gca;
+set(ax,'FontSize',fontsize,'FontName',fontname);
+if getThresholdFromFit
+    xfit1 = log(power(1:5));
+    yfit1 = log(peakHeight(1:5));
+    fitFunction = fittype('a*x + b');  
+    [f,gof,~] = fit(xfit1',yfit1',fitFunction);
+    hold on;
+    loglog(power,exp(f(log(power))),'r-','Linewidth',2);
+    a1 = f.a;    
+    b1 = f.b;
+    [se]= getStandardErrorsFromFit(f,gof,'method1');   
+    a1Err = se(1);
+    b1Err = se(2);
+    xfit2 = log(power(6:9));
+    yfit2 = log(peakHeight(6:9)); 
+    [f2,gof2,~] = fit(xfit2',yfit2',fitFunction);
+    hold on;
+    loglog(power,exp(f2(log(power))),'r--','Linewidth',2);
+    ylim([1e-2 1e6]);
+    a2 = f2.a;    
+    b2 = f2.b;
+    [se2]= getStandardErrorsFromFit(f2,gof2,'method1');   
+    a2Err = se2(1);
+    b2Err = se2(2);
+    PthFromFit = exp((b2-b1)/(a1-a2));
+    %get error with montecarlo
+    PthRand = zeros(1000,1);
+    for i = 1:1000
+        a1r = normrnd(a1,a1Err);
+        a2r = normrnd(a2,a2Err);
+        b1r = normrnd(b1,b1Err);
+        b2r = normrnd(b2,b2Err);
+        PthRand(i) = exp((b2r-b1r)/(a1r-a2r));
+    end
+    PthErrFromFit = std(PthRand);
+     xfit3 = log(power(10:end));
+    yfit3 = log(peakHeight(10:end)); 
+    [f3,gof3,~] = fit(xfit3',yfit3',fitFunction);
+    hold on;
+    loglog(power,exp(f3(log(power))),'r-.','Linewidth',2);
+    ylim([1e-2 1e6]);
+    a3 = f3.a;    
+    b3 = f3.b;
+    [se3]= getStandardErrorsFromFit(f3,gof3,'method1');   
+    a3Err = se3(1);
+    b3Err = se3(2);
+else
+    PthFromFit = 0;
+    PthErrFromFit = 0;
+end
+savefig(['powerSeries-peakHeight' label options '.fig']);
+print(['powerSeries-peakHeight' label options '.png'],'-dpng','-r200');
+clf();
+
+%%
+loglog(power,modeInt,'ko','markerFaceColor','k');
+xlabel('Excitation Power P (mW)');
+if getTime
+    ylabel('Integrated Mode Intensity (counts/ms)');
+else
+    ylabel('Integrated Mode Intensity (counts)');
+end
+graphicsSettings;
+ax = gca;
+set(ax,'FontSize',fontsize,'FontName',fontname);
+if getThresholdFromFit
+    xfit1 = log(power(1:5)); %adjust these!
+    yfit1 = log(modeInt(1:5));
+    fitFunction = fittype('a*x + b');  
+    [f,gof,~] = fit(xfit1',yfit1',fitFunction);
+    hold on;
+    loglog(power,exp(f(log(power))),'r-','Linewidth',2);
+    a1 = f.a;    
+    b1 = f.b;
+    [se]= getStandardErrorsFromFit(f,gof,'method1');   
+    a1Err = se(1);
+    b1Err = se(2);
+    xfit2 = log(power(6:9));
+    yfit2 = log(modeInt(6:9)); 
+    [f2,gof2,~] = fit(xfit2',yfit2',fitFunction);
+    hold on;
+    loglog(power,exp(f2(log(power))),'r--','Linewidth',2);
+    a2 = f2.a;    
+    b2 = f2.b;
+    [se2]= getStandardErrorsFromFit(f2,gof2,'method1');   
+    a2Err = se2(1);
+    b2Err = se2(2);
+    PthFromModeInt = exp((b2-b1)/(a1-a2));
+    %get error with montecarlo
+    PthRand = zeros(1000,1);
+    for i = 1:1000
+        a1r = normrnd(a1,a1Err);
+        a2r = normrnd(a2,a2Err);
+        b1r = normrnd(b1,b1Err);
+        b2r = normrnd(b2,b2Err);
+        PthRand(i) = exp((b2r-b1r)/(a1r-a2r));
+    end
+    PthErrFromModeInt = std(PthRand);
+        ylim([1e-2 1e6]);
+else
+    PthFromModeInt = 0;
+    PthErrFromModeInt = 0;
+end
+savefig(['powerSeries-modeInt' label options '.fig']);
+print(['powerSeries-modeInt' label options '.png'],'-dpng','-r300');
+clf();
+
+%%
 semilogx(power,E0,'o');
 xlabel('Excitation Power (mW)');
 ylabel('minimum energy E_{LP}(k_{||}=0)(eV)');
 graphicsSettings;
-savefig(['powerSeries-E0' label '.fig']);
-print(['powerSeries-E0' label '.png'],'-dpng','-r300');
+savefig(['powerSeries-E0' label options '.fig']);
+print(['powerSeries-E0' label options '.png'],'-dpng','-r300');
 clf();
 
 semilogx(power,Emax,'o');
 xlabel('Excitation Power (mW)');
 ylabel('Energy of maximum of mode (eV)');
 graphicsSettings;
-savefig(['powerSeries-Emax' label '.fig']);
-print(['powerSeries-Emax' label '.png'],'-dpng','-r300');
+savefig(['powerSeries-Emax' label options '.fig']);
+print(['powerSeries-Emax' label options '.png'],'-dpng','-r300');
 clf();
 
 semilogx(power,lambda,'o');
 xlabel('Excitation Power (mW)');
 ylabel('wavelength of maximum of mode (nm)');
 graphicsSettings;
-savefig(['powerSeries-wavelength' label '.fig']);
-print(['powerSeries-wavelength' label '.png'],'-dpng','-r300');
-clf();
-
-semilogx(power,peakPosition,'o');
-xlabel('Excitation Power (mW)');
-ylabel('Energy of Fit Peak Position (eV)');
-graphicsSettings;
-savefig(['powerSeries-peakPosition' label '.fig']);
-print(['powerSeries-peakPosition' label '.png'],'-dpng','-r300');
+savefig(['powerSeries-wavelength' label options '.fig']);
+print(['powerSeries-wavelength' label options '.png'],'-dpng','-r300');
 clf();
 
 errorbar(power,FWHM,FWHMerror);
@@ -190,43 +326,21 @@ f.XScale = 'log';
 xlabel('Excitation Power (mW)');
 ylabel('FWHM of Fit around k = 0 (meV)');
 graphicsSettings;
-savefig(['powerSeries-FWHM' label '.fig']);
-print(['powerSeries-FWHM' label '.png'],'-dpng','-r300');
-clf();
-
-loglog(power,modeInt,'o');
-xlabel('Excitation Power (mW)');
-if strcmp(getTime,'yes')
-    ylabel('Integrated Mode Intensity (counts/ms)');
-else
-    ylabel('Integrated Mode Intensity (counts)');
-end
-graphicsSettings;
-savefig(['powerSeries-modeInt' label '.fig']);
-print(['powerSeries-modeInt' label '.png'],'-dpng','-r300');
+savefig(['powerSeries-FWHM' label options '.fig']);
+print(['powerSeries-FWHM' label options '.png'],'-dpng','-r300');
 clf();
 
 loglog(power,SumInt,'o');
 xlabel('Excitation Power (mW)');
-if strcmp(getTime,'yes')
+if getTime
    ylabel('overall integrated Intensity (counts/ms)'); 
 else
     ylabel('overall integrated Intensity (counts)');
 end
 graphicsSettings;
-savefig(['powerSeries-SumInt' label '.fig']);
-print(['powerSeries-SumInt' label '.png'],'-dpng','-r300');
+savefig(['powerSeries-SumInt' label options '.fig']);
+print(['powerSeries-SumInt' label options '.png'],'-dpng','-r300');
 clf();
 
-loglog(power,peakHeight,'o');
-xlabel('Excitation Power (mW)');
-if strcmp(getTime,'yes')
-   ylabel('Peak Height of Fit (counts/ms)'); 
-else
-    ylabel('Peak Height of Fit (counts)');
-end
-graphicsSettings;
-savefig(['powerSeries-peakHeight' label '.fig']);
-print(['powerSeries-peakHeight' label '.png'],'-dpng','-r300');
-clf();
+
 end
