@@ -38,10 +38,12 @@ defaultGetThresholdFromFit = false; %get the threshold power from fit
 addParameter(parser,'GetThresholdFromFit',defaultGetThresholdFromFit,@islogical);
 defaultPlotOption = true;
 addParameter(parser,'PlotOption',defaultPlotOption,@islogical);
+defaultNormalize = false; %normalizes the colorscale in the 2D plot to 1.
+addParameter(parser,'Normalize',defaultNormalize,@islogical);
 parse(parser,varargin{:});
 c = struct2cell(parser.Results);
 [aOld,E0Old,fitoption,getThresholdFromFit,getTime,label,minY,modeE,modeK,...
-    plotMode,plotOption,plottype,subtract,xAperture,y0Old,zoomE] = c{:};
+    normalize,plotMode,plotOption,plottype,subtract,xAperture,y0Old,zoomE] = c{:};
 %for filename:
 options = ['-getTime-' num2str(getTime) '-modeE-' num2str(min(modeE)) '-' num2str(max(modeE)) ...
      '-modeK-' num2str(min(modeK)) '-' num2str(max(modeK))];
@@ -125,7 +127,7 @@ for number = 1:size(dataStruct,2)
     [E0,~,~,Emax,modeInt,SumInt,FWHM,FWHMerror,peakPosition,peakHeight] = plotDispersion(filenameSIG, filenameBG,'Subtract',subtract,...
         'Plottype',plottype,'minY',minY,'xAperture',xAperture,'ModeE',modeE,...
         'ModeK',modeK,'ZoomE',zoomE,'Fit',fitoption,'aOld',aOld,'E0Old',E0Old,...
-        'y0Old',y0Old,'PlotMode',plotMode,'R',R,'EX',EX,'PlotOption',plotOption);
+        'y0Old',y0Old,'PlotMode',plotMode,'R',R,'EX',EX,'PlotOption',plotOption,'Normalize',normalize);
     lambda = h*c0/e0*1./E0 *10^9;
     dataStruct(number).E0 = E0;
     dataStruct(number).lambda = lambda;
