@@ -48,9 +48,11 @@ defaultEX = 1.6195;  %Exciton energy in eV
 addParameter(parser,'EX',defaultEX,@isnumeric);
 defaultPlotOption = true;
 addParameter(parser,'PlotOption',defaultPlotOption,@islogical);
+defaultNormalize = false; %normalizes the colorscale in the 2D plot to 1.
+addParameter(parser,'Normalize',defaultNormalize,@islogical);
 parse(parser,varargin{:});
 c = struct2cell(parser.Results);
-[aOld,E0Old,EX,fitoption,minY,modeE,modeK,plotMode,plotOption,plottype,R,subtract,xAperture,y0Old,zoomE] = c{:};
+[aOld,E0Old,EX,fitoption,minY,modeE,modeK,normalize,plotMode,plotOption,plottype,R,subtract,xAperture,y0Old,zoomE] = c{:};
 
 %% fourier pixel
 % take values from calibration measurement
@@ -150,7 +152,12 @@ Emax = modeEnergy(index);
  
 %% make 2D surface plot
 if strcmp(plottype, 'lin')
-    pcolor(k, energy(range), Int(range,:));
+    if normalize
+        IntNorm = Int/max(max(Int));
+        pcolor(k, energy(range), IntNorm(range,:));
+    else
+        pcolor(k, energy(range), Int(range,:));
+    end
 else
     logInt = log(Int);
     logInt(Int==0) = 0;
@@ -228,7 +235,7 @@ FWHMerror = std * 2*sqrt(log(2));
 FWHM = FWHM * 1000; %in meV
 FWHMerror = FWHMerror * 1000;
 energyPlot = min(zoomEnergy):0.00001:max(zoomEnergy);
-plot(energyPlot,f(energyPlot),'r','LineWidth',1.5,'DisplayName','Fit');
+plot(energyPlot,f(energyPlot),'r','LineWidth',2,'DisplayName','Fit');
 set(gca,'DefaultTextInterpreter','latex');
 ylim([0 Max*1.1]);
 text(peakPosition-0.05, Max/2,...
