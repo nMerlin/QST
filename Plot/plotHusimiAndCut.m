@@ -137,8 +137,8 @@ nRatio = nCoherent/nTherm;
 g2 = 2 - (nCoherent/(nCoherent+nTherm))^2;
 %see masterthesis Lueders, p.12,13
 %This is the same as the more complicated way:
-% nTotal = nCoherentHigh + nThermHigh;
-% VarN = nCoherentHigh.*(2*nThermHigh + 1) + nThermHigh.^2 + nThermHigh; %see Husimi paper Eq. 12b
+% nTotal = nCoherent + nTherm;
+% VarN = nCoherent.*(2*nTherm + 1) + nTherm.^2 + nTherm; %see Husimi paper Eq. 12b
 % g2 = 1 - 1./nTotal + VarN./nTotal.^2; %formula for single mode g^(2)(tau = 0)
 
 Coherence = coherencePDTS(nTherm,nCoherent);
