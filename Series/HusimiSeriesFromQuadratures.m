@@ -395,10 +395,10 @@ if plotErrorbars
 else
     semilogx(Is,CoherenceLow,'ok',Is,CoherenceHigh,'*k','markerSize',10);
 end
-l=legend('$\mathcal{C}_\mathrm{low}$','$\mathcal{C}_\mathrm{high}$','location',...
+l=legend('$\mathcal{C}_\mathsf{low}$','$\mathcal{C}_\mathsf{high}$','location',...
     'northwest');
 l.Interpreter = 'latex';
-l.FontSize = fontsize+5;
+l.FontSize = fontsize+3;
 ylabel('Quantum coherence');
 xlabel([parameter ' (' xUnit ')']);
 if Pthr > 0
@@ -425,9 +425,17 @@ else
     hold on;
      loglog(Is,meanNLow,':k',Is,meanNHigh,'-k','linewidth',1.5);
 end
-l = legend('$\bar n_\mathrm{low}$','$|\alpha_{0,\mathrm{\,low}}|^2$','$\bar n_\mathrm{high}$',...
-    '$|\alpha_{0,\mathrm{\,high}}|^2$','$n_{\mathrm{total,\,low}}$',...
-    '$n_{\mathrm{total,\,high}}$','location','northwest');
+% l = legend('$\bar n_\mathrm{low}$','$|\alpha_{0,\mathrm{\,low}}|^2$','$\bar n_\mathrm{high}$',...
+%     '$|\alpha_{0,\mathrm{\,high}}|^2$','$n_{\mathrm{total,\,low}}$',...
+%     '$n_{\mathrm{total,\,high}}$','location','northwest');
+% l.FontSize = fontsize+3;
+% sans-serif font: 
+l = legend('$\bar \mathsf{n}_{\mathsf{low}}$','$\mathsf{|\alpha_{0,\,low}|^2}$','$\bar \mathsf{n}_{\mathsf{high}}$',...
+    '$\mathsf{|\alpha_{0,\,high}|^2}$','$\mathsf{n_{total,\,low}}$',...
+    '$\mathsf{n_{total,\,high}}$','location','northwest');
+% l = legend('$\mathsf{\stackrel{-}{n}_{low}}$','$\mathsf{|\alpha_{0,\,low}|^2}$','$\mathsf{\stackrel{-}{n}_{high}}$',...
+%     '$\mathsf{|\alpha_{0,\,high}|^2}$','$\mathsf{n_{total,\,low}}$',...
+%     '$\mathsf{n_{total,\,high}}$','location','northwest');
 l.Interpreter = 'latex';
 l.FontSize = fontsize+3;
 ylabel('Photon number');
@@ -452,7 +460,9 @@ else
 end
 l = legend('Low','High','location','northwest');
 l.FontSize = fontsize;
-ylabel('$|\alpha_{0}|^2/\bar n$','Interpreter','latex');
+%ylabel('$|\alpha_{0}|^2/\bar n$','Interpreter','latex');
+%ylabel('$\mathsf{|\alpha_{0}|^2/\stackrel{-}{n}}$','Interpreter','latex');
+ylabel('$\mathsf{|\alpha_{0}|^2}/\bar \mathsf{n}$','Interpreter','latex','FontName','Arial');
 xlabel([parameter ' (' xUnit ')']);
 if Pthr > 0
     xlim([0.1 20]);
