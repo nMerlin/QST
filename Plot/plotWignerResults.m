@@ -78,7 +78,8 @@ discN = discN(I,:);
 meanPh = meanPh(I,:);
 meanR = meanR(I,:);varPh = varPh(I,:);varR = varR(I,:);meanAbsPh = meanAbsPh(I,:);
 g1WA=g1WA(I,:); g1=g1(I,:); g1Binned = g1Binned(I,:); g1WAN = g1WAN(I,:);
-[fitTau,fitPeak,tauError] = deal(zeros(length(I),1));
+[fitTau,tauErr,fitPeak,fitPeakErr,sse,rsquare,adjrsquare,rmse,pa1,pa2,pa3,pa4,pa1Err,pa2Err,pa3Err,pa4Err] = deal(zeros(length(I),1));
+%fitTau: coherencetime; pa1 etc: fit parameters 
 if plotrelative
     meanR = meanR./sqrt(nTg);
     Qs = Qs./sqrt(nTg);
@@ -98,7 +99,7 @@ end
 %typestrVector = {'R','Q','P','RLog','meanPh','meanAbsPh','discN','varR','varPh','varQ','varP','g1','g1WA','g1Binned','g1WAN','g1toOne'};
 %typestrVector = {'R','discN','varR'};
 %typestrVector = {'R'};
-typestrVector = {'g1','g1WA','g1Binned','g1WAN','g1toOne'};
+typestrVector = {'g1'};
 for typeI = 1:length(typestrVector)
     plotStuff(cell2mat(typestrVector(typeI)))
 end
@@ -198,8 +199,8 @@ for i = 1:length(I)
     if ~any(~isnan(ys)) %if there are only nans
         ys = zeros(1,H);
     end
-            ys = transpose(csaps(x,ys,0.00001,x));  
-            ys = ys';
+%             ys = transpose(csaps(x,ys,0.00001,x));  
+%             ys = ys';
     switch fitType
         case 'gauss'
             g = fittype(@(a,b,c,d,x) a*exp(-pi/2*((x-b)/c).^2)+d);                   
@@ -208,11 +209,34 @@ for i = 1:length(I)
             d0 = mean(ys(end-5:end)); % saturation value
             a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay))) - d0;
             [res,gof,~] = fit(x',ys',g,'StartPoint',[a0 b0 c0 d0]); 
-            fitTau(i) = res.c;
-            level = 2*tcdf(-1,gof.dfe);
-            m = confint(res,1-level); 
-            tauError(i) = m(end,3) - res.c;
-            fitPeak(i) = res(res.b);  
+            [se]= getStandardErrorsFromFit(res,gof,'method1'); 
+            pa1(i) = res.a;
+            pa2(i) = res.b;
+            pa3(i) = res.c;
+            pa4(i) = res.d;
+            pa1Err(i) = se(1);
+            pa2Err(i) = se(2);
+            pa3Err(i) = se(3);
+            pa4Err(i) = se(4);
+            fitTau(i) = res.c;            
+            tauErr(i) = se(3);
+            fitPeak(i) = res.a + res.d; 
+            fitPeakErr(i) = sqrt(se(1)^2 + se(4)^2);           
+            plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(min(delay(i,:)):1:max(delay(i,:))),'r','DisplayName','');            
+         case 'gauss2'
+            g = fittype(@(a,c,x) a*exp(-pi/2*((x)/c).^2));                   
+            c0 = 0.5*max(x);
+            a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay)));
+            [res,gof,~] = fit(x',ys',g,'StartPoint',[a0 c0]); 
+            [se]= getStandardErrorsFromFit(res,gof,'method1'); 
+            pa1(i) = res.a;          
+            pa2(i) = res.c;
+            pa1Err(i) = se(1);
+            pa2Err(i) = se(2);
+            fitTau(i) = res.c;            
+            tauErr(i) = se(2);
+            fitPeak(i) = res.a; 
+            fitPeakErr(i) = se(1);           
             plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(min(delay(i,:)):1:max(delay(i,:))),'r','DisplayName','');
         case 'exponential'
             ex = fittype(@(m,c,x) m - x/c);                   
@@ -225,25 +249,55 @@ for i = 1:length(I)
             ys = abs(ys);
             a0 = abs(a0);
             m0 = log(a0) + b0/c0;
-            [res,gof,~] = fit(abs(x)',log(ys)',ex,'StartPoint',[m0 c0]); 
-            fitTau(i) = res.c;
-            level = 2*tcdf(-1,gof.dfe);
-            m = confint(res,1-level); 
-            tauError(i) = m(end,2) - res.c;         
-            fitPeak(i) = sig*exp(res(b0))+d;  
+            [res,gof,~] = fit(abs(x)',log(ys)',ex,'StartPoint',[m0 c0]);             
+            fitPeak(i) = sig*exp(res(b0))+d;              
+            [se]= getStandardErrorsFromFit(res,gof,'method1'); 
+            pa1(i) = res.m;
+            pa2(i) = res.c;
+            pa1Err(i) = se(1);
+            pa2Err(i) = se(2);
+            fitTau(i) = res.c;            
+            tauErr(i) = se(2);
+            fitPeak(i) = sig*exp(res(b0))+d;            
             plot(ax,min(delay(i,:)):1:max(delay(i,:)),sig*exp(res(abs(min(delay(i,:)):1:max(delay(i,:)))))+d,'r','DisplayName',''); 
         case 'exp2'
-            g = fittype(@(a,b,c,d,x) a*exp(-((x-b)/c)) +d);                   
+            g = fittype(@(a,b,c,d,x) a*exp(-((x-b)/c)) +d );                   
             b0 = zeroDelay;
             c0 = 0.5*max(x);
             d0 = mean(ys(end-5:end)); % saturation value
             a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay))) - d0;
             [res,gof,~] = fit(abs(x)',ys',g,'StartPoint',[a0 b0 c0 d0]); 
-            fitTau(i) = res.c;
-            level = 2*tcdf(-1,gof.dfe);
-            m = confint(res,1-level); 
-            tauError(i) = m(end,3) - res.c;
-            fitPeak(i) = res(res.b);  
+            [se]= getStandardErrorsFromFit(res,gof,'method1'); 
+            pa1(i) = res.a;
+            pa2(i) = res.b;
+            pa3(i) = res.c;
+            pa4(i) = res.d;
+            pa1Err(i) = se(1);
+            pa2Err(i) = se(2);
+            pa3Err(i) = se(3);
+            pa4Err(i) = se(4);
+            fitTau(i) = res.c;            
+            tauErr(i) = se(3);            
+            fitPeak(i) = res.a + res.d; 
+            fitPeakErr(i) = sqrt(se(1)^2 + se(4)^2); 
+            plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(abs(min(delay(i,:)):1:max(delay(i,:)))),'r','DisplayName','');
+        case 'exp3'
+            g = fittype(@(a,b,c,x) a*exp(-((x-b)/c))  );                   
+            b0 = zeroDelay;
+            c0 = 0.5*max(x);
+            a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay)));
+            [res,gof,~] = fit(abs(x)',ys',g,'StartPoint',[a0 b0 c0]); 
+            [se]= getStandardErrorsFromFit(res,gof,'method1'); 
+            pa1(i) = res.a;
+            pa2(i) = res.b;
+            pa3(i) = res.c;
+            pa1Err(i) = se(1);
+            pa2Err(i) = se(2);
+            pa3Err(i) = se(3);
+            fitTau(i) = res.c;            
+            tauErr(i) = se(3);            
+            fitPeak(i) = res.a; 
+            fitPeakErr(i) = se(1);  
             plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(abs(min(delay(i,:)):1:max(delay(i,:)))),'r','DisplayName','');
         case 'sech'
             se = fittype(@(a,b,c,d,x) a./(cosh(-pi/2*(x-b)/c)).^2+d);                   
@@ -252,22 +306,76 @@ for i = 1:length(I)
             d0 = mean(ys(end-5:end)); % saturation value
             a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay))) - d0;
             [res,gof,~] = fit(x',ys',se,'StartPoint',[a0 b0 c0 d0]); 
-            fitTau(i) = res.c;
-            level = 2*tcdf(-1,gof.dfe);
-            m = confint(res,1-level); 
-            tauError(i) = m(end,3) - res.c;
-            fitPeak(i) = res(res.b);  
+            [se]= getStandardErrorsFromFit(res,gof,'method1'); 
+            pa1(i) = res.a;
+            pa2(i) = res.b;
+            pa3(i) = res.c;
+            pa4(i) = res.d;
+            pa1Err(i) = se(1);
+            pa2Err(i) = se(2);
+            pa3Err(i) = se(3);
+            pa4Err(i) = se(4);
+            fitTau(i) = res.c;            
+            tauErr(i) = se(3);            
+            fitPeak(i) = res.a + res.d; 
+            fitPeakErr(i) = sqrt(se(1)^2 + se(4)^2);  
             plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(min(delay(i,:)):1:max(delay(i,:))),'r','DisplayName','');
         case 'power-law'
-            g = fittype(@(a,b,alpha,x) a*abs(2*(x-b)).^(-alpha));                   
+            g = fittype(@(a,alpha,x) a*abs(2*(x)).^(-alpha));                   
             b0 = zeroDelay;
-            alpha0 = 0.22;
+            alpha0 = 0.5;
             a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay)));
-            [res,gof,~] = fit(x',ys',g,'StartPoint',[a0 b0 alpha0]); 
-            fitTau(i) = res.alpha;
-            [se]= getStandardErrorsFromFit(res,gof,'method1');   
-            tauError(i) = se(3);
-            fitPeak(i) = res(res.a);  
+            [res,gof,~] = fit( x(abs(delay(i,:))>= (100+zeroDelay))',...
+                 ys(abs(delay(i,:))>= (100+zeroDelay))',g,'StartPoint',[a0 alpha0]); 
+                        [se]= getStandardErrorsFromFit(res,gof,'method1'); 
+            pa1(i) = res.a;
+            pa2(i) = res.alpha;
+            pa1Err(i) = se(1);
+            pa2Err(i) = se(2);           
+            fitPeak(i) = res.a; 
+            fitPeakErr(i) = se(1);  
+            % For the power law, there is no coherence time, because an
+            % integral over it doesnt converge. 
+            plot(ax,[min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))],...
+                res(abs([min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))])),'r','DisplayName','');   
+        case 'stretched-exp'
+            g = fittype(@(A,B,beta,x) A*exp(-B*abs(2*x).^beta) );                   
+            B0 = 1/max(x);
+            beta0 = 1;
+            A0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay)));
+            [res,gof,~] = fit(x',ys',g,'StartPoint',[A0 B0 beta0]); 
+            fitTau(i) = res.beta;
+            [se]= getStandardErrorsFromFit(res,gof,'method1'); 
+            B = res.B;
+            beta = res.beta;
+            pa1(i) = res.A;
+            pa2(i) = res.B;
+            pa3(i) = res.beta;
+            pa1Err(i) = se(1);
+            pa2Err(i) = se(2);
+            pa3Err(i) = se(3);
+            fitPeak(i) = res.A; 
+            fitPeakErr(i) = se(1); 
+            
+            % from the paper and supplement Caputo, D., et al. (2018). 
+            %Topological order and thermal equilibrium in polariton condensates. 
+            %Nature Materials, 17(2), 145?151. https://doi.org/10.1038/NMAT5039
+%             meanTime = 1/2*B^(-1/beta);
+%             fitTau(i) = meanTime/beta * gamma(1/beta);
+            
+            % from the definition of coherence time in https://www.rp-photonics.com/coherence_time.html
+            % coherence time is given by integrating over the square of
+            % g^(1)(t) from -inf to +inf. This can be done by wolfram alpha
+            % and gives the result:
+            fitTau(i) = (2*B)^(-1/beta)*gamma(1+ 1/beta);
+            % get error from monte carlo error propagation
+            [fitTauRand] = deal(zeros(1000,1));           
+            for u = 1:1000
+                Brand = normrnd(B,se(2));
+                betarand = normrnd(beta,se(3));
+                fitTauRand(u) = (2*Brand)^(-1/betarand)*gamma(1+ 1/betarand);
+            end
+            tauErr(i) = std(fitTauRand);            
             plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(abs(min(delay(i,:)):1:max(delay(i,:)))),'r','DisplayName','');           
          case 'lorentz'
              % starting values 
@@ -279,6 +387,10 @@ for i = 1:length(I)
             p0 = [p01 p02 p03 C];
              [res,params,RESNORM, RESIDUAL, JACOBIAN] = lorentzfit(x',ys',p0);
             p1 = params(1);  p2 = params(2);  p3 = params(3); C = params(4);
+            pa1(i) = p1;
+            pa2(i) = p2;
+            pa3(i) = p3;
+            pa4(i) = p4;
             fitTau(i) = 2*sqrt(p3);  %FWHM
             fitPeak(i) = p1/p3 + C;  
             plot(ax,delay(i,:),res,'r','DisplayName','');                   
@@ -294,15 +406,18 @@ for i = 1:length(I)
 %                     plot(ax,min(delay(i,:)):1:max(delay(i,:)),resPlot,'r','DisplayName','');              
             initGuess1 = [0,30, 1]; %peak x, gamma, sigma
             [estimates1, model1] = voigtfit(x, ys, initGuess1, [min(x), max(x)]);
-            gamma = estimates1(2);
+            gam = estimates1(2);
             sigma = estimates1(3);
-            res = myvoigt(x, 0, gamma, sigma );%estimates1(1)
+            res = myvoigt(x, 0, gam, sigma );%estimates1(1)
             res = res';
             c = abs(res\ys');
             res = res*c;             
             plot(ax,x,res,'r','DisplayName','');
             FWHM_Gauss = 2*sigma*sqrt(2*log(2));
-            FWHM_Lorentz = 2*gamma;
+            FWHM_Lorentz = 2*gam;         
+            pa1(i) = estimates1(i);
+            pa2(i) = gam;
+            pa3(i) = sigma; 
             fitTau(i) = 0.5346*FWHM_Lorentz + sqrt(0.2166*FWHM_Lorentz^2 + FWHM_Gauss^2);
             fitPeak(i) = max(res);
             % https://en.wikipedia.org/wiki/Voigt_profile
@@ -313,6 +428,14 @@ for i = 1:length(I)
         case 'noFit'
             fitPeak(i) = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay)));
     end %fitType
+    
+    if ~(strcmp(fitType,'noFit') || strcmp(fitType,'lorentz') || strcmp(fitType,'voigt'))
+        sse(i) = gof.sse;
+        rsquare(i) = gof.rsquare;
+        adjrsquare(i) = gof.adjrsquare;
+        rmse(i) = gof.rmse;
+    end
+    
 end %iloop
 hold off;
 if strcmp(fitType,'noFit')
@@ -334,13 +457,13 @@ if ~isempty(filename)
     close all;
 end
 
-% %% plot fit results vs ring radius and thickness
+%% plot fit results vs ring radius and thickness
 if any(fitTau)
     YrPlot = Yr(:,1);
     [YrPlot,Ir]= sort(YrPlot);
     fitTau = real(fitTau(Ir));
-    tauError = tauError(Ir);
-    errorbar(YrPlot,fitTau,tauError,'o-','Linewidth',2);
+    tauErr = tauErr(Ir);
+    errorbar(YrPlot,fitTau,tauErr,'o-','Linewidth',2);
     xlabel('A_{ps} set for postselection');
     switch fitType
         case 'gauss'
@@ -357,6 +480,8 @@ if any(fitTau)
             ylabel(['FWHM of Lorentz Profile (' xUnit ')']);
          case 'power-law'
             ylabel('\alpha of power-law Profile');
+        case 'stretched-exp'
+            ylabel('\tau_c of stretched-exp Profile');
     end
     graphicsSettings;
     ax = gca;
@@ -373,7 +498,12 @@ if any(fitPeak)
     fitPeak = real(fitPeak(Ir));
     plot(YrPlot,fitPeak,'o-');
     xlabel('A_{ps} set for postselection');
-    ylabel('Peakheight');
+    switch fitType
+        case 'power-law'
+            ylabel('A of power-law Profile');
+        otherwise
+            ylabel('Peakheight');
+    end
     graphicsSettings;
     ax = gca;
     set(ax,'FontSize',30);
@@ -382,6 +512,13 @@ if any(fitPeak)
     print([filename '-PeaksVsRadius.png'],'-dpng');
     close all;
 end
+
+%% save fitresults
+save([filename '-fitresults.mat'],'YrPlot','fitTau','tauErr','fitPeak','fitPeakErr',...
+    'sse','rsquare','adjrsquare','rmse','pa1','pa2','pa3','pa4','pa1Err','pa2Err','pa3Err','pa4Err');
+T = table(YrPlot,fitTau,tauErr,fitPeak,fitPeakErr,sse,rsquare,adjrsquare,rmse,pa1,pa2,pa3,pa4,pa1Err,pa2Err,pa3Err,pa4Err);
+writetable(T,[filename '-fitresults.xls'],'WriteVariableNames',true);
+
 % 
 % if any(fitTau)
 %     YtPlot = Yt(:,1);
