@@ -19,9 +19,11 @@ defaultSmooth = false;
 addParameter(p,'Smooth',defaultSmooth,@islogical);
 defaultPlotrelative = false; %plots the data relative to the target photon number
 addParameter(p,'Plotrelative',defaultPlotrelative,@islogical);
+defaultLogplot = false; %makes yscale of plot logarithmic
+addParameter(p,'Logplot',defaultLogplot,@islogical);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[fitType,plotrelative,range,remMod,smooth,varyAPS,xUnit,zeroDelay] = c{:};
+[fitType,logplot,plotrelative,range,remMod,smooth,varyAPS,xUnit,zeroDelay] = c{:};
 
 
 
@@ -32,7 +34,6 @@ end
 
 % Constants
 figurepath = 'Wigner-figures-fig/';
-
 load('Photonnumbers.mat','nPsFast','nPsSlow','nTg'); %loads the photon numbers of each channel without postselection,...
 %which was created with plotSeriesPostselections
 %% Gather data
@@ -108,7 +109,10 @@ end
 %% Create figure
 fig = figure;
 filename = [figurepath,typestr,'-',fitType,'-remMod-',...
-            num2str(remMod),'-range-',num2str(min(range)),'-',num2str(max(range)),'-varyAPS-',num2str(varyAPS),'-smooth-',num2str(smooth),'-plotrelative-' num2str(plotrelative),'.fig'];
+            num2str(remMod),'-range-',num2str(min(range)),...
+            '-',num2str(max(range)),'-varyAPS-',num2str(varyAPS),...
+            '-smooth-',num2str(smooth),'-plotrelative-' num2str(plotrelative),...
+            '-logplot-',num2str(logplot),'.fig'];
 %formatFigA5(fig);
 figure(1);
 ax = gca;
@@ -321,7 +325,7 @@ for i = 1:length(I)
             fitPeakErr(i) = sqrt(se(1)^2 + se(4)^2);  
             plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(min(delay(i,:)):1:max(delay(i,:))),'r','DisplayName','');
         case 'power-law'
-            g = fittype(@(a,alpha,x) a*abs(2*(x)).^(-alpha));                   
+            g = fittype(@(a,alpha,x) a*abs(x).^(-alpha));                   
             b0 = zeroDelay;
             alpha0 = 0.5;
             a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay)));
@@ -339,7 +343,7 @@ for i = 1:length(I)
             plot(ax,[min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))],...
                 res(abs([min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))])),'r','DisplayName','');   
         case 'stretched-exp'
-            g = fittype(@(A,B,beta,x) A*exp(-B*abs(2*x).^beta) );                   
+            g = fittype(@(A,B,beta,x) A*exp(-B*abs(x).^beta) );                   
             B0 = 1/max(x);
             beta0 = 1;
             A0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay)));
@@ -357,23 +361,24 @@ for i = 1:length(I)
             fitPeak(i) = res.A; 
             fitPeakErr(i) = se(1); 
             
-            % from the paper and supplement Caputo, D., et al. (2018). 
+            % from the paper and supplement Caputo, D., et al. (2018).
+            % set 2x = t in Eq. 1 and 2
             %Topological order and thermal equilibrium in polariton condensates. 
             %Nature Materials, 17(2), 145?151. https://doi.org/10.1038/NMAT5039
-%             meanTime = 1/2*B^(-1/beta);
+%             meanTime = B^(-1/beta);
 %             fitTau(i) = meanTime/beta * gamma(1/beta);
             
             % from the definition of coherence time in https://www.rp-photonics.com/coherence_time.html
             % coherence time is given by integrating over the square of
             % g^(1)(t) from -inf to +inf. This can be done by wolfram alpha
             % and gives the result:
-            fitTau(i) = (2*B)^(-1/beta)*gamma(1+ 1/beta);
+            fitTau(i) = 2^((-1 + beta)/beta)*B^(-1/beta)*gamma(1+ 1/beta);
             % get error from monte carlo error propagation
             [fitTauRand] = deal(zeros(1000,1));           
             for u = 1:1000
                 Brand = normrnd(B,se(2));
                 betarand = normrnd(beta,se(3));
-                fitTauRand(u) = (2*Brand)^(-1/betarand)*gamma(1+ 1/betarand);
+                fitTauRand(u) = 2^((-1 + betarand)/betarand)*Brand^(-1/betarand)*gamma(1+ 1/betarand);
             end
             tauErr(i) = std(fitTauRand);            
             plot(ax,min(delay(i,:)):1:max(delay(i,:)),res(abs(min(delay(i,:)):1:max(delay(i,:)))),'r','DisplayName','');           
@@ -446,6 +451,9 @@ else
     legend(f(index),'location','northeast');
 end
 xlabel(ax,['Delay (' xUnit ')']);
+if logplot
+    ax.YScale = 'log';
+end
 fig = figure(1);              
 set(fig,'Color','w','Units','centimeters','Position',[1,1,45,30],'PaperPositionMode','auto');
 graphicsSettings;
@@ -473,6 +481,8 @@ if any(fitTau)
         case 'exponential'
             ylabel(['\tau_c of exp. function (' xUnit ')']);
         case 'exp2'
+            ylabel(['\tau_c of exp. function (' xUnit ')']);
+        case 'exp3'
             ylabel(['\tau_c of exp. function (' xUnit ')']);
         case 'sech'
             ylabel(['\tau_c of sech function (' xUnit ')']);
