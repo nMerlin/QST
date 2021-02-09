@@ -30,6 +30,7 @@ Acut = A(:,316); %better...
 %for phinhole
  Acut = A(:,1033);
 FWHMx = fwhm(x,Acut); % x width in micrometer 
+FWHMxOnSample =  FWHMx*fMO/fcam/telFactor;
 
 %% make fourier transform 
 Y = fft2(A);
