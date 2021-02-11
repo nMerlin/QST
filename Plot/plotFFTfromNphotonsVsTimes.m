@@ -9,7 +9,7 @@ function [] = plotFFTfromNphotonsVsTimes(ada,times,filename,varargin)
 
 %% Validate and parse input arguments
 p = inputParser;
-defaultAxis = [0 7000 0 0.5];
+defaultAxis = [0 7000 0 1];
 addParameter(p,'Axis',defaultAxis);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
@@ -36,6 +36,6 @@ c = struct2cell(p.Results);
     axis(Ax);
 
     % Saving 
-    savefig(['plotFFT-' filename '.fig']);
-    print(['plotFFT-' filename '.png'],'-dpng','-r300');
+    savefig([filename '-FFT.fig']);
+    print([filename '-FFT.png'],'-dpng','-r300');
 end
