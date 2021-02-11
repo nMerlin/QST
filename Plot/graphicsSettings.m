@@ -1,5 +1,6 @@
 function [] = graphicsSettings
-    fontName = 'Times New Roman';
+%     fontName = 'Times New Roman';
+    fontName = 'Arial';
     fontSize = 20;
     h = findobj(gca,'Type','line');
     ax = gca;
