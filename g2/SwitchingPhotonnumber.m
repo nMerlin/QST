@@ -25,7 +25,7 @@ timesInSeconds = times;
 % ada_low = level_off * max(ada);
 %Problem: max(ada) could be an outlier. Therefore, rather take max from
 %the right peak from a histogram of ada.
-% [N,edges] = histcounts(ada);
+% [N,edges] = histcounts(ada,'Normalisation','probability');
 % adaHist = edges(1): mean(diff(edges)):edges(end-1);
 % [Npks,locs] = findpeaks(N,'minPeakProminence',0.1*max(N));
 % % plot the histogram of ada
@@ -77,59 +77,72 @@ hold on;
 plot(times,ada_high*ones(1,t_length),'--',times,ada_low*ones(1,t_length),'--');
 ylabel('Photon number');
 graphicsSettings;
+h = findobj(gca,'Type','line');
+set(h,'linewidth',1);
 subplot(2,1,2)
 plot(times, ada_digital);
 xlabel(['Time (' units ')']);
 graphicsSettings;
+h = findobj(gca,'Type','line');
+set(h,'linewidth',1);
 ylim([-1.5 1.5]);
 ylabel('Assignment');
 savefig([filename '-intermediate-data-' filenameOptions '.fig']);
 print([filename '-intermediate-data-' filenameOptions '.png'],'-dpng');
-clf();
+close;
 %
 
-%compute the dwell times of the "on" and "off" states 
-period_on=zeros(1); 
-period_off=zeros(1);
-index_on = 1;
-index_off = 1;
-start_on = 0;
-start_off=0;
-numberOfFlips = 0;
-for n=1:(t_length-1)
-    if( ada_digital(n+1) > ada_digital(n)&& ada_digital(n+1)==1) %switches to "on" state
-        if(ada_digital(n+1)~= ada_digital(n)&& ada_digital(n)==0) %comes from "off" state
+
+%compute the dwell times of the "on" and "off" states
+% if all photon numbers <1, there is no switching
+if max(adaSm) < 1
+    numberOfFlips = 0;
+    period_on= 0;
+    period_off = max(times);    
+%     maxN-minN < range*medN
+else
+    period_on=zeros(1); 
+    period_off=zeros(1);
+    index_on = 1;
+    index_off = 1;
+    start_on = 0;
+    start_off=0;
+    numberOfFlips = 0;
+    for n=1:(t_length-1)
+        if( ada_digital(n+1) > ada_digital(n)&& ada_digital(n+1)==1) %switches to "on" state
+            if(ada_digital(n+1)~= ada_digital(n)&& ada_digital(n)==0) %comes from "off" state
+                period_end = times(n+1);
+                period_off(1,index_off) = period_end - start_off;         
+            end
+            numberOfFlips = numberOfFlips + 1;
+            index_on = index_on+1;
+            start_on = times(n+1);
+        elseif( ada_digital(n+1)~= ada_digital(n)&& ada_digital(n+1)==0) %switches to "off" state
+            if(ada_digital(n+1)< ada_digital(n)&& ada_digital(n)==1) %comes from "on" state
+                period_end = times(n+1);
+                period_on(1,index_on)= period_end - start_on;            
+            end
+            numberOfFlips = numberOfFlips + 1;
+            index_off = index_off+1;
+            start_off = times(n+1);
+        elseif(ada_digital(n+1)< ada_digital(n)&& ada_digital(n)==1) %comes from "on" state, goes to intermediate state
             period_end = times(n+1);
-            period_off(1,index_off) = period_end - start_off;         
-        end
-        numberOfFlips = numberOfFlips + 1;
-        index_on = index_on+1;
-        start_on = times(n+1);
-    elseif( ada_digital(n+1)~= ada_digital(n)&& ada_digital(n+1)==0) %switches to "off" state
-        if(ada_digital(n+1)< ada_digital(n)&& ada_digital(n)==1) %comes from "on" state
+            period_on(1,index_on)= period_end - start_on;
+            numberOfFlips = numberOfFlips + 1;
+        elseif(ada_digital(n+1)~= ada_digital(n)&& ada_digital(n)==0) %comes from "off" state, goes to intermediate state
             period_end = times(n+1);
-            period_on(1,index_on)= period_end - start_on;            
+            period_off(1,index_off) = period_end - start_off;
+            numberOfFlips = numberOfFlips + 1;
+        elseif(n == t_length-1 && ada_digital(n)==1) % include the length of the last state if it is "on" until the end
+            period_end = times(n);
+            period_on(1,index_on)= period_end - start_on;
+        elseif(n == t_length-1 && ada_digital(n)==0) % include the length of the last state if it is "off" until the end
+            period_end = times(n);
+            period_off(1,index_off)= period_end - start_off;
+
         end
-        numberOfFlips = numberOfFlips + 1;
-        index_off = index_off+1;
-        start_off = times(n+1);
-    elseif(ada_digital(n+1)< ada_digital(n)&& ada_digital(n)==1) %comes from "on" state, goes to intermediate state
-        period_end = times(n+1);
-        period_on(1,index_on)= period_end - start_on;
-        numberOfFlips = numberOfFlips + 1;
-    elseif(ada_digital(n+1)~= ada_digital(n)&& ada_digital(n)==0) %comes from "off" state, goes to intermediate state
-        period_end = times(n+1);
-        period_off(1,index_off) = period_end - start_off;
-        numberOfFlips = numberOfFlips + 1;
-    elseif(n == t_length-1 && ada_digital(n)==1) % include the length of the last state if it is "on" until the end
-        period_end = times(n);
-        period_on(1,index_on)= period_end - start_on;
-    elseif(n == t_length-1 && ada_digital(n)==0) % include the length of the last state if it is "off" until the end
-        period_end = times(n);
-        period_off(1,index_off)= period_end - start_off;
-        
-    end
-end
+    end %for n
+end %if
 
 
 
@@ -143,6 +156,7 @@ histogram(period_off,20);
 xlabel(['Time (' units ')']);
 ylabel('Number of events');
 graphicsSettings;
+legend('"On" times','"Off" times','Location','best');
 savefig([filename '-histogram_on_off' filenameOptions '.fig']);
 print([filename '-histogram_on_off' filenameOptions '.png'],'-dpng');
 f=gca; 
@@ -150,7 +164,7 @@ f.YScale = 'log';
 f.XScale = 'log';
 savefig([filename '-histogram_on_off_log' filenameOptions '.fig'])
 print([filename '-histogram_on_off_log' filenameOptions '.png'],'-dpng');
-clf();
+close;
 
 % 
 % LowTimes = (times(ada < ada_low));
