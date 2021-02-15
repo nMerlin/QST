@@ -9,8 +9,9 @@ parse(p,varargin{:});
 c = struct2cell(p.Results);
 [folder, smoothing] = c{:};
 %%
-if ~exist('SwitchingPlots','dir')
-    mkdir('SwitchingPlots')
+targetfolder = [folder '-SwitchingPlots'];
+if ~exist(targetfolder,'dir')
+    mkdir(targetfolder)
 end
 filenameOptions = ['-smooth-' num2str(smoothing) '-level_on-' num2str(level_on) '-level_off-' num2str(level_off)];
 
@@ -19,7 +20,7 @@ filenameOptions = ['-smooth-' num2str(smoothing) '-level_on-' num2str(level_on) 
 
 for fileI = 1:length(filenames)
     load([folder '\' cell2mat(filenames(fileI))], 'times', 'ada', 'g2vec');
-    plotFilename = ['SwitchingPlots\' cell2mat(filenames(fileI)) ];
+    plotFilename = [targetfolder '\' cell2mat(filenames(fileI)) ];
     [ ~,~, period_mean_on, period_mean_off, fliprate ] = ...
         SwitchingPhotonnumber( times, ada, g2vec, level_on, level_off, plotFilename,'Smooth', smoothing );
     period_mean_ons(fileI) = period_mean_on;
@@ -28,7 +29,7 @@ for fileI = 1:length(filenames)
 end
 
 [~,units] = convenientUnits(times,'s');
-save(['SwitchingPlots\SwitchingResults' filenameOptions '.mat'],...
+save([targetfolder '\SwitchingResults' filenameOptions '.mat'],...
     'filenames','numbers','Is','period_mean_ons','period_mean_offs','fliprates');
 
 %% plot fliprates 
@@ -36,9 +37,9 @@ plot(Is,fliprates,'o-');
 graphicsSettings;
 xlabel('Power (mW)');
 ylabel('Flip rate (Hz)');
-savefig(['SwitchingPlots\Fliprates' filenameOptions '.fig']);
-print(['SwitchingPlots\Fliprates' filenameOptions '.png'],'-dpng');
-clf();
+savefig([targetfolder '\Fliprates' filenameOptions '.fig']);
+print([targetfolder '\Fliprates' filenameOptions '.png'],'-dpng');
+close;
 
 %% plot mean dwell times
 [AX,H1,H2] = plotyy(Is,period_mean_ons,Is,period_mean_offs);
@@ -58,10 +59,9 @@ set(H2,'linewidth',2);
         'TickDir','in');
     fig = figure(1);              
 set(fig,'Color','w','Units','centimeters','Position',[1,1,45,30],'PaperPositionMode','auto');
-savefig(['SwitchingPlots\MeanTimesVsPower' filenameOptions '.fig']);
-print(['SwitchingPlots\MeanTimesVsPower' filenameOptions '.png'],'-dpng');
-clf();
-
+savefig([targetfolder '\MeanTimesVsPower' filenameOptions '.fig']);
+print([targetfolder '\MeanTimesVsPower' filenameOptions '.png'],'-dpng');
+close;
 
 
 end
