@@ -63,5 +63,13 @@ savefig([targetfolder '\MeanTimesVsPower' filenameOptions '.fig']);
 print([targetfolder '\MeanTimesVsPower' filenameOptions '.png'],'-dpng');
 close;
 
+% plot ratio
+plot(Is,period_mean_ons./period_mean_offs,'-o');
+xlabel('Power (mW)');
+ylabel('t_{on} / t_{off}');
+graphicsSettings;
+savefig([targetfolder '\RatioTimesVsPower' filenameOptions '.fig']);
+print([targetfolder '\RatioTimesVsPower' filenameOptions '.png'],'-dpng');
+close;
 
 end

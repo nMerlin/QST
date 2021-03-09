@@ -24,7 +24,7 @@ defaultSave = 'yes'; %
 addParameter(parser,'Save',defaultSave);
 defaultInterpolate = 'yes';
 addParameter(parser,'Interpolate',defaultInterpolate);
-defaultSubtract = 'yes'; %
+defaultSubtract = 'no'; %
 addParameter(parser,'Subtract',defaultSubtract);
 defaultXLim = 0.5; %
 addParameter(parser,'XLim',defaultXLim,@isnumeric);
