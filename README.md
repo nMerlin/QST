@@ -7,4 +7,4 @@ A set of MatLab scripts for optical homodyne quantum state tomography.
 * MatLab
 * [export_fig](https://github.com/altmany/export_fig) in the MatLab path
 
-The code was tested on a Windows 7 64-bit machine with MatLab2015a.
+The code was tested on a Windows 10 64-bit machine with MatLab2015a.
