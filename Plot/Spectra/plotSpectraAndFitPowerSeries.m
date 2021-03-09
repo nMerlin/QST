@@ -46,7 +46,7 @@ for name = {rawDataContents.name}
 %         continue
 %     end
     
-    if not(isempty(regexpi(filename,'background_1.csv','match')))...
+    if not(isempty(regexpi(filename,'background','match')))...
             || isempty(regexpi(filename,'.csv','match'))
         continue
     end
@@ -58,8 +58,8 @@ for name = {rawDataContents.name}
     
     % Fetch excitation power
     %powerToken = regexpi(filename,'-([0123456789.]*)mW','tokens');
-    %powerToken = regexpi(filename,'OPO-([0123456789.]*)mW','tokens');
-    powerToken = regexpi(filename,'MIRA-([0123456789.]*)mW','tokens');
+    powerToken = regexpi(filename,'OPO-([0123456789.]*)mW','tokens');
+    %powerToken = regexpi(filename,'MIRA-([0123456789.]*)mW','tokens');
     power = str2double(cell2mat(powerToken{1}));
     dataStruct(number).Power = power;
     
