@@ -362,9 +362,9 @@ for i = 1:length(I)
             fitPeakErr(i) = se(1); 
             
             % from the paper and supplement Caputo, D., et al. (2018).
-            % set 2x = t in Eq. 1 and 2
             %Topological order and thermal equilibrium in polariton condensates. 
             %Nature Materials, 17(2), 145?151. https://doi.org/10.1038/NMAT5039
+            % set 2x = t in Eq. 1 and 2
 %             meanTime = B^(-1/beta);
 %             fitTau(i) = meanTime/beta * gamma(1/beta);
             
