@@ -1,7 +1,7 @@
 function integratedStreakComparisons(varargin)
 % for a series of integrated streak measurements located in folder 'integrated-data' as .dat
-% files. It plots the streak data of converted an unconverted light over each other and
-% also the difference using the function integratedStreakComparisons. 
+% files. It plots the streak data of converted and unconverted light over each other and
+% also the difference using the function integratedStreakComparison. 
 
 %% Validate and parse input arguments
 parser = inputParser;
@@ -24,7 +24,7 @@ number = 1;
 for name = {intDataContents.name}
     % Loop only over Signal files
     filename = cell2mat(name);
-    if isempty(regexpi(filename,'-converted-','match'))...
+    if isempty(regexpi(filename,'-con','match'))...
             || isempty(regexpi(filename,'.mat','match'))
         continue
     end
@@ -33,7 +33,8 @@ for name = {intDataContents.name}
     
      % Fetch excitation power
     %powerToken = regexpi(filename,'-([0123456789.]*)mW','tokens'); %mira
-    powerToken = regexpi(filename,'MIRA-([0123456789.]*)mW','tokens'); %mira
+    %powerToken = regexpi(filename,'MIRA-([0123456789.]*)mW','tokens'); %mira
+    powerToken = regexpi(filename,'filter-([0123456789.]*)mW','tokens'); %mira
     power = str2double(cell2mat(powerToken{1}));
     dataStructConv(number).Power = power; 
     
@@ -46,7 +47,7 @@ for name = {intDataContents.name}
     
     % Loop only over Signal files
     filename = cell2mat(name);
-    if isempty(regexpi(filename,'-unconverted-','match'))...
+    if isempty(regexpi(filename,'uncon','match'))...
             || isempty(regexpi(filename,'.mat','match'))
         continue
     end
@@ -55,7 +56,8 @@ for name = {intDataContents.name}
     
      % Fetch excitation power
     %powerToken = regexpi(filename,'-([0123456789.]*)mW','tokens'); %mira
-    powerToken = regexpi(filename,'MIRA-([0123456789.]*)mW','tokens'); %mira
+    %powerToken = regexpi(filename,'MIRA-([0123456789.]*)mW','tokens'); %mira
+    powerToken = regexpi(filename,'filter-([0123456789.]*)mW','tokens'); %mira
     power = str2double(cell2mat(powerToken{1}));
     dataStructUnc(number).Power = power; 
     
