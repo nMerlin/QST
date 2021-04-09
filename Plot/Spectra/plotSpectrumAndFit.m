@@ -46,8 +46,11 @@ e0 = 1.602176634e-19;
     cd('raw-data')
     %data = textread(filenameSIG);
     %data = textread(filenameSIG,'','delimiter',','); 
-    data = textread(filenameSIG,'','delimiter',',','headerlines',1);
-%     data = textread(filenameSIG,'','headerlines',1);
+   % data = textread(filenameSIG,'','delimiter',',','headerlines',1);
+  
+%for data from stellarnet spectrometer:
+    x = importdata(filenameSIG,' ',2);
+    data = x.data;  
     
     w = data(:,1); % wavelength
     Int = data(:,2); % Intensity
@@ -88,10 +91,10 @@ end
     
 %% interpolate data, if wished
     if strcmp(intp, 'yes')
-        xx= peak-xLim:xLim/1000:peak+xLim;%xx= peak-xLim:0.001:peak+xLim;
+        xx= min(w):xLim/1000:max(w);%xx= peak-xLim:0.001:peak+xLim;
         ip = spline(w, Int, xx);
-        Intfit = ip';
-        wfit = xx';
+        Intfit = ip(xx>peak-xLim & xx<peak+xLim)';
+        wfit = xx(xx>peak-xLim & xx<peak+xLim)';
         plot(xx,ip,'LineWidth',1,'DisplayName','Interp.'); hold on;
         plot(w,Int,'bo','LineWidth',2,'DisplayName','Data');
         hold on;
@@ -133,7 +136,7 @@ end
         end               
         x= peak-xLim:xLim/1000:peak+xLim; %x = peak-xLim:0.001:peak+xLim;
         plot(x,f(x),'r','LineWidth',1.5,'DisplayName','Fit');
-        set(gca,'DefaultTextInterpreter','latex');
+        %set(gca,'DefaultTextInterpreter','latex');
         text(peak, Max/4,...
             ['FWHM = ' num2str(FWHM,'%.3f') ' $\pm$ ' num2str(FWHMerror,'%.4f') ' ' xUnit char(10) ...
             'Q = ' num2str(Q,'%.0f') char(10) '$\Delta t$ = ' num2str(duration,'%.1f') ' fs'],'FontSize',fontsize-4);
@@ -151,7 +154,7 @@ end
     else
         xlim([peak-xLim, peak+xLim]);
     end
-    ylabel('Counts');
+    ylabel('Intensity (a.u.)');
     if strcmp(xUnit, 'nm')
         xlabel('Wavelength (nm)');    
     elseif strcmp(xUnit, 'Hz')
@@ -159,15 +162,14 @@ end
     elseif strcmp(xUnit, 'eV')
         xlabel('Energy (eV)');  
     end
-    fontName = 'Times New Roman';
-    set(gca,'LineWidth',3,'XColor',[0 0 0], 'YColor', [0 0 0],'Box','on',...
-        'FontSize',22,'FontName',fontName,...
-        'TickDir','Out');
-    set(gca,'DefaultTextInterpreter','latex');
+    
+    %set(gca,'DefaultTextInterpreter','latex');
     text(peak-0.45, Max/2,['peak at ' num2str(peak,'%.2f') ' ' xUnit char(10) ...
         'max Int ' num2str(Max,'%.0f') ' counts' char(10) ...
         'integr. Int ' num2str(integratedInt,'%.0f') ' counts' char(10)],...
         'FontSize',fontsize-4);
+    graphicsSettings;
+    grid;
     hold off;
     cd('..')
     if strcmp(save, 'yes')

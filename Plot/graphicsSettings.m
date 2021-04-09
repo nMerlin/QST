@@ -8,12 +8,16 @@ function [] = graphicsSettings
     set(ax,'linewidth',2,'XColor',[0 0 0], 'YColor', [0 0 0],'Box','on',...
         'FontSize',fontSize,'FontName',fontName,...
         'TickDir','in');
-    set(ax,'DefaultTextInterpreter','latex');
+    %set(ax,'DefaultTextInterpreter','latex');
     grid;
     dcmObj = datacursormode;  % Turn on data cursors and return the
                           %   data cursor mode object
     set(dcmObj, 'UpdateFcn', @dataTipUpdateFcn); % increases the displayed digits of data tips 
   
+    %change exponent of axis
+%     y = ax.YAxis;
+%     set(y,'Exponent',4);
+    
     %reduce white margins around figure 
 %     outerpos = ax.OuterPosition;
 %     ti = ax.TightInset;

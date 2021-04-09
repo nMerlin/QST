@@ -46,8 +46,9 @@ for name = {rawDataContents.name}
 %         continue
 %     end
     
-    if not(isempty(regexpi(filename,'background','match')))...
-            || isempty(regexpi(filename,'.csv','match'))
+    if not(isempty(regexpi(filename,'background','match')))...           
+            || isempty(regexpi(filename,'.ssm','match'))
+             %|| isempty(regexpi(filename,'.csv','match'))
         continue
     end
     

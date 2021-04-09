@@ -38,7 +38,8 @@ for name = {rawDataContents.name}
     
      % Fetch excitation power
     %powerToken = regexpi(filename,'-([0123456789.]*)mW','tokens'); %mira
-    powerToken = regexpi(filename,'MIRA-([0123456789.]*)mW','tokens'); %mira
+    %powerToken = regexpi(filename,'MIRA-([0123456789.]*)mW','tokens'); %mira
+    powerToken = regexpi(filename,'filter-([0123456789.]*)mW','tokens'); %mira
     power = str2double(cell2mat(powerToken{1}));
     dataStruct(number).Power = power;
     
