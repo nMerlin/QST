@@ -19,6 +19,10 @@ unInt = Int;
 [convImax,convNormInt,convP] = normshift(convTime,convInt);
 [unImax,unNormInt,unP] = normshift(unTime,unInt);
 
+%use not smoothed data
+convP = convNormInt;
+unP = unNormInt;
+
 % shifts the data so that their maxima lie at the same time
 timeDiff = convImax - unImax;
 if timeDiff >0
@@ -32,35 +36,31 @@ end
 
 %% plot both functions 
 cd('..');
-plot(newTime, unPshifted, 'linewidth',2);
+plot(newTime/1000, unPshifted, 'linewidth',2);
 hold on;
-plot(newTime, convPshifted, 'linewidth',2);
-set(gca, 'Ylim',[-0.1 1.1]);
+plot(newTime/1000, convPshifted, 'linewidth',2);
+plot(newTime/1000, convPshifted-unPshifted, 'linewidth',2);
+set(gca, 'Ylim',[min(convPshifted-unPshifted) 1.1]);
 hold off;
+legend('Unconverted','Converted','Difference');
+ylabel('Integrated intensity (a.u.)');
+xlabel('Time (ns)');
 graphicsSettings;
-fontName = 'Times New Roman';
-fontSize = 22;
-set(gca,'DefaultTextInterpreter','latex');
-legend('unconverted','converted');
-ylabel('Integrated Intensity (a.u.)','FontSize',fontSize,'FontName',fontName);
-xlabel('time (ps)','FontSize',fontSize,'FontName',fontName);
+grid;
 print([filenameConv '-IntegratedPlot-both.png'],'-dpng','-r300');
 savefig([filenameConv '-IntegratedPlot-both.fig']);
 clf();
 
 %% plot difference
-plot(newTime, convPshifted-unPshifted, 'linewidth',2);
-%     set(gca, 'Ylim',[0 1.1]);
-hold off;
-set(gca,'DefaultTextInterpreter','latex');
-graphicsSettings;
-ylim([-1 1]);
-legend('difference');
-ylabel('Difference Intensity (a.u.)','FontSize',fontSize,'FontName',fontName);
-xlabel('time (ps)','FontSize',fontSize,'FontName',fontName);
-title('converted - unconverted');
-print([filenameConv '-IntegratedPlot-diff.png'],'-dpng','-r300');
-savefig([filenameConv '-IntegratedPlot-diff.fig']);
+% plot(newTime/1000, convPshifted-unPshifted, 'linewidth',2);
+% %     set(gca, 'Ylim',[0 1.1]);
+% hold off;
+% graphicsSettings;
+% ylim([-1 1]);
+% ylabel('Difference intensity (a.u.)');
+% xlabel('Time (ns)');
+% print([filenameConv '-IntegratedPlot-diff.png'],'-dpng','-r300');
+% savefig([filenameConv '-IntegratedPlot-diff.fig']);
     
     
 end
