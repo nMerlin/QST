@@ -58,8 +58,8 @@ end
 for name = {rawDataContents.name}
     % Loop only over *LOonly.raw files
     filename = cell2mat(name);
-    if not(isempty(regexpi(filename,'LOonly.raw.','match')))...
-            || isempty(regexpi(filename,'LOonly.raw','match'))
+    if not(isempty(regexpi(filename,'.stamp','match'))) || not(isempty(regexpi(filename,'.cfg','match')))...
+            || isempty(regexpi(filename,'LOonly','match'))
         continue
     end
     
