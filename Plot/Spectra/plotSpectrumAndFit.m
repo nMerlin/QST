@@ -46,11 +46,11 @@ e0 = 1.602176634e-19;
     cd('raw-data')
     %data = textread(filenameSIG);
     %data = textread(filenameSIG,'','delimiter',','); 
-   % data = textread(filenameSIG,'','delimiter',',','headerlines',1);
+    data = textread(filenameSIG,'','delimiter',',','headerlines',1);
   
 %for data from stellarnet spectrometer:
-    x = importdata(filenameSIG,' ',2);
-    data = x.data;  
+%     x = importdata(filenameSIG,' ',2);
+%     data = x.data;  
     
     w = data(:,1); % wavelength
     Int = data(:,2); % Intensity
