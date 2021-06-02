@@ -1,6 +1,10 @@
 function HusimiSeriesFromQuadratures( chAssign, varargin)
 %computes and plots Husimi functions from quadrature data located in the folder 'mat-data'. 
-
+%'ChannelAssignment': This sets which channel is target, 
+%       which is the postselection channel that is piezo modulated fast for 
+%       the phase computation and which is the last postselection channel, 
+%       according to [target,ps_piezo_fast,ps_piezo_slow]
+% For Husimi funciton, only ps_piezo_fast and ps_piezo_slow are used. 
 % Optional input arguments
 %% Validate and parse input arguments
 p = inputParser;
@@ -237,6 +241,7 @@ for iStruct =  1:length(Contents)
          close all;
          nRatioErrHigh=0;
          g2ErrHigh = 0;
+         meanNErrHigh = 0;
          if monteCarloError
         % make Monte Carlo Error Propagation
             [nThermRand,nCoherentRand,CoherenceRand,nRatioRand,g2Rand,meanNRand] = deal(zeros(NMonteCarlo,1));
