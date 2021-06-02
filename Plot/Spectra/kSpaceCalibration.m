@@ -20,9 +20,10 @@ end
  Int = Int';
  
 Int(Int<0) = 0; 
-surf(X, Y, log(Int));
-colorbar;
-view(180,-90);
+surf(X, Y, Int);
+% surf(X, Y, log(Int));
+% colorbar;
+% view(180,-90);
 shading flat;
 axis tight;
  axis equal;
