@@ -174,7 +174,8 @@ else
     set(gca,'DataAspectRatio',[1,1,1]);
 end
 
-saveFig(filename); % does not save empty filename
+savefig([filename '.fig']); % does not save empty filename
+print([filename '.png'],'-dpng','-r300');
 
 end
 
