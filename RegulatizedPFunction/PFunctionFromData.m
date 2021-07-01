@@ -35,10 +35,12 @@ for phi = phiGrid
 end
 P = sum * pi / length(phiGrid);
 P2 = sum2 * pi^2 / length(phiGrid);
+sumP = sum(sum(P));
+P=P./sumP;
 
 Ntotal = length(Xdata);
 sigmaP = sqrt((P2 - P.^2)/(Ntotal-1));
-
+sigmaP=sigmaP./sumP;
 end
 
 
