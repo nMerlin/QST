@@ -62,7 +62,17 @@ for iStruct =  1:length(Contents)
         case 'no' 
             dataStruct(iStruct).I = 0;
             numberToken = regexpi(delay,'^([0123456789,]*)-','tokens'); 
+             dataStruct(iStruct).number = str2double(cell2mat(numberToken{1}));             
+        case 'position'
+            delayToken = regexpi(filename,'([-0123456789,-]*)mm','tokens');
+            delay = cell2mat(delayToken{1});
+            numberToken = regexpi(delay,'^([0123456789,]*)-','tokens'); 
              dataStruct(iStruct).number = str2double(cell2mat(numberToken{1}));
+            number = cell2mat(numberToken{1});
+            delay = strrep(delay,[number '-'],'');
+            delay = strrep(delay,',','.');
+            delay = str2double(delay);
+            dataStruct(iStruct).I = delay;
     end
      
 end % iStruct
