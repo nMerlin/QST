@@ -4,7 +4,7 @@ function [] = WignerDelaySeries(varargin)
 %% Validate and parse input arguments
 p = inputParser;
 % directory where the Wigner tables are stored
-defaultDirectory = 'C:\Users\Carolin Lüders\Documents\archived-data\Wigner';
+defaultDirectory = 'C:\Users\Carolin L?ders\Documents\archived-data\Wigner';
 %'C:\Users\lab\Documents\@archived-data\Wigner';
 addParameter(p,'Directory',defaultDirectory,@isstr);
 % maximum Fock state for density matrix

@@ -1,5 +1,5 @@
 %testing P function for different Rs
-%Normalization:
+%Normalization: If the standard deviation of the vacuum is set to 1 
 selX2 = sqrt(2)*selX;
 maxQuad = 20;
 Res = 1;
