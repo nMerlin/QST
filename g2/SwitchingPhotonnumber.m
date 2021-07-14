@@ -98,15 +98,15 @@ else
     numberOfFlips = 0;
     for n=1:(t_length-1)
         if( ada_digital(n+1) ~= ada_digital(n) && ada_digital(n+1)==1) %switches to "on" state           
-            period_end = times(n+1)
-            start_off
+            period_end = times(n+1);
+            start_off;
             period_off(1,index_off) = period_end - start_off;                    
             numberOfFlips = numberOfFlips + 1;
             index_on = index_on+1;
             start_on = times(n+1);
         elseif( ada_digital(n+1)~= ada_digital(n) && ada_digital(n+1)==0) %switches to "off" state         
-            period_end = times(n+1)
-            start_on
+            period_end = times(n+1);
+            start_on;
             period_on(1,index_on)= period_end - start_on;               
             numberOfFlips = numberOfFlips + 1;
             index_off = index_off+1;

@@ -27,13 +27,13 @@ c = struct2cell(p.Results);
         g2Stds3 = g2Stds;
     end
     
-    l = errorbar(Is1, g2Avs1,g2Stds1,'ro','markerSize',7,'markerFaceColor','r','markerEdgeColor','r','linewidth',1.2);
+    l = errorbar(Is1, g2Avs1,g2Stds1,'ko','markerSize',7,'markerFaceColor','k','markerEdgeColor','k','linewidth',1.2);
     f = gca;
     f.XScale = 'log';
     if ChNumber ==2 || ChNumber ==3
         l.DisplayName='Channel 1';
         hold on;
-        errorbar(Is2, g2Avs2,g2Stds2,'ko','markerSize',7,'markerFaceColor','k','markerEdgeColor','k','linewidth',1.2,'DisplayName','Channel 2');
+        errorbar(Is2, g2Avs2,g2Stds2,'ro','markerSize',7,'markerFaceColor','r','markerEdgeColor','r','linewidth',1.2,'DisplayName','Channel 2');
     end
     if ChNumber == 3    
         errorbar(Is3, g2Avs3,g2Stds3,'bo','markerSize',7,'markerFaceColor','b','markerEdgeColor','b','linewidth',1.2,'DisplayName','Channel 3');
@@ -58,11 +58,11 @@ c = struct2cell(p.Results);
 
     clf();
     % 
-    loglog(Is1, nAvs1,'o','LineWidth',2,'DisplayName','Channel 1');
+    loglog(Is1, nAvs1,'ko','LineWidth',2,'DisplayName','Channel 1');
     hold on;
-    loglog(Is2, nAvs2,'o','LineWidth',2,'DisplayName','Channel 2');
+    loglog(Is2, nAvs2,'ro','LineWidth',2,'DisplayName','Channel 2');
     if ChNumber == 3 
-        loglog(Is3, nAvs3,'o','LineWidth',2,'DisplayName','Channel 3');
+        loglog(Is3, nAvs3,'bo','LineWidth',2,'DisplayName','Channel 3');
     end
     ylabel('{<n>}');
     switch parameter
