@@ -14,12 +14,12 @@ phiStep = min(diff(phiGrid));
 %get the new coordinate grid from folder name  
 maxQuadToken = regexpi(directory,'maxQuad-([-0123456789.]*)-','tokens');
 maxQuad = str2double(cell2mat(maxQuadToken{1}));
-ResToken = regexpi(directory,'Resolution-([-0123456789.]*)','tokens');
+ResToken = regexpi(directory,'Resolution-([-0123456789.]*)-','tokens');
 Resolution = str2double(cell2mat(ResToken{1}));
 QuadVals=-abs(maxQuad):Resolution:abs(maxQuad);
 
 % compute the P function and its uncertainty 
-sum = 0;
+summe = 0;
 sum2 = 0;
 for phi = phiGrid
     for x = xGrid 
@@ -29,11 +29,11 @@ for phi = phiGrid
         N = length(Xdata(Xdata > min(binX) & Xdata < max(binX) & thetaData > min(binPhi) & thetaData < max(binPhi)));
         N2 = length(Xdata(thetaData > min(binPhi) & thetaData < max(binPhi)));
         weight = N/N2;
-        sum = sum + weight * pattern;
+        summe = summe + weight * pattern;
         sum2 = sum2 + weight * pattern.^2;
     end
 end
-P = sum * pi / length(phiGrid);
+P = summe * pi / length(phiGrid);
 P2 = sum2 * pi^2 / length(phiGrid);
 sumP = sum(sum(P));
 P=P./sumP;
