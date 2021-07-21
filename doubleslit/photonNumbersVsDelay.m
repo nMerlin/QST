@@ -61,7 +61,7 @@ print('nVsPosition-normalized.png','-dpng','-r300');
 clf();
 
 %Interferenzweglänge in m
-D = 0.61;
+D = 0.6;
 %Wellenlänge in m
 lambda = 834e-9;
 %Abstand Maxima in m 
