@@ -23,15 +23,16 @@ defaultResolution= 1; %step size of the new quadrature coordinates grid
 addParameter(p,'Resolution',defaultResolution,@isnumeric);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[directory,maxQuad,maxX,phiStep,R,Resolution,xStep] = c{:};
+[directory,maxQuad,maxX,phiStep,R,Resolution,XStep] = c{:};
 
-directory = [directory,'\PFunction-R-',num2str(R),'-maxQuad-',num2str(maxQuad),'-Resolution-',num2str(Resolution)];
+directory = [directory,'\PFunction-R-',num2str(R),'-maxQuad-',num2str(maxQuad),...
+    '-Resolution-',num2str(Resolution) '-maxX-' num2str(maxX) '-Xstep-' num2str(XStep) '-phiStep-' num2str(phiStep)];
 if ~exist(directory,'dir')
     mkdir(directory)
 end
 
 tic;
-[xGrid,phiGrid] = makeGridxAndPhi(maxX,xStep,phiStep);
+[xGrid,phiGrid] = makeGridxAndPhi(maxX,XStep,phiStep);
 makeXGridAndPattern(xGrid,phiGrid,R,maxQuad,Resolution,directory);
 toc;
 
