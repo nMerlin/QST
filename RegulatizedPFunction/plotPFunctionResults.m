@@ -31,9 +31,11 @@ defaultXStep= 1; %step size of the old quadrature coordinates grid
 addParameter(p,'XStep',defaultXStep,@isnumeric);
 defaultResolution= 1; %step size of the new quadrature coordinates grid
 addParameter(p,'Resolution',defaultResolution,@isnumeric);
+defaultNorm= 1; %normalization of the vacuum standard deviation of quadratures. Is 1 for P functions
+addParameter(p,'Norm',defaultNorm,@isnumeric);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[fitType,logplot,maxQuad,maxX,phiStep,plotrelative,range,remMod,res,rvalue,varyAPS,XStep,xUnit,zeroDelay] = c{:};
+[fitType,logplot,maxQuad,maxX,norm,phiStep,plotrelative,range,remMod,res,rvalue,varyAPS,XStep,xUnit,zeroDelay] = c{:};
 
 %% Create folder 'figures-fig'
 folder = ['Pfunction-figures-results-R-' num2str(rvalue) ...
@@ -78,6 +80,10 @@ end
 delay = delay(I,:); %delays
 Yr = Yr(I,:); %Radii
 Yt = Yt(I,:); %thicknesses
+if norm == 1
+    Yr = Yr*sqrt(2);
+    Yt = Yt*sqrt(2);
+end  
 PhotonNrs = PhotonNrs(I,:);
 meanPh = meanPh(I,:);
 meanR = meanR(I,:);varPh = varPh(I,:);varR = varR(I,:);
@@ -153,7 +159,7 @@ for i = 1:length(I)
             end
     end %typestr     
     
-    shadedErrorBar(delay(i,:),ys,yErr,'lineProps',{'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]});
+    shadedErrorBar(delay(i,:),ys,yErr,'lineProps',{'o-','DisplayName',[sel ' = ' num2str(Yr(i,1),2) ', t = ' num2str(Yt(i,1),2)]});
     %plot(ax,delay(i,:),ys,'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
     hold on;
     x = delay(i,:);

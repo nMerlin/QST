@@ -174,6 +174,7 @@ if plotOption
     xL = ax.XLim;
     BarPos = get(hBar,'Position');
     set(hBar,'Position',BarPos+[0.03 0 0 -0.1]);
+    hBar.FontSize = 25;
     savefig([filename '-nbins-' num2str(nBinsA) '-fitMethod-' fitMethod '-Husimi.fig']);
     print([filename '-nbins-' num2str(nBinsA) '-fitMethod-' fitMethod '-Husimi.png'],'-dpng','-r300');
     clf();

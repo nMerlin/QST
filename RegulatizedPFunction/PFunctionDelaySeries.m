@@ -32,12 +32,17 @@ defaultXStep= 1; %step size of the old quadrature coordinates grid
 addParameter(p,'XStep',defaultXStep,@isnumeric);
 defaultResolution= 1; %step size of the new quadrature coordinates grid
 addParameter(p,'Resolution',defaultResolution,@isnumeric);
+defaultNorm= 1; %normalization of the vacuum standard deviation of quadratures. Is 1 for P functions
+addParameter(p,'Norm',defaultNorm,@isnumeric);
+defaultPatternDir = 'C:\Users\Public\Documents\archived-data'; %directory with the pattern functions
+% 'C:\Users\lab\Documents\@archived-data'
+addParameter(p,'PatternDir',defaultPatternDir,@isstr);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[loadExistent,maxQuad,maxX,phiStep,plotOption,range,remMod,res,rvalue,selParams,varyAPS,XStep,zeroDelay] = c{:};
+[loadExistent,maxQuad,maxX,norm,patternDir,phiStep,plotOption,range,remMod,res,rvalue,selParams,varyAPS,XStep,zeroDelay] = c{:};
 
 %directory with the pattern functions
-directory = ['C:\Users\Public\Documents\archived-data\PFunction-R-' num2str(rvalue) ...
+directory = [patternDir '\PFunction-R-' num2str(rvalue) ...
         '-maxQuad-' num2str(maxQuad) '-Resolution-' num2str(res) '-maxX-' num2str(maxX) '-Xstep-' num2str(XStep) '-phiStep-' num2str(phiStep)];
 [xGrid,phiGrid] = getGridsFromFilenames(directory);
 
@@ -90,7 +95,9 @@ for i = 1:length(files)
     else
         load(['post-data/',postFilename],'selX','selTheta');
         %Normalization: If the standard deviation of the vacuum is set to 1 
-        selX2 = sqrt(2)*selX;
+        if norm == 1
+            selX2 = sqrt(2)*selX;
+        end
         dispstat('compute P function','timestamp',0);
         tic;
         dispstat('calculate P function','init','timestamp','keepthis',0);
