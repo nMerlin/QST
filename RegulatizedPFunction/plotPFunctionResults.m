@@ -549,7 +549,7 @@ if any(fitPeak)
     end
     graphicsSettings;
     ax = gca;
-    set(ax,'FontSize',30);
+    set(ax,'FontSize',25);
     title(typestr);
     savefig([filename '-PeaksVsRadius.fig']);
     print([filename '-PeaksVsRadius.png'],'-dpng');
