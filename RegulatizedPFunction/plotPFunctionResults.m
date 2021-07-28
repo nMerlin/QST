@@ -473,11 +473,13 @@ for i = 1:length(I)
 end %iloop
 hold off;
 if strcmp(fitType,'noFit')
-    legend('location','southeast','Fontsize',20);
+    l = legend('location','southeast');
+    l.FontSize = 20;
 else
     f=get(ax,'Children');
     index = length(f)-((1:length(I))-1).*2;
-    legend(f(index),'location','southeast','Fontsize',20);
+    l = legend(f(index),'location','southeast');
+    l.FontSize = 20;
 end
 xlabel(ax,['Delay (' xUnit ')']);
 if logplot
