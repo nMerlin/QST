@@ -4,21 +4,26 @@ selX2 = sqrt(2)*selX;
 maxQuad = 20;
 Res = 0.25;
 maxX = 20;
-XStep = 0.25;
+XStep = 1;
 phiStep = 0.1;
 dispstat('','init','timestamp','keepthis',0);
 
-d = ['74-108mm-delay--6ps\results-maxQuad-' num2str(maxQuad) '-Res-' ...
+% d = ['74-108mm-delay--6ps\results-maxQuad-' num2str(maxQuad) '-Res-' ...
+%     num2str(Res) '-maxX-' num2str(maxX) '-Xstep-' num2str(XStep) '-phiStep-' num2str(phiStep)];
+% d = ['196-291,000mm-delay-1214ps\results-maxQuad-' num2str(maxQuad) '-Res-' ...
+%     num2str(Res) '-maxX-' num2str(maxX) '-Xstep-' num2str(XStep) '-phiStep-' num2str(phiStep)];
+% d = ['108mm-delay--6ps\results-maxQuad-' num2str(maxQuad) '-Res-' ...
+%     num2str(Res) '-maxX-' num2str(maxX) '-Xstep-' num2str(XStep) '-phiStep-' num2str(phiStep)];
+d = ['290,000mm-delay-1214ps\results-maxQuad-' num2str(maxQuad) '-Res-' ...
     num2str(Res) '-maxX-' num2str(maxX) '-Xstep-' num2str(XStep) '-phiStep-' num2str(phiStep)];
-d = ['196-291,000mm-delay-1214ps\results-maxQuad-' num2str(maxQuad) '-Res-' ...
-    num2str(Res) '-maxX-' num2str(maxX) '-Xstep-' num2str(XStep) '-phiStep-' num2str(phiStep)];
-
-
+% d = ['200mm\results-maxQuad-' num2str(maxQuad) '-Res-' ...
+%     num2str(Res) '-maxX-' num2str(maxX) '-Xstep-' num2str(XStep) '-phiStep-' num2str(phiStep)];
+% 
 if ~exist(d,'dir')
     mkdir(d)
 end
 
-for Rvec = 0.1:0.1:2
+for Rvec = 0.7 %Rvec = 0.1:0.1:2
     
 %     directory = 'C:\Users\Public\Documents\archived-data\';
 %     dispstat('makegrid','init','timestamp','keepthis',0);

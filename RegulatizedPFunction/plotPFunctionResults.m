@@ -13,6 +13,8 @@ defaultRemoveModulation = false;
 addParameter(p,'RemoveModulation',defaultRemoveModulation,@islogical);
 defaultRange = 0.3;
 addParameter(p,'Range',defaultRange,@isvector);
+defaultRemoveBaseline = false; 
+addParameter(p,'RemoveBaseline',defaultRemoveBaseline,@islogical);
 defaultZeroDelay = 0;
 addParameter(p,'ZeroDelay',defaultZeroDelay,@isnumeric); % in mm
 defaultPlotrelative = false; %plots the data relative to the target photon number
@@ -35,7 +37,7 @@ defaultNorm= 1; %normalization of the vacuum standard deviation of quadratures. 
 addParameter(p,'Norm',defaultNorm,@isnumeric);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[fitType,logplot,maxQuad,maxX,norm,phiStep,plotrelative,range,remMod,res,rvalue,varyAPS,XStep,xUnit,zeroDelay] = c{:};
+[fitType,logplot,maxQuad,maxX,norm,phiStep,plotrelative,range,removeBaseline,removeMod,res,rvalue,varyAPS,XStep,xUnit,zeroDelay] = c{:};
 
 %% Create folder 'figures-fig'
 folder = ['Pfunction-figures-results-R-' num2str(rvalue) ...
@@ -54,7 +56,7 @@ for iParams = 1:length(listOfParams)
     selParams = listOfParams(iParams);
     selStr = selParamsToStr(selParams);
     foldername = ['Pfunctionplots-',selStr,'-remMod-',...
-            num2str(remMod),'-range-',num2str(range),'-varyAPS-',num2str(varyAPS),'-R-' num2str(rvalue) ...
+            num2str(removeMod),'-range-',num2str(range),'-varyAPS-',num2str(varyAPS),'-R-' num2str(rvalue) ...
         '-maxQuad-' num2str(maxQuad) '-Resolution-' num2str(res) '-maxX-' num2str(maxX) '-Xstep-' num2str(XStep) '-phiStep-' num2str(phiStep)];
     load([foldername '\Pfunctionresults.mat'],'Delay','DelayMm','Pmax','sigmaPmax','meanPhase','meanPhaseBinned','varPhase',...
     'varPhaseBinned','g1','sigNeg','meanAmp','meanAmpBinned','varAmp','varAmpBinned','PhotonNr','PhotonNrBinned',...
@@ -102,7 +104,8 @@ else
 end
 
 %% Plot
-typestrVector = {'R','discN','varR','meanPh','varPh','RLog'};
+%typestrVector = {'R','discN','varR','meanPh','varPh','RLog'};
+typestrVector = {'R'};
 for typeI = 1:length(typestrVector)
     plotStuff(cell2mat(typestrVector(typeI)))
 end
@@ -111,10 +114,10 @@ end
 %% Create figure
 fig = figure;
 filename = [figurepath,typestr,'-',fitType,'-remMod-',...
-            num2str(remMod),'-range-',num2str(min(range)),...
+            num2str(removeMod),'-range-',num2str(min(range)),...
             '-',num2str(max(range)),'-varyAPS-',num2str(varyAPS),...
             '-plotrelative-' num2str(plotrelative),...
-            '-logplot-',num2str(logplot),'.fig'];
+            '-logplot-',num2str(logplot),'-remBaseline-' num2str(removeBaseline), '.fig'];
 %formatFigA5(fig);
 figure(1);
 ax = gca;
@@ -159,6 +162,12 @@ for i = 1:length(I)
             end
     end %typestr     
     
+    if removeBaseline
+        z = smooth(ys',400);
+        z = z';
+        ys = ys - z + mean(z) ;
+    end
+    
     shadedErrorBar(delay(i,:),ys,yErr,'lineProps',{'o-','DisplayName',[sel ' = ' num2str(Yr(i,1),2) ', t = ' num2str(Yt(i,1),2)]});
     %plot(ax,delay(i,:),ys,'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
     hold on;
@@ -189,7 +198,64 @@ for i = 1:length(I)
             tauErr(i) = se(3);
             fitPeak(i) = result.a + result.d; 
             fitPeakErr(i) = sqrt(se(1)^2 + se(4)^2);           
-            plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(min(delay(i,:)):1:max(delay(i,:))),'r','DisplayName','');            
+            plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(min(delay(i,:)):1:max(delay(i,:))),'r','DisplayName','');   
+        case 'envelopeFromPeaks'
+            b0 = zeroDelay;
+            c0 = 0.5*max(x);
+            d0 = mean(ys(end-5:end)); % saturation value
+            a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay))) - d0;
+            if a0 < 0
+                [peaks,Index] = findpeaks(-ys,'MinPeakProminence',0.02);
+                 peaks = -peaks;
+            else
+                [peaks,Index] = findpeaks(ys,'MinPeakProminence',0.02);
+            end
+            pDelays = x(Index);
+            xFit = pDelays';
+            yFit = peaks';
+            g = fittype(@(a,b,c,d,x) a*exp(-pi/2*((x-b)/c).^2)+d);                              
+            [result,gof,~] = fit(xFit,yFit,g,'StartPoint',[a0 b0 c0 d0]); 
+            [se]= getStandardErrorsFromFit(result,gof,'method1'); 
+            pa1(i) = result.a;
+            pa2(i) = result.b;
+            pa3(i) = result.c;
+            pa4(i) = result.d;
+            pa1Err(i) = se(1);
+            pa2Err(i) = se(2);
+            pa3Err(i) = se(3);
+            pa4Err(i) = se(4);
+            fitTau(i) = result.c;            
+            tauErr(i) = se(3);
+            fitPeak(i) = result.a + result.d; 
+            fitPeakErr(i) = sqrt(se(1)^2 + se(4)^2);           
+            plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(min(delay(i,:)):1:max(delay(i,:))),'r','DisplayName','');
+         case 'envelope'
+            b0 = zeroDelay;
+            c0 = 0.5*max(x);
+            d0 = mean(ys(end-5:end)); % saturation value
+            a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay))) - d0;
+            [yupper,ylower] = envelope(ys,10,'peak');
+            if a0 < 0
+                yFit = ylower;
+            else
+                yFit = yupper;
+            end
+            g = fittype(@(a,b,c,d,x) a*exp(-pi/2*((x-b)/c).^2)+d);                              
+            [result,gof,~] = fit(x',yFit',g,'StartPoint',[a0 b0 c0 d0]); 
+            [se]= getStandardErrorsFromFit(result,gof,'method1'); 
+            pa1(i) = result.a;
+            pa2(i) = result.b;
+            pa3(i) = result.c;
+            pa4(i) = result.d;
+            pa1Err(i) = se(1);
+            pa2Err(i) = se(2);
+            pa3Err(i) = se(3);
+            pa4Err(i) = se(4);
+            fitTau(i) = result.c;            
+            tauErr(i) = se(3);
+            fitPeak(i) = result.a + result.d; 
+            fitPeakErr(i) = sqrt(se(1)^2 + se(4)^2);           
+            plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(min(delay(i,:)):1:max(delay(i,:))),'r','DisplayName','');
          case 'gauss2'
             g = fittype(@(a,c,x) a*exp(-pi/2*((x)/c).^2));                   
             c0 = 0.5*max(x);
@@ -439,6 +505,8 @@ if any(fitTau)
     switch fitType
         case 'gauss'
             ylabel(['\tau_c of Gaussian (' xUnit ')']);
+        case 'envelope'
+            ylabel(['\tau_c of Gaussian (' xUnit ')']);
         case 'voigt'
             ylabel(['FWHM of Voigt Profile (' xUnit ')']);
         case 'exponential'
@@ -458,7 +526,7 @@ if any(fitTau)
     end
     graphicsSettings;
     ax = gca;
-    set(ax,'FontSize',30);
+    set(ax,'FontSize',25);
     title(typestr);
     savefig([filename '-fitWidthsVsRadius.fig']);
     print([filename '-fitWidthsVsRadius.png'],'-dpng');
