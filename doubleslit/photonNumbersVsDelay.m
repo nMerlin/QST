@@ -19,9 +19,9 @@ for fileI = 1:length(filenames)
     X2 = X1;
     photonnumbers(fileI) = n;
     X2 = X2(:);
-    plot(X2(:),'.');
-    savefig([cell2mat(filenames(fileI)) '-X.fig']);
-    clf();
+%     plot(X2(:),'.');
+%     savefig([cell2mat(filenames(fileI)) '-X.fig']);
+%     clf();
 end
 
 numberOfPeriods = 9;
