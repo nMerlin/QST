@@ -82,6 +82,7 @@ for number = 1:size(dataStruct,2)
     
     %find adequate LOonly-file
     LOnumber = max(LOnumbers(LOnumbers<=number));
+    %LOnumber = min(LOnumbers);
     filenameLO = dataStructLOonly(LOnumber).filename;
     
     

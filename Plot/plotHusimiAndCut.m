@@ -169,7 +169,8 @@ if plotOption
     ax = gca;
     set(ax,'FontSize',36,'FontName','Arial', 'TickDir','out');
     if showLegend
-        legend('location','bestoutside','Fontsize',10);
+        l = legend('location','bestoutside');
+        l.FontSize = 10;
     end
     xL = ax.XLim;
     BarPos = get(hBar,'Position');
