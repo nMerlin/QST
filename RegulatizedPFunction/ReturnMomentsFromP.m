@@ -1,4 +1,4 @@
-function [meanPhase,meanAmp,meanPhaseBinned,meanAmpBinned,varPhase,varAmp,varPhaseBinned,varAmpBinned,PhotonNr,PhotonNrBinned,g1,sigNeg,phaseErr,ampErr,varPhaseErr,varAmpErr,PhotonNrErr] = ReturnMomentsFromP( P, sigmaP, QuadVals, varBins,filename,varargin )
+function [meanPhase,meanAmp,meanPhaseBinned,meanAmpBinned,varPhase,circularVariance1,circularVariance2,circVar1Err,circVar2Err,varAmp,varPhaseBinned,varAmpBinned,PhotonNr,PhotonNrBinned,g1,sigNeg,phaseErr,ampErr,varPhaseErr,varAmpErr,PhotonNrErr] = ReturnMomentsFromP( P, sigmaP, QuadVals, varBins,filename,varargin )
 %UNTITLED2 Computes the expectation values for a given
 %regularized P function. 
 %% Validate and parse input arguments
@@ -52,6 +52,11 @@ varAmpErr = sqrt( ampSquareErr^2 + (-2*meanAmp)^2 * ampErr^2);
 g1 = abs(sum(sum(exp(1i*PhaseMatrix).*P)))^2;
 PhotonNr= 1/(4*norm^2)*sum(sum(AmplMatrix.^2.*P)) - 0.5; %this seems to be too high?%
 PhotonNrErr = 1/(4*norm^2)*sqrt(sum(sum(AmplMatrix.^4.*sigmaP.^2)));
+circularVariance1 = 1 - sqrt( sum(sum(cos(PhaseMatrix).*P))^2 + sum(sum(sin(PhaseMatrix).*P))^2  );
+circularVariance2 = 1 -  sum(sum(cos(PhaseMatrix).*P))^2 + sum(sum(sin(PhaseMatrix).*P))^2  ;
+circVar2Err = sqrt( 4*sum(sum(cos(PhaseMatrix).*P))^2 * sum(sum(abs(cos(PhaseMatrix)).^2.*sigmaP.^2)) +...
+    4*sum(sum(sin(PhaseMatrix).*P))^2 * sum(sum(abs(sin(PhaseMatrix)).^2.*sigmaP.^2)));
+circVar1Err = 1/2 *1/(sqrt( sum(sum(cos(PhaseMatrix).*P))^2 + sum(sum(sin(PhaseMatrix).*P))^2  )) * circVar2Err;
 
 %% Compute marginal P(phase), by summarizing all points where the phase is in a bin
 varBins = varBins + mod(varBins,2);
