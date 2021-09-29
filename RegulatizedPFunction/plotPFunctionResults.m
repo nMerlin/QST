@@ -51,7 +51,7 @@ figurepath = [folder '/'];
 load('Photonnumbers.mat','nPsFast','nPsSlow','nTg'); %loads the photon numbers of each channel without postselection,...
 %which was created with plotSeriesPostselections
 %% Gather data
-[delay,Yr,Yt,PhotonNrs,meanPh,meanR,varPh,varR,Rerr,phErr,varRerr,varPhErr,PhotonNrErrs] = deal([]);
+[delay,Yr,Yt,PhotonNrs,meanPh,meanR,varPh,circVa1,circVa2,circVa1Err,circVa2Err,varR,Rerr,phErr,varRerr,varPhErr,PhotonNrErrs] = deal([]);
 for iParams = 1:length(listOfParams)
     selParams = listOfParams(iParams);
     selStr = selParamsToStr(selParams);
@@ -59,8 +59,8 @@ for iParams = 1:length(listOfParams)
             num2str(removeMod),'-range-',num2str(range),'-varyAPS-',num2str(varyAPS),'-R-' num2str(rvalue) ...
         '-maxQuad-' num2str(maxQuad) '-Resolution-' num2str(res) '-maxX-' num2str(maxX) '-Xstep-' num2str(XStep) '-phiStep-' num2str(phiStep)];
     load([foldername '\Pfunctionresults.mat'],'Delay','DelayMm','Pmax','sigmaPmax','meanPhase','meanPhaseBinned','varPhase',...
-    'varPhaseBinned','g1','sigNeg','meanAmp','meanAmpBinned','varAmp','varAmpBinned','PhotonNr','PhotonNrBinned',...
-    'phaseErr','ampErr','varPhaseErr','varAmpErr','PhotonNrErr');
+    'varPhaseBinned','g1','sigNeg','meanAmp','meanAmpBinned','circVar1','circVar2','varAmp','varAmpBinned','PhotonNr','PhotonNrBinned',...
+    'phaseErr','ampErr','varPhaseErr','varAmpErr','PhotonNrErr','circVar1Err','circVar2Err');
     delay(iParams,:) = Delay; 
     H = length(delay);
     Radii = ones(H,1) * selParams.Position(1);
@@ -71,12 +71,16 @@ for iParams = 1:length(listOfParams)
     meanPh(iParams,:) = meanPhase;
     meanR(iParams,:) = meanAmp; 
     varPh(iParams,:) = varPhase;
+    circVa1(iParams,:) = circVar1;
+    circVa2(iParams,:) = circVar2;
     varR(iParams,:) = varAmp;
     Rerr(iParams,:) = ampErr;
     phErr(iParams,:) = phaseErr;
     varRerr(iParams,:) = varAmpErr;
     varPhErr(iParams,:) = varPhaseErr;
-    PhotonNrErrs(iParams,:) = PhotonNrErr;   
+    PhotonNrErrs(iParams,:) = PhotonNrErr;  
+    circVa1Err(iParams,:) = circVar1Err;
+    circVa2Err(iParams,:) = circVar2Err;
 end
 [~,I] = sort(delay(:,1)); % Sort for Radii
 delay = delay(I,:); %delays
@@ -88,7 +92,8 @@ if norm == 1
 end  
 PhotonNrs = PhotonNrs(I,:);
 meanPh = meanPh(I,:);
-meanR = meanR(I,:);varPh = varPh(I,:);varR = varR(I,:);
+meanR = meanR(I,:);varPh = varPh(I,:);varR = varR(I,:);circVa1 = circVa1(I,:); circVa2 = circVa2(I,:);
+circVa1Err = circVa1Err(I,:); circVa2Err = circVa2Err(I,:);
 Rerr = Rerr(I,:); phErr = phErr(I,:); varRerr = varRerr(I,:); varPhErr = varPhErr(I,:); PhotonNrErrs = PhotonNrErrs(I,:);
 [fitTau,tauErr,fitPeak,fitPeakErr,sse,rsquare,adjrsquare,rmse,pa1,pa2,pa3,pa4,pa1Err,pa2Err,pa3Err,pa4Err] = deal(zeros(length(I),1));
 %fitTau: coherencetime; pa1 etc: fit parameters 
@@ -105,7 +110,7 @@ end
 
 %% Plot
 %typestrVector = {'R','discN','varR','meanPh','varPh','RLog'};
-typestrVector = {'R'};
+typestrVector = {'circVa1','circVa2'};
 for typeI = 1:length(typestrVector)
     plotStuff(cell2mat(typestrVector(typeI)))
 end
@@ -148,6 +153,14 @@ for i = 1:length(I)
             ys = varPh(i,:); 
             yErr = varPhErr(i,:);
             ylabel(ax,'Variance(\phi) (rad)');
+        case 'circVa1'
+            ys = circVa1(i,:); 
+            yErr = circVa1Err(i,:); 
+            ylabel(ax,'Circular variance(\phi) 1 (rad)');
+        case 'circVa2'
+            ys = circVa2(i,:); 
+            yErr = circVa2Err(i,:); 
+            ylabel(ax,'Circular variance(\phi) 2 (rad)');
         case 'varR'    
             ys = varR(i,:);
             yErr = varRerr(i,:);
