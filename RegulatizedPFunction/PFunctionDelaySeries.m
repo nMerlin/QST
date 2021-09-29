@@ -58,7 +58,7 @@ filestruct = dir('mat-data\*.mat');
 files = {filestruct.name};
 
 [Delay,DelayMm,Pmax,sigmaPmax,meanPhase,meanAmp,meanPhaseBinned,meanAmpBinned,...
-    varPhase,varAmp,varPhaseBinned,varAmpBinned,PhotonNr,PhotonNrBinned,g1,sigNeg,...
+    varPhase,circVar1,circVar2,circVar1Err,circVar2Err,varAmp,varPhaseBinned,varAmpBinned,PhotonNr,PhotonNrBinned,g1,sigNeg,...
     phaseErr,ampErr,varPhaseErr,varAmpErr,PhotonNrErr] = deal(zeros(length(files),1));
 
 %% Iterate through data files
@@ -118,11 +118,14 @@ for i = 1:length(files)
         close();
     end
     
-    [meanPhas,meanAm,meanPhaseBinne,meanAmpBinne,varPhas,varAm,varPhaseBinne,...
+    [meanPhas,meanAm,meanPhaseBinne,meanAmpBinne,varPhas,circVa1,circVa2,...
+        circVar1Er,circVar2Er,varAm,varPhaseBinne,...
         varAmpBinne,PhotonN,PhotonNrBinne,g,sigNe,phaseEr,ampEr,varPhaseEr,varAmpEr,PhotonNrEr] = ...
         ReturnMomentsFromP( P, sigmaP, QuadVals, 30,filenameFig,'Plot',plotOption );
     meanPhase(i) = meanPhas; meanAmp(i) = meanAm; meanPhaseBinned(i) = meanPhaseBinne;
-    meanAmpBinned(i) = meanAmpBinne; varPhase(i) = varPhas; varAmp(i) = varAm; 
+    meanAmpBinned(i) = meanAmpBinne; varPhase(i) = varPhas;
+    circVar1(i) = circVa1; circVar2(i) = circVa2; ...
+    circVar1Err(i) = circVar1Er; circVar2Err(i) = circVar2Er; varAmp(i) = varAm; 
     varPhaseBinned(i) = varPhaseBinne; varAmpBinned(i) = varAmpBinne; PhotonNr(i) = PhotonN; 
     PhotonNrBinned(i) = PhotonNrBinne; g1(i) = g; phaseErr(i) = phaseEr; ampErr(i) = ampEr; ...
         varPhaseErr(i) = varPhaseEr; varAmpErr(i) = varAmpEr; PhotonNrErr(i) = PhotonNrEr; 
@@ -138,14 +141,17 @@ end
 [Delay,I]=sort(Delay);
 DelayMm = DelayMm(I);
 meanPhase = meanPhase(I); meanAmp = meanAmp(I); meanPhaseBinned = meanPhaseBinned(I);
-meanAmpBinned = meanAmpBinned(I); varPhase = varPhase(I); varAmp = varAmp(I); 
+meanAmpBinned = meanAmpBinned(I); varPhase = varPhase(I); 
+circVar1 = circVar1(I); circVar2 = circVar2(I); 
+circVar1Err = circVar1Err(I); circVar2Err = circVar2Err(I); varAmp = varAmp(I); 
 varPhaseBinned = varPhaseBinned(I); varAmpBinned = varAmpBinned(I); PhotonNr = PhotonNr(I); 
 PhotonNrBinned = PhotonNrBinned(I); g1 = g1(I);
 Pmax = Pmax(I); sigmaPmax = sigmaPmax(I); sigNeg = sigNeg(I);
-phaseErr = phaseErr(I); ampErr = ampErr(I); varPhaseErr = varPhaseErr(I); varAmpErr = varAmpErr(I); PhotonNrErr = PhotonNrErr(I);
+phaseErr = phaseErr(I); ampErr = ampErr(I); varPhaseErr = varPhaseErr(I); ...
+varAmpErr = varAmpErr(I); PhotonNrErr = PhotonNrErr(I);
 save([foldername '\Pfunctionresults.mat'],'Delay','DelayMm','Pmax','sigmaPmax','meanPhase','meanPhaseBinned','varPhase',...
-    'varPhaseBinned','g1','sigNeg','meanAmp','meanAmpBinned','varAmp','varAmpBinned','PhotonNr','PhotonNrBinned',...
-    'phaseErr','ampErr','varPhaseErr','varAmpErr','PhotonNrErr');
+    'varPhaseBinned','g1','sigNeg','meanAmp','meanAmpBinned','circVar1','circVar2','varAmp','varAmpBinned','PhotonNr','PhotonNrBinned',...
+    'phaseErr','ampErr','varPhaseErr','varAmpErr','PhotonNrErr','circVar1Err','circVar2Err');
 
 figure(1);
 plot(Delay,Pmax,'o-');
@@ -163,9 +169,9 @@ close();
 figure(2);
 xlabel('R');
 plot(Delay,meanPhase,Delay,meanPhaseBinned,Delay,varPhase,Delay,varPhaseBinned,Delay,...
-    g1,Delay,sigNeg,'o-');
+    g1,Delay,sigNeg,Delay,circVar1,Delay,circVar2,'o-');
 l = legend('meanPhase','meanPhaseBinned','varPhase',...
-    'varPhaseBinned','g1','sigNeg','location','bestoutside');
+    'varPhaseBinned','g1','sigNeg','circVar1','circVar2','location','bestoutside');
 graphicsSettings;
 l.FontSize = 9;
 savefig([foldername '/Delay-phase-g1-sigNeg.fig']);
