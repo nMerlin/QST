@@ -1,4 +1,4 @@
-function [H, binsO1, binsO2,r,nTherm, nThermErr,nCoherent,nCohErr,meanN,Coherence,CoherenceErr,poissonErrors,nRatio,g2] = plotHusimiAndCut(O1,O2,H,binsO1,binsO2,varargin)
+function [H, binsO1, binsO2,r,nTherm, nThermErr,nCoherent,nCohErr,meanN,Coherence,CoherenceErr,poissonErrors,nRatio,g2,meanR] = plotHusimiAndCut(O1,O2,H,binsO1,binsO2,varargin)
 %Plot histogram of Husimi-Q function and cut along q axis
 % Either make it new from the orthogonal postselection quadratures O1,O2.
 % Then set H, binsO1,binsO2 = 0.
@@ -57,6 +57,7 @@ x = 1/sqrt(2)*sqrt(XAxis.^2+YAxis.^2); % = |alpha|
 FullQx2=sum(sum(XAxis.^2.*H));
 FullQy2=sum(sum(YAxis.^2.*H));
 meanN=0.5*(FullQx2+FullQy2) -1;
+meanR = sum(sum(H.*sqrt((XAxis.^2 + YAxis.^2)))); %meanRadius
 %% get cut of H along q axis
 Hcut = H(round(length(binsO2)/2),:);
 
