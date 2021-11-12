@@ -267,6 +267,10 @@ for ii = 1:length(filerange)
         end
                
         [selX,selTheta] = selectRegion(O1,O2,O3,oTheta,selParamsUse);%,'Plot','show','Filename',[filename '-assessTheta']
+        fractionSel = length(selX(:))/length(O1(:));
+        quantities.fracSel(i) = fractionSel;
+        quantities.lengthSelX(i) = length(selX(:));
+        quantities.lengthO1(i) = length(O1(:));
         close all;
         
     end
@@ -351,7 +355,7 @@ for ii = 1:length(filerange)
     % Save postselected variables
     if saveps || tempsaveps
         save(postFilename, ...
-            'selX','selTheta','selParams','meang2','meanVar','nTg','nPsFast','nPsSlow');      
+            'selX','selTheta','selParams','meang2','meanVar','nTg','nPsFast','nPsSlow','fractionSel');      
         tempsaveps = false;
         if exist('rho','var')
             save(postFilename,'rho','rhoParams','-append');
@@ -398,5 +402,7 @@ files = strrep(files,',','.');
 [~,T.Filename]=cellfun(@fileparts,files','UniformOutput',false);
 writetable(T,[datestr(date,'yyyy-mm-dd-'),'series3Ch-',selStr,'-remMod-',...
     num2str(remMod),'-range-',num2str(range),'-varyAPS-',num2str(varyAPS),'.txt']);
+save([datestr(date,'yyyy-mm-dd-'),'series3Ch-',selStr,'-remMod-',...
+    num2str(remMod),'-range-',num2str(range),'-varyAPS-',num2str(varyAPS),'.mat'],'quantities');
 
 end

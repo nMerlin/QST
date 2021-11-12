@@ -110,7 +110,8 @@ end
 
 %% Plot
 %typestrVector = {'R','discN','varR','meanPh','varPh','RLog'};
-typestrVector = {'circVa1','circVa2'};
+%typestrVector = {'R'};
+typestrVector = {'circVa1'};
 for typeI = 1:length(typestrVector)
     plotStuff(cell2mat(typestrVector(typeI)))
 end
@@ -156,11 +157,11 @@ for i = 1:length(I)
         case 'circVa1'
             ys = circVa1(i,:); 
             yErr = circVa1Err(i,:); 
-            ylabel(ax,'Circular variance(\phi) 1 (rad)');
+            ylabel(ax,'Circ. Var \phi');
         case 'circVa2'
             ys = circVa2(i,:); 
             yErr = circVa2Err(i,:); 
-            ylabel(ax,'Circular variance(\phi) 2 (rad)');
+            ylabel(ax,'Circular variance \phi 2');
         case 'varR'    
             ys = varR(i,:);
             yErr = varRerr(i,:);
@@ -487,21 +488,21 @@ end %iloop
 hold off;
 if strcmp(fitType,'noFit')
     l = legend('location','southeast');
-    l.FontSize = 20;
+    l.FontSize = 30;
 else
     f=get(ax,'Children');
     index = length(f)-((1:length(I))-1).*2;
     l = legend(f(index),'location','southeast');
-    l.FontSize = 20;
+    l.FontSize = 30;
 end
-xlabel(ax,['Delay (' xUnit ')']);
+xlabel(ax,['Time delay \tau (' xUnit ')']);
 if logplot
     ax.YScale = 'log';
 end
 fig = figure(1);              
 set(fig,'Color','w','Units','centimeters','Position',[1,1,45,30],'PaperPositionMode','auto');
 graphicsSettings;
-set(ax,'FontSize',38);
+set(ax,'FontSize',42);
 %% Write figure to file and close it
 if ~isempty(filename)
     savefig(fig,filename);
