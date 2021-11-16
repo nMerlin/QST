@@ -110,8 +110,8 @@ end
 
 %% Plot
 %typestrVector = {'R','discN','varR','meanPh','varPh','RLog'};
-%typestrVector = {'R'};
-typestrVector = {'circVa1'};
+typestrVector = {'R'};
+%typestrVector = {'circVa1'};
 for typeI = 1:length(typestrVector)
     plotStuff(cell2mat(typestrVector(typeI)))
 end
@@ -175,13 +175,7 @@ for i = 1:length(I)
                 ylabel(ax,'n'); 
             end
     end %typestr     
-    
-    if removeBaseline
-        z = smooth(ys',400);
-        z = z';
-        ys = ys - z + mean(z) ;
-    end
-    
+        
     shadedErrorBar(delay(i,:),ys,yErr,'lineProps',{'o-','DisplayName',[sel ' = ' num2str(Yr(i,1),2) ', t = ' num2str(Yt(i,1),2)]});
     %plot(ax,delay(i,:),ys,'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
     hold on;
@@ -189,6 +183,17 @@ for i = 1:length(I)
     if ~any(~isnan(ys)) %if there are only nans
         ys = zeros(1,H);
     end
+    
+    %remove nans
+    x = x(~isnan(ys));
+    ys = ys(~isnan(ys));
+    
+    if removeBaseline
+        z = smooth(ys',400);
+        z = z';
+        ys = ys - z + mean(z) ;
+    end
+    
 %             ys = transpose(csaps(x,ys,0.00001,x));  
 %             ys = ys';
     switch fitType
@@ -212,7 +217,26 @@ for i = 1:length(I)
             tauErr(i) = se(3);
             fitPeak(i) = result.a + result.d; 
             fitPeakErr(i) = sqrt(se(1)^2 + se(4)^2);           
-            plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(min(delay(i,:)):1:max(delay(i,:))),'r','DisplayName','');   
+            plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(min(delay(i,:)):1:max(delay(i,:))),'r','DisplayName',''); 
+        case 'gaussSat1'
+            g = fittype(@(a,b,c,x) a*exp(-pi/2*((x-b)/c).^2)+1);                   
+            b0 = zeroDelay;
+            c0 = 0.5*max(x);
+            d0 = mean(ys(end-5:end)); % saturation value
+            a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay))) - d0;
+            [result,gof,~] = fit(x',ys',g,'StartPoint',[a0 b0 c0]); 
+            [se]= getStandardErrorsFromFit(result,gof,'method1'); 
+            pa1(i) = result.a;
+            pa2(i) = result.b;
+            pa3(i) = result.c;
+            pa1Err(i) = se(1);
+            pa2Err(i) = se(2);
+            pa3Err(i) = se(3);
+            fitTau(i) = result.c;            
+            tauErr(i) = se(3);
+            fitPeak(i) = result.a + 1; 
+            fitPeakErr(i) = sqrt(se(1)^2);           
+            plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(min(delay(i,:)):1:max(delay(i,:))),'r','DisplayName',''); 
         case 'envelopeFromPeaks'
             b0 = zeroDelay;
             c0 = 0.5*max(x);
@@ -254,22 +278,60 @@ for i = 1:length(I)
             else
                 yFit = yupper;
             end
-            g = fittype(@(a,b,c,d,x) a*exp(-pi/2*((x-b)/c).^2)+d);                              
-            [result,gof,~] = fit(x',yFit',g,'StartPoint',[a0 b0 c0 d0]); 
+            % for envelope, only small range of delay is important
+            xFit = x(delay(i,:)>= (-600+zeroDelay) & delay(i,:)<= (600+zeroDelay));
+            yFit = yFit(delay(i,:)>= (-600+zeroDelay) & delay(i,:)<= (600+zeroDelay));            
+            g = fittype(@(a,b,c,x) a*exp(-pi/2*((x-b)/c).^2)+d0);                              
+            [result,gof,~] = fit(xFit',yFit',g,'StartPoint',[a0 b0 c0]); 
             [se]= getStandardErrorsFromFit(result,gof,'method1'); 
             pa1(i) = result.a;
             pa2(i) = result.b;
             pa3(i) = result.c;
-            pa4(i) = result.d;
+            %pa4(i) = result.d;
             pa1Err(i) = se(1);
             pa2Err(i) = se(2);
             pa3Err(i) = se(3);
-            pa4Err(i) = se(4);
+            %pa4Err(i) = se(4);
             fitTau(i) = result.c;            
             tauErr(i) = se(3);
-            fitPeak(i) = result.a + result.d; 
-            fitPeakErr(i) = sqrt(se(1)^2 + se(4)^2);           
+%             fitPeak(i) = result.a + result.d; 
+%             fitPeakErr(i) = sqrt(se(1)^2 + se(4)^2); 
+            fitPeak(i) = result.a + d0; 
+            fitPeakErr(i) = sqrt(se(1)^2);   
             plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(min(delay(i,:)):1:max(delay(i,:))),'r','DisplayName','');
+        case 'envelopeExp2'
+            b0 = zeroDelay;
+            c0 = 0.5*max(x);
+            d0 = mean(ys(end-5:end)); % saturation value
+            a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay))) - d0;
+            [yupper,ylower] = envelope(ys,10,'peak');
+            if a0 < 0
+                yFit = ylower;
+            else
+                yFit = yupper;
+            end
+            g = fittype(@(a,b,c,x) a*exp(-((x-b)/c)) + d0 );
+            % for envelope, only small range of delay is important
+            xFit = x;
+            xFit = x(delay(i,:)>= (-600+zeroDelay) & delay(i,:)<= (600+zeroDelay));
+            yFit = yFit(delay(i,:)>= (-600+zeroDelay) & delay(i,:)<= (600+zeroDelay));
+            [result,gof,~] = fit(abs(xFit)',yFit',g,'StartPoint',[a0 b0 c0]); 
+            [se]= getStandardErrorsFromFit(result,gof,'method1'); 
+            pa1(i) = result.a;
+            pa2(i) = result.b;
+            pa3(i) = result.c;
+            %pa4(i) = result.d;
+            pa1Err(i) = se(1);
+            pa2Err(i) = se(2);
+            pa3Err(i) = se(3);
+            %pa4Err(i) = se(4);
+            fitTau(i) = result.c;            
+            tauErr(i) = se(3);
+            %fitPeak(i) = result.a + result.d; 
+            fitPeak(i) = result.a + d0; 
+            %fitPeakErr(i) = sqrt(se(1)^2 + se(4)^2);     
+            fitPeakErr(i) = sqrt(se(1)^2);   
+            plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(abs(min(delay(i,:)):1:max(delay(i,:)))),'r','DisplayName','');                    
          case 'gauss2'
             g = fittype(@(a,c,x) a*exp(-pi/2*((x)/c).^2));                   
             c0 = 0.5*max(x);
@@ -327,6 +389,25 @@ for i = 1:length(I)
             tauErr(i) = se(3);            
             fitPeak(i) = result.a + result.d; 
             fitPeakErr(i) = sqrt(se(1)^2 + se(4)^2); 
+            plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(abs(min(delay(i,:)):1:max(delay(i,:)))),'r','DisplayName','');
+        case 'exp2sat1'
+            g = fittype(@(a,b,c,x) a*exp(-((x-b)/c)) + 1 );                   
+            b0 = zeroDelay;
+            c0 = 0.5*max(x);
+            d0 = mean(ys(end-5:end)); % saturation value
+            a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay))) - d0;
+            [result,gof,~] = fit(abs(x)',ys',g,'StartPoint',[a0 b0 c0]); 
+            [se]= getStandardErrorsFromFit(result,gof,'method1'); 
+            pa1(i) = result.a;
+            pa2(i) = result.b;
+            pa3(i) = result.c;
+            pa1Err(i) = se(1);
+            pa2Err(i) = se(2);
+            pa3Err(i) = se(3);
+            fitTau(i) = result.c;            
+            tauErr(i) = se(3);            
+            fitPeak(i) = result.a + 1; 
+            fitPeakErr(i) = sqrt(se(1)^2); 
             plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(abs(min(delay(i,:)):1:max(delay(i,:)))),'r','DisplayName','');
         case 'exp3'
             g = fittype(@(a,b,c,x) a*exp(-((x-b)/c))  );                   
@@ -438,7 +519,7 @@ for i = 1:length(I)
             pa1(i) = p1;
             pa2(i) = p2;
             pa3(i) = p3;
-            pa4(i) = p4;
+            pa4(i) = C;
             fitTau(i) = 2*sqrt(p3);  %FWHM
             fitPeak(i) = p1/p3 + C;  
             plot(ax,delay(i,:),result,'r','DisplayName','');                   
@@ -519,7 +600,11 @@ if any(fitTau)
     errorbar(YrPlot,fitTau,tauErr,'o-','Linewidth',2);
     xlabel('r_{ps} set for postselection');
     switch fitType
+        case 'envelopeExp2'
+            ylabel(['\tau_c of exp. function (' xUnit ')']);
         case 'gauss'
+            ylabel(['\tau_c of Gaussian (' xUnit ')']);
+        case 'gaussSat1'
             ylabel(['\tau_c of Gaussian (' xUnit ')']);
         case 'envelope'
             ylabel(['\tau_c of Gaussian (' xUnit ')']);
@@ -530,6 +615,8 @@ if any(fitTau)
         case 'exp2'
             ylabel(['\tau_c of exp. function (' xUnit ')']);
         case 'exp3'
+            ylabel(['\tau_c of exp. function (' xUnit ')']);
+        case 'exp2sat1'
             ylabel(['\tau_c of exp. function (' xUnit ')']);
         case 'sech'
             ylabel(['\tau_c of sech function (' xUnit ')']);
