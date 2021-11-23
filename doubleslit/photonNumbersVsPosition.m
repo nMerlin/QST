@@ -1,4 +1,4 @@
-function [fittedPeriodInMM,dInM] = photonNumbersVsDelay(varargin)
+function [fittedPeriodInMM,dInM] = photonNumbersVsPosition(varargin)
 
 %% Validate and parse input arguments
 p = inputParser;
@@ -9,7 +9,7 @@ c = struct2cell(p.Results);
 [folder] = c{:};
 
 
-[filenames,numbers,delays]= getParametersFromFilenames('Folder',folder,'Parameter','position');
+[filenames,numbers,Positions]= getParametersFromFilenames('Folder',folder,'Parameter','position');
 photonnumbers = zeros(length(filenames),1);
 for fileI = 1:length(filenames)
 %     load([folder '\' cell2mat(filenames(fileI))],'X2');
@@ -25,7 +25,7 @@ for fileI = 1:length(filenames)
 end
 
 numberOfPeriods = 9;
-plot(delays,photonnumbers,'o-');
+plot(Positions,photonnumbers,'o-');
 xlabel('Position (mm)');
 ylabel('Mean photon number');
 graphicsSettings();
@@ -36,10 +36,10 @@ clf();
  %% normalize the interference pattern to absolute maximum and minimum 
 y = photonnumbers;
 [ynew,locs,maxlocs,minlocs] = normalizeInterferencePattern(y,numberOfPeriods);
-plot(delays,ynew,'o');
+plot(Positions,ynew,'o');
 graphicsSettings();
 hold on;
-plot(delays,ynew,'b-');
+plot(Positions,ynew,'b-');
 xlabel('Position (mm)');
 ylabel('normalized mean photon number');
 %plot theory curve 
@@ -48,27 +48,27 @@ y = ynew;
 yMax = mean(y(maxlocs));
 yMin = mean(y(minlocs));
 yRange = (yMax-yMin);
-xphase = -delays(minlocs(1));
-period  = mean(diff(delays(locs)))*2;
+xphase = -Positions(minlocs(1));
+period  = mean(diff(Positions(locs)))*2;
 fitFunction = 'a.*(sin(2*pi*x./b + c)).^2';
-[f,gof,~] = fit(delays',y,fitFunction, 'StartPoint', [yRange, period*2, xphase] );
+[f,gof,~] = fit(Positions',y,fitFunction, 'StartPoint', [yRange, period*2, xphase] );
 hold on;
-xNew = 0:0.01:delays(end);
+xNew = 0:0.01:Positions(end);
 plot(xNew,yRange.*(sin(2*pi*xNew./(f.b) + f.c)).^2 + yMin,'r-','LineWidth',2);
 fittedPeriodInMM = f.b/2;
 savefig('nVsPosition-normalized.fig');
 print('nVsPosition-normalized.png','-dpng','-r300');
 clf();
 
-%Interferenzweglänge in m
+%Interferenzwegl?nge in m
 D = 0.6;
-%Wellenlänge in m
+%Wellenl?nge in m
 lambda = 834e-9;
 %Abstand Maxima in m 
 a = fittedPeriodInMM*1e-3;
 %Abstand der Spalte
 dInM = D*lambda/a;
 
-save('photonNumbersVsDelay.mat','filenames','numbers','delays','photonnumbers','fittedPeriodInMM','dInM');
+save('photonNumbersVsPosition.mat','filenames','numbers','delays','photonnumbers','fittedPeriodInMM','dInM');
 
 end 

@@ -19,8 +19,8 @@ defaultZeroDelay = 0;
 addParameter(p,'ZeroDelay',defaultZeroDelay,@isnumeric); % in mm
 defaultPlotrelative = false; %plots the data relative to the target photon number
 addParameter(p,'Plotrelative',defaultPlotrelative,@islogical);
-defaultLogplot = false; %makes yscale of plot logarithmic
-addParameter(p,'Logplot',defaultLogplot,@islogical);
+defaultLogplot = 'false'; %makes yscale of plot logarithmic in case 'true'; in case 'shifted', the lines will be stacked to see them better
+addParameter(p,'Logplot',defaultLogplot,@isstr);
 defaultMaxQuad = 20; %max abs value of the new quadrature coordinates 
 addParameter(p,'MaxQuad',defaultMaxQuad,@isnumeric);
 defaultMaxX= 20; %max abs value of the old quadrature coordinates 
@@ -110,8 +110,8 @@ end
 
 %% Plot
 %typestrVector = {'R','discN','varR','meanPh','varPh','RLog'};
-typestrVector = {'R'};
-%typestrVector = {'circVa1'};
+%typestrVector = {'R'};
+typestrVector = {'circVa1'};
 for typeI = 1:length(typestrVector)
     plotStuff(cell2mat(typestrVector(typeI)))
 end
@@ -157,7 +157,11 @@ for i = 1:length(I)
         case 'circVa1'
             ys = circVa1(i,:); 
             yErr = circVa1Err(i,:); 
-            ylabel(ax,'Circ. Var \phi');
+             if strcmp(logplot,'true') || strcmp(logplot,'shifted')
+                 ylabel(ax,'1 - Circ. Var \phi');
+             else                 
+                ylabel(ax,'Circ. Var \phi');
+             end
         case 'circVa2'
             ys = circVa2(i,:); 
             yErr = circVa2Err(i,:); 
@@ -175,8 +179,15 @@ for i = 1:length(I)
                 ylabel(ax,'n'); 
             end
     end %typestr     
-        
-    shadedErrorBar(delay(i,:),ys,yErr,'lineProps',{'o-','DisplayName',[sel ' = ' num2str(Yr(i,1),2) ', t = ' num2str(Yt(i,1),2)]});
+
+    if strcmp(logplot,'shifted')
+        % for circ. varPhi
+        shadedErrorBar(delay(i,:),exp(i)*(1-ys),yErr,'lineProps',{'o-','DisplayName',[sel ' = ' num2str(Yr(i,1),2) ', t = ' num2str(Yt(i,1),2)]});
+    elseif strcmp(logplot,'true')
+        shadedErrorBar(delay(i,:),1-ys,yErr,'lineProps',{'o-','DisplayName',[sel ' = ' num2str(Yr(i,1),2) ', t = ' num2str(Yt(i,1),2)]});
+    else
+        shadedErrorBar(delay(i,:),ys,yErr,'lineProps',{'o-','DisplayName',[sel ' = ' num2str(Yr(i,1),2) ', t = ' num2str(Yt(i,1),2)]});
+    end
     %plot(ax,delay(i,:),ys,'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
     hold on;
     x = delay(i,:);
@@ -389,7 +400,13 @@ for i = 1:length(I)
             tauErr(i) = se(3);            
             fitPeak(i) = result.a + result.d; 
             fitPeakErr(i) = sqrt(se(1)^2 + se(4)^2); 
-            plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(abs(min(delay(i,:)):1:max(delay(i,:)))),'r','DisplayName','');
+            if strcmp(logplot,'true')
+                plot(ax,min(delay(i,:)):1:max(delay(i,:)),1-result(abs(min(delay(i,:)):1:max(delay(i,:)))),'r','DisplayName','');
+            elseif strcmp(logplot,'shifted')
+                plot(ax,min(delay(i,:)):1:max(delay(i,:)),exp(i)*(1-result(abs(min(delay(i,:)):1:max(delay(i,:))))),'r','DisplayName','');
+            else
+                plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(abs(min(delay(i,:)):1:max(delay(i,:)))),'r','DisplayName','');
+            end
         case 'exp2sat1'
             g = fittype(@(a,b,c,x) a*exp(-((x-b)/c)) + 1 );                   
             b0 = zeroDelay;
@@ -408,7 +425,13 @@ for i = 1:length(I)
             tauErr(i) = se(3);            
             fitPeak(i) = result.a + 1; 
             fitPeakErr(i) = sqrt(se(1)^2); 
-            plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(abs(min(delay(i,:)):1:max(delay(i,:)))),'r','DisplayName','');
+            if strcmp(logplot,'true')
+                plot(ax,min(delay(i,:)):1:max(delay(i,:)),1-result(abs(min(delay(i,:)):1:max(delay(i,:)))),'r','DisplayName','');
+            elseif strcmp(logplot,'shifted')
+                plot(ax,min(delay(i,:)):1:max(delay(i,:)),exp(i)*(1-result(abs(min(delay(i,:)):1:max(delay(i,:))))),'r','DisplayName','');
+            else
+                plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(abs(min(delay(i,:)):1:max(delay(i,:)))),'r','DisplayName','');
+            end
         case 'exp3'
             g = fittype(@(a,b,c,x) a*exp(-((x-b)/c))  );                   
             b0 = zeroDelay;
@@ -453,19 +476,29 @@ for i = 1:length(I)
             b0 = zeroDelay;
             alpha0 = 0.5;
             a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay)));
-            [result,gof,~] = fit( x(abs(delay(i,:))>= (100+zeroDelay))',...
-                 ys(abs(delay(i,:))>= (100+zeroDelay))',g,'StartPoint',[a0 alpha0]); 
+            [result,gof,~] = fit( x(abs(x) >= (100+zeroDelay))',...
+                 ys(abs(x)>= (100+zeroDelay))',g,'StartPoint',[a0 alpha0]); 
                         [se]= getStandardErrorsFromFit(result,gof,'method1'); 
             pa1(i) = result.a;
             pa2(i) = result.alpha;
             pa1Err(i) = se(1);
-            pa2Err(i) = se(2);           
+            pa2Err(i) = se(2);  
+            fitTau(i) = result.alpha;
+            tauErr(i) = se(1);
             fitPeak(i) = result.a; 
             fitPeakErr(i) = se(1);  
             % For the power law, there is no coherence time, because an
             % integral over it doesnt converge. 
-            plot(ax,[min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))],...
+            if strcmp(logplot,'true')
+                plot(ax,[min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))],...
+                (1-result(abs([min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))]))),'r','DisplayName','');  
+            elseif strcmp(logplot,'shifted')
+                plot(ax,[min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))],...
+                exp(i)*(1-result(abs([min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))]))),'r','DisplayName','');   
+            else
+               plot(ax,[min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))],...
                 result(abs([min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))])),'r','DisplayName','');   
+            end
         case 'stretched-exp'
             g = fittype(@(A,B,beta,x) A*exp(-B*abs(x).^beta) );                   
             B0 = 1/max(x);
@@ -504,8 +537,43 @@ for i = 1:length(I)
                 betarand = normrnd(beta,se(3));
                 fitTauRand(u) = 2^((-1 + betarand)/betarand)*Brand^(-1/betarand)*gamma(1+ 1/betarand);
             end
-            tauErr(i) = std(fitTauRand);            
-            plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(abs(min(delay(i,:)):1:max(delay(i,:)))),'r','DisplayName','');           
+            tauErr(i) = std(fitTauRand);  
+             if strcmp(logplot,'true')
+                plot(ax,min(delay(i,:)):1:max(delay(i,:)),1-result(abs(min(delay(i,:)):1:max(delay(i,:)))),'r','DisplayName','');
+            elseif strcmp(logplot,'shifted')
+                plot(ax,min(delay(i,:)):1:max(delay(i,:)),exp(i)*(1-result(abs(min(delay(i,:)):1:max(delay(i,:))))),'r','DisplayName','');
+            else
+                plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(abs(min(delay(i,:)):1:max(delay(i,:)))),'r','DisplayName','');
+             end   
+         case 'power-law-1-'
+            g = fittype(@(a,alpha,x) a*abs(x).^(-alpha));                   
+            b0 = zeroDelay;
+            alpha0 = 0.5;
+            a0 = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay)));
+            [result,gof,~] = fit( x(abs(x)>= (100+zeroDelay))',...
+                 1-ys(abs(x)>= (100+zeroDelay))',g,'StartPoint',[a0 alpha0]); 
+                        [se]= getStandardErrorsFromFit(result,gof,'method1'); 
+            pa1(i) = result.a;
+            pa2(i) = result.alpha;
+            pa1Err(i) = se(1);
+            pa2Err(i) = se(2);  
+            fitTau(i) = result.alpha;
+            tauErr(i) = se(1);
+            fitPeak(i) = result.a; 
+            fitPeakErr(i) = se(1);  
+            % For the power law, there is no coherence time, because an
+            % integral over it doesnt converge. 
+            if strcmp(logplot,'true')
+                plot(ax,[min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))],...
+                (result(abs([min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))]))),'r','DisplayName','');  
+            elseif strcmp(logplot,'shifted')
+                plot(ax,[min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))],...
+                exp(i)*(result(abs([min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))]))),'r','DisplayName','');   
+            else
+               plot(ax,[min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))],...
+                result(abs([min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))])),'r','DisplayName','');   
+            end
+             
          case 'lorentz'
              % starting values 
             p02 = zeroDelay;
@@ -568,16 +636,24 @@ for i = 1:length(I)
 end %iloop
 hold off;
 if strcmp(fitType,'noFit')
-    l = legend('location','southeast');
+    if strcmp(logplot,'true') || strcmp(logplot,'shifted')
+        l = legend('location','bestoutside');
+    else
+        l = legend('location','southeast');
+    end
     l.FontSize = 30;
 else
     f=get(ax,'Children');
     index = length(f)-((1:length(I))-1).*2;
-    l = legend(f(index),'location','southeast');
+     if strcmp(logplot,'true') || strcmp(logplot,'shifted')
+        l = legend(f(index),'location','bestoutside');
+    else        
+        l = legend(f(index),'location','southeast');
+    end
     l.FontSize = 30;
 end
 xlabel(ax,['Time delay \tau (' xUnit ')']);
-if logplot
+ if strcmp(logplot,'true') || strcmp(logplot,'shifted')
     ax.YScale = 'log';
 end
 fig = figure(1);              
@@ -622,7 +698,7 @@ if any(fitTau)
             ylabel(['\tau_c of sech function (' xUnit ')']);
          case 'lorentz'
             ylabel(['FWHM of Lorentz Profile (' xUnit ')']);
-         case 'power-law'
+         case {'power-law','power-law-1-'}
             ylabel('\alpha of power-law Profile');
         case 'stretched-exp'
             ylabel('\tau_c of stretched-exp Profile');
@@ -643,7 +719,7 @@ if any(fitPeak)
     plot(YrPlot,fitPeak,'o-');
     xlabel('r_{ps} set for postselection');
     switch fitType
-        case 'power-law'
+        case {'power-law','power-law-1-'}
             ylabel('A of power-law Profile');
         otherwise
             ylabel('Peakheight');
