@@ -592,16 +592,16 @@ for i = 1:length(I)
             % For the power law, there is no coherence time, because an
             % integral over it doesnt converge. 
             if strcmp(logplot,'true')
-                plot(ax,[min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))],...
-                (result(abs([min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))]))),'r','DisplayName','');  
+                plot(ax,min(delay(i,:)):1:max(delay(i,:)),...
+                (result(abs(min(delay(i,:)):1:max(delay(i,:))))),'r','DisplayName','');  
                 residuals = (1-ys') - result(abs(x));
             elseif strcmp(logplot,'shifted')
-                plot(ax,[min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))],...
-                exp(i)*(result(abs([min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))]))),'r','DisplayName','');  
+                plot(ax,min(delay(i,:)):1:max(delay(i,:)),...
+                exp(i)*(result(abs(min(delay(i,:)):1:max(delay(i,:))))),'r','DisplayName','');  
                 residuals = (1-ys') - result(abs(x));
             else
-               plot(ax,[min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))],...
-                1-result(abs([min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))])),'r','DisplayName','');   
+               plot(ax,min(delay(i,:)):1:max(delay(i,:)),...
+                1-result(abs(min(delay(i,:)):1:max(delay(i,:)))),'r','DisplayName','');   
                 residuals = (ys') - (1-result(abs(x)));
             end
        case 'power-law-1-shifted'
@@ -758,6 +758,7 @@ if any(residuals)
     plot(x,zeros(length(x)),'k--');
     xlabel(['Time delay \tau (' xUnit ')']);
     ylabel('Residuals for highest r_{ps}');
+    ylim([-0.5 0.5]);
     graphicsSettings;
     ax = gca;
     set(ax,'FontSize',24);
