@@ -3,30 +3,28 @@ function [] = seriesQuadratures(varargin)
 % for a series.
 % 'Channels':  Array with the numbers of the channels that should be
 %   evaluated.
-% 'Period': The number of periods per piezo segment should be set
-% according to the piezo modulation. For peak detection it is important to know how many wavelengths are
-% located in one measured piezo segment. Optional: Implement automatic
-% computation from config.
-%E.g.: 2 periods for 50 Hz modulation and 2 um amplitude
-% 'Phase': decide whether the phase is random or fixed. 
-% 'CorrRemove': 'yes', if the correlations between adjacent pulses should
-% be removed numerically. Makes only sense for random phase. 
+%E.g.: 2 periods for 50 Hz modulation and 2 um amplitude 
+%   'CorrRemove': Array that should be as long as the 'Channels' array, to decide for each channel.
+%   When true, the correlations of quadratures with precedent
+%   quadratures are removed. This may take a few minutes. Recommended only for random phase. 
+%   'Offset': Array that should be as long as the 'Channels' array, to decide for each channel. 
+%   when 'global', a global offset is subtracted from the
+%   quadratures. Recommended when phase is not random. When 'local', offset
+%   is removed piecewise. Recommended for random phase. 
 
 %% Validate and parse input arguments
 p = inputParser;
 defaultChannels = 1;
 addParameter(p,'Channels',defaultChannels,@isnumeric);
-defaultPeriod1 = 2;
-addParameter(p,'Period',defaultPeriod1,@isnumeric);
-defaultOffset = 'local'; % vs 'global'
-addParameter(p,'Offset',defaultOffset);
+defaultOffset = ["local" "local" "local"]; % vs "global"
+addParameter(p,'Offset',defaultOffset,@isstring);
 defaultPiezo = 'yes'; 
 addParameter(p,'Piezo',defaultPiezo);
-defaultCorrRemove = 'yes';
-addParameter(p,'CorrRemove',defaultCorrRemove);
+defaultCorrRemove = [true,true,true];
+addParameter(p,'CorrRemove',defaultCorrRemove,@islogical);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[channels,corrRemove,offset,period1,piezo] = c{:};
+[channels,corrRemove,offset,piezo] = c{:};
 
 %% create data structs
 %dataStruct = struct('filename',{},'Delay', {},'nPhMean', {},'G2',{});
@@ -93,18 +91,21 @@ for number = 1:size(dataStruct,2)
     mkdir('mat-data')
     end
     
+    offsetname = char(offset);
+    offsetname = offsetname(:)';
+    
     if strcmp(piezo,'yes')  
         [X1, X2, X3, piezoSign, ~] = prepareData(filenameLO,filenameSIG,...
             'Channels',channels,'Offset',offset,'Piezo',piezo,'CorrRemove',corrRemove);        
         cd('mat-data');
-        save(strcat(filenameSIG,'-offset-',offset,'-piezo-',piezo,'-corrRemove-',corrRemove,'.mat'),'X1','X2','X3','piezoSign');
+        save(strcat(filenameSIG,'-offset-',offsetname,'-piezo-',piezo,'-corrRemove-',num2str(corrRemove),'.mat'),'X1','X2','X3','piezoSign');
         cd('..');
 
     else
        [X1, X2, X3, ~, ~] = prepareData(filenameLO,filenameSIG,'Channels',...
            channels,'Offset',offset,'Piezo',piezo,'CorrRemove',corrRemove);   
         cd('mat-data');
-        save(strcat(filenameSIG,'-offset-',offset,'-piezo-',piezo,'-corrRemove-',corrRemove, '.mat'),'X1','X2','X3');
+        save(strcat(filenameSIG,'-offset-',offsetname,'-piezo-',piezo,'-corrRemove-',num2str(corrRemove), '.mat'),'X1','X2','X3');
         cd('..');
     end
      

@@ -7,9 +7,11 @@ function [X1, X2, X3, piezoSign, configSIG] = prepareData(filenameLO, filenameSI
 %   Options:
 %   'Channels': Array with the numbers of the channels that should be
 %   evaluated.
-%   'CorrRemove': when 'yes', the correlations of quadratures with precedent
+%   'CorrRemove': Array that should be as long as the 'Channels' array, to decide for each channel.
+%   When true, the correlations of quadratures with precedent
 %   quadratures are removed. This may take a few minutes. Recommended only for random phase. 
-%   'Offset': when 'global', a global offset is subtracted from the
+%   'Offset': Array that should be as long as the 'Channels' array, to decide for each channel. 
+%   when 'global', a global offset is subtracted from the
 %   quadratures. Recommended when phase is not random. When 'local', offset
 %   is removed piecewise. Recommended for random phase. 
 %   'Piezo': when 'yes', the quadrature matrices are cut into piezo segments.
@@ -26,14 +28,14 @@ defaultChannels = 1:3;
 addParameter(p,'Channels',defaultChannels,@isnumeric);
 defaultPickingFactor = 1;
 addParameter(p,'PickingFactor',defaultPickingFactor,@isnumeric);
-defaultCorrRemove = 'yes';
-addParameter(p,'CorrRemove',defaultCorrRemove);
+defaultCorrRemove = [true,true,true];
+addParameter(p,'CorrRemove',defaultCorrRemove,@islogical);
 defaultDutyCycle = 1/3; % Integration Duty Cycle
 addParameter(p,'DutyCycle',defaultDutyCycle,@isnumeric);
 defaultSave = 'no'; % save quadratures as mat
 addParameter(p,'Save',defaultSave);
-defaultOffset = 'local'; % vs 'global'
-addParameter(p,'Offset',defaultOffset);
+defaultOffset = ["local" "local" "local"]; % vs 'global'
+addParameter(p,'Offset',defaultOffset,@isstring);
 defaultPiezo = 'yes'; 
 addParameter(p,'Piezo',defaultPiezo);
 parse(p,varargin{:});
@@ -77,8 +79,8 @@ Xfull = zeros(size(XLO,1),size(XLO,2),maxChannelNumber);
 Xfull(:,:,channels) = XLO;
 XLO = Xfull;
 
-if strcmp(corrRemove,'yes')
-        %Removing correlations with precedent pulses
+if any(corrRemove)
+        %Removing correlations with precedent pulses for the LO
         XLO(:,:,channels) = bsxfun(@minus, XLO(:,:,channels), mean(XLO(:,:,channels)));
         dispstat('Removing correlations from LO... ','timestamp','keepthis',0);
         XLO = correlationCompensation(XLO);
@@ -112,20 +114,20 @@ for iCh = channels
     X(:,:,iCh) = Norm * X(:,:,iCh) / sqrt(NLO(iCh));
     
     % Removing Offsets
-    if strcmp(offset,'local')  % remove piecewise offset
+    if strcmp(offset(iCh),'local')  % remove piecewise offset
         dispstat(['Removing piecewise offset from channel ',num2str(iCh), ...
             ' ...'],'timestamp','keepthis',0);
         X(:,:,iCh) = bsxfun(@minus, X(:,:,iCh), mean(X(:,:,iCh)));
         Xrem = X(:,:,iCh);
         
-        if strcmp(corrRemove,'yes') %Removing correlations with precedent pulses
+        if corrRemove(iCh) %Removing correlations with precedent pulses
             dispstat(['Removing correlations from channel ',num2str(iCh), ...
                 ' ...'],'timestamp','keepthis',0);
             X(:,:,iCh) = correlationCompensation(X(:,:,iCh));
             Xrem = X(1:end-1,:,iCh);
         end 
              
-    elseif strcmp(offset,'global') % remove global offset
+    elseif strcmp(offset(iCh),'global') % remove global offset
         dispstat(['Removing global offset from channel ',num2str(iCh), ...
             ' ...'],'timestamp','keepthis',0);
         Xrem = X(:,:,iCh) - mean(mean(X(:,:,iCh)));       
@@ -137,7 +139,7 @@ for iCh = channels
         dispstat(['Reshaping channel ',num2str(iCh), ...
             ' into piezo segments ...'],'timestamp','keepthis',0);
         [Xrem,piezoSign] = piezoSegments(timestamps,Xrem,'cut');       
-        if strcmp(offset,'global')
+        if strcmp(offset(iCh),'global')
             %compute offset from mean maxima and minima to prevent they are
             %biased
             biase = (mean(max(max(max(Xrem,1))))+mean(min(min(min(Xrem,1)))))/2;
