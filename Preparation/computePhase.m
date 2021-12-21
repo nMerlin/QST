@@ -17,13 +17,15 @@ defaultPeriod = 2;  %1.2
 defaultPlot = 'noplot';
 defaultDebug = 0;
 defaultIgnore = [];
+defaultPeakthreshold = 0.5; % the fraction of the maximum that is needed to detect a peak 
 addParameter(p,'Period',defaultPeriod,@isnumeric);
 addParameter(p,'Plot',defaultPlot);
 addParameter(p,'Debug',defaultDebug);
 addParameter(p,'Ignore',defaultIgnore);
+addParameter(p,'Peakthreshold',defaultPeakthreshold);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[debug,ignore,periodsPerSeg,plotArg] = c{:};
+[debug,ignore,peakthreshold,periodsPerSeg,plotArg] = c{:};
 
 %% Reconstruct the phase for each piezo segment
 ys = smoothCrossCorr(Xa,Xb,'Type','spline','Param',1e-14); %was 1e-15 before, but this was not sufficient for boundary maxima.
@@ -53,8 +55,8 @@ for iSeg = 1:nSegments
     % case, the data should exhibit a certain periodicity and we want to
     % know where the maximum and minimum in each period is. Therefore, a
     % _MinPeakDistance_ of roughly 50% of the period should do the trick.
-    peakOptsMax.MinPeakHeight = 0.5 * max(y);
-    peakOptsMin.MinPeakHeight = 0.5 * max(-y);
+    peakOptsMax.MinPeakHeight = peakthreshold * max(y);
+    peakOptsMin.MinPeakHeight = peakthreshold * max(-y);
     % Because of different noise sources and instabilities, the distance
     % between maxima and minima in _y_ is uncertain to some degree.
     % _MinPeakHeight_ ensures, that only peaks above a certain threshold
