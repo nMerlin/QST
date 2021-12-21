@@ -1,4 +1,4 @@
-function [  ] = plotPointwiseVariance( data, filename )
+function [  ] = plotPointwiseVariance( data, varargin )
 % PLOTPOINTWISEVARIANCE calculates the pointwise variance of DATA, plots
 % the pointwise variance data and highlights the maxima that are above the
 % mean value. The columns of DATA are the datasets.
@@ -12,28 +12,17 @@ function [  ] = plotPointwiseVariance( data, filename )
 %   
 %   See also: POINTWISEVARIANCE
 
-%% Plot pointwise variance
-pointwiseVariance(data,'Plot','show');
+%% Validate and parse input arguments
+p = inputParser;
+defaultMinPeakDistance = 10;
+addParameter(p,'MinPeakDistance',defaultMinPeakDistance,@isnumeric);
+parse(p,varargin{:});
+c = struct2cell(p.Results);
+[minPeakDist] = c{:};
 
-%% Handle saving of the plot
-switch nargin
-    case 2
-        assert(ischar(filename),'FILENAME is not a character array!');
-        [~,~,extension]=fileparts(filename);
-        if not(isempty(extension))
-            extension = strsplit(extension,'.');
-            filetype = char(extension(2));
-        else
-            filetype = 'png';
-        end
-        
-        if strcmp(filetype,'jpg')
-            filetype = 'jpeg';
-        end
-        filetype = ['-d' filetype];
-        
-        assert(ischar(filetype),'FILETYPE is not a character array!');
-        print(filename,filetype);
-end
+%% Plot pointwise variance
+pointwiseVariance(data,'Plot','show', 'MinPeakDistance',minPeakDist);
+
+
 
 end
