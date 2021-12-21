@@ -79,6 +79,16 @@ for iStruct =  1:length(Contents)
             dataStruct(iStruct).I = delay;
         case 'no' 
             dataStruct(iStruct).I = 0;
+        case 'Position'
+            delayToken = regexpi(filename,'([-0123456789,-]*)mm','tokens');
+            delay = cell2mat(delayToken{1});
+            numberToken = regexpi(delay,'^([0123456789,]*)-','tokens'); 
+             dataStruct(iStruct).number = str2double(cell2mat(numberToken{1}));
+            number = cell2mat(numberToken{1});
+            delay = strrep(delay,[number '-'],'');
+            delay = strrep(delay,',','.');
+            delay = str2double(delay);
+            dataStruct(iStruct).I = delay;
     end
          
     if ~exist('Husimiplots','dir')
@@ -95,7 +105,14 @@ for iStruct =  1:length(Contents)
        dispstat(['load all data from ' filename],...
         'timestamp','keepthis','notquiet'); 
         load(['mat-data\' filename]);
-        if ~exist('nPsFast','var')     
+        if ~exist('nPsFast','var') 
+            
+             if ~isequal(size(X1,1),size(X2,1),size(X3,1))
+                 X1 = X1(1:min([size(X1,1),size(X2,1),size(X3,1)]),:,:);
+                 X2 = X2(1:min([size(X1,1),size(X2,1),size(X3,1)]),:,:);
+                 X3 = X3(1:min([size(X1,1),size(X2,1),size(X3,1)]),:,:);
+             end
+            
             quadratures = zeros([size(X1) 3]);
             quadratures(:,:,:,1) = X1;
             quadratures(:,:,:,2) = X2;
