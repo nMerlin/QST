@@ -1,4 +1,4 @@
-function [Max, integratedInt, peak, FWHM, Q, duration] = plotSpectrumAndFit(filenameSIG,filenameBG,varargin)
+function [Max, integratedInt, peak, FWHM, Q, duration,FWHMdata] = plotSpectrumAndFit(filenameSIG,filenameBG,varargin)
 %% PLOTSPECTRUM plots an optical spectrum, subtracts background, 
 % fits a Gaussian to the peak. 
 %
@@ -105,6 +105,19 @@ end
         hold on;
     end    
     
+%% FWHM from data  
+    FWHMData = fwhm(w,Int);
+        if strcmp(xUnit, 'nm')
+            durationData= 2*log(2)/pi *(peak*1e-9)^2 / lightVelocity / (FWHMData*1e-9) * 1e15; %time in femtoseconds
+        elseif strcmp(xUnit, 'eV')
+            durationData = 2*log(2)/pi * h/e0/FWHMData *1e15;
+        elseif strcmp(xUnit, 'Hz')
+            durationData = 2*log(2)/pi / FWHMData *1e15;
+        end 
+     text(peak, Max,...
+            ['FWHMData = ' num2str(FWHMData,'%.3f') ' ' xUnit char(10) ...
+            '$\Delta t$ = ' num2str(durationData,'%.1f') ' fs'],'FontSize',fontsize-4);
+    
 %% make Gauss Fit if wished
     if strcmp(fitoption, 'yes')
         %gaussCustom = 'a1*exp(-((x-b1)/c1)^2)+d1';
@@ -138,7 +151,7 @@ end
         plot(x,f(x),'r','LineWidth',1.5,'DisplayName','Fit');
         %set(gca,'DefaultTextInterpreter','latex');
         text(peak, Max/4,...
-            ['FWHM = ' num2str(FWHM,'%.3f') ' $\pm$ ' num2str(FWHMerror,'%.4f') ' ' xUnit char(10) ...
+            ['FWHMGauss = ' num2str(FWHM,'%.3f') ' $\pm$ ' num2str(FWHMerror,'%.4f') ' ' xUnit char(10) ...
             'Q = ' num2str(Q,'%.0f') char(10) '$\Delta t$ = ' num2str(duration,'%.1f') ' fs'],'FontSize',fontsize-4);
     else
         FWHM = 0;

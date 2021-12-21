@@ -9,25 +9,32 @@ c = struct2cell(p.Results);
 [folder] = c{:};
 
 
-[filenames,numbers,Positions]= getParametersFromFilenames('Folder',folder,'Parameter','position');
-photonnumbers = zeros(length(filenames),1);
+[filenames,numbers,Positions]= getParametersFromFilenames('Folder',folder,'Parameter','delay');
+[n1s,n2s,n3s] = deal(zeros(length(filenames),1));
 for fileI = 1:length(filenames)
 %     load([folder '\' cell2mat(filenames(fileI))],'X2');
 %     [~,n,~] = nPhotons(X2,X2,X2);
-    load([folder '\' cell2mat(filenames(fileI))],'X1');
-    [~,n,~] = nPhotons(X1,X1,X1);
-    X2 = X1;
-    photonnumbers(fileI) = n;
-    X2 = X2(:);
-%     plot(X2(:),'.');
-%     savefig([cell2mat(filenames(fileI)) '-X.fig']);
-%     clf();
+    load([folder '\' cell2mat(filenames(fileI))],'X1','X2','X3');
+    [n1,n2,n3] = nPhotons(X1,X2,X3);
+    n1s(fileI) = n1;
+    n2s(fileI) = n2;
+    n3s(fileI) = n3;
+%     X2 = X1;
+
+%     X2 = X2(:);
+%     plot(X2(:).*X3(:),'.');
+%     savefig([cell2mat(filenames(fileI)) '-X3X2.fig']);
+%     print([cell2mat(filenames(fileI)) '-X3X2.png'],'-dpng','-r300');
+    clf();
 end
 
-numberOfPeriods = 9;
-plot(Positions,photonnumbers,'o-');
+save('photonNumbersVsPosition.mat','filenames','numbers','Positions','n1s','n2s','n3s');
+
+numberOfPeriods = 25;
+plot(Positions,n1s,Positions,n2s,Positions,n3s,'o-');
 xlabel('Position (mm)');
 ylabel('Mean photon number');
+legend();
 graphicsSettings();
 savefig('nVsPosition.fig');
 print('nVsPosition.png','-dpng','-r300');
@@ -69,6 +76,6 @@ a = fittedPeriodInMM*1e-3;
 %Abstand der Spalte
 dInM = D*lambda/a;
 
-save('photonNumbersVsPosition.mat','filenames','numbers','delays','photonnumbers','fittedPeriodInMM','dInM');
+save('photonNumbersVsPosition.mat','filenames','numbers','Positions','photonnumbers','fittedPeriodInMM','dInM');
 
 end 
