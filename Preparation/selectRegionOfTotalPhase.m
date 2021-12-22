@@ -1,4 +1,4 @@
-function [X,theta,iSelect] = selectRegionOfTotalPhase(O1,O2,O3,theta,varargin)
+function [X,theta,thetaMira,iSelect] = selectRegionOfTotalPhase(O1,O2,O3,theta,thetaMira,varargin)
 %SELECTREGION Return all values of O3 in the specified (O1,O2)-region
 %
 %   Rectangle:
@@ -30,15 +30,28 @@ switch type
         mTheta = position(1);
         dTheta = position(2);
         husimiPhase = atan2(O2,O1);
-        thetaTotal = mod(theta + husimiPhase,2*pi);
+%         thetaTotal = mod(theta + husimiPhase + thetaMira,2*pi);
+        thetaTotal = mod(theta - husimiPhase + pi/2 + thetaMira,2*pi);
         iSelect = find(thetaTotal >mTheta-dTheta/2 & ...
             thetaTotal <mTheta+dTheta/2 & (O1.^2+O2.^2)>0.5);
+     case 'phaseAndAmplitude'
+        mTheta = position(1);
+        dTheta = position(2);
+        r = position(3);
+        w = position(4);
+        husimiPhase = atan2(O2,O1);
+%         thetaTotal = mod(theta + husimiPhase + thetaMira,2*pi);
+        thetaTotal = mod(theta - husimiPhase + pi/2 + thetaMira,2*pi);
+        iSelect = find(thetaTotal>mTheta-dTheta/2 & ...
+            thetaTotal<mTheta+dTheta/2 & (O1.^2+O2.^2)>0.5 & ...
+            sqrt(O1.^2+O2.^2)>r-w/2 & sqrt(O1.^2+O2.^2)<r+w/2);
 end
 X = O3(iSelect);
 
 %% Phase calculation
 
 theta = theta(iSelect);
+thetaMira = thetaMira(iSelect);
 
 %% Show selection
 if strcmp(plotopt,'show')

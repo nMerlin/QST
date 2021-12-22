@@ -9,7 +9,7 @@ c = struct2cell(p.Results);
 [folder] = c{:};
 
 
-[filenames,numbers,Positions]= getParametersFromFilenames('Folder',folder,'Parameter','delay');
+[filenames,numbers,Positions]= getParametersFromFilenames('Folder',folder,'Parameter','position');
 [n1s,n2s,n3s] = deal(zeros(length(filenames),1));
 for fileI = 1:length(filenames)
 %     load([folder '\' cell2mat(filenames(fileI))],'X2');
