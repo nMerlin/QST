@@ -18,7 +18,7 @@ defaultSaveTheta = false;
 addParameter(p,'SaveTheta',defaultSaveTheta,@islogical);
 defaultSaveOrth = false;
 addParameter(p,'SaveOrth',defaultSaveOrth,@islogical);
-defaultSelParams = struct('Type','phase','Position',[0,0.2]); % use Type 'phase'?
+defaultSelParams = struct('Type','phase','Position',[0,0.4]); % use Type 'phase'?
 addParameter(p,'SelectionParameters',defaultSelParams,@isstruct);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
@@ -36,7 +36,7 @@ selStr = selParamsToStr(selParams);
 [filenames,~,positions]= getParametersFromFilenames('Folder',folder,'Parameter','position');
 dispstat('','init','timestamp','keepthis',0);
 
-for i = 1:length(filenames)  %1
+for i = 1:51 %length(filenames)  %1
 %     load([folder '\' cell2mat(filenames(fileI))],'X2');
 %     [~,n,~] = nPhotons(X2,X2,X2);
     quantities.position(i) = positions(i);
@@ -57,7 +57,7 @@ for i = 1:length(filenames)  %1
             tempsaveps = true;
         end
     else
-        load([folder '\' filename]);
+        load([folder '\' filename]); 
     end
     
     if exist('X1','var')
@@ -108,13 +108,26 @@ for i = 1:length(filenames)  %1
         
         % postselection from a certain region of the Husimi function                
         %[selX,selTheta,iSelect] = selectRegion(O1,O2,O3,oTheta,selParams);%,'Plot','show','Filename',[filename '-assessTheta']
-        [selX,selTheta,iSelect] = selectRegionOfTotalPhase(O1,O2,O3,oTheta,selParams);%,'Plot','show','Filename',[filename '-assessTheta']
+        %[selX,selTheta,iSelect] = selectRegionOfTotalPhase(O1,O2,O3,oTheta,selParams);%,'Plot','show','Filename',[filename '-assessTheta']
+        %selecting on a range of amplitudes
+       
+        nTgAim = 0.8;
+        nPsAim = nTgAim/nTg *mean([nPsFast nPsSlow]);
+        rAim = sqrt(2*nPsAim + 1);
+        quantities.nPsAim(i) = nPsAim;
+        quantities.rAim(i) = rAim;
+        selParams = struct('Type','phaseAndAmplitude','Position',[0,0.4,rAim,0.5]);
+        %[selX,selTheta,iSelect] = selectRegion(O1,O2,O3,oTheta,selParams);%,'Plot','show','Filename',[filename '-assessTheta']
+        %[selX,selTheta,iSelect] = selectRegionOfTotalPhase(O1,O2,O3,oTheta,selParams);%,'Plot','show','Filename',[filename '-assessTheta']
+        %thetaMiraSel = oThetaMira(iSelect);
+        [selX,selTheta,thetaMiraSel,iSelect] = selectRegionOfTotalPhase(O1,O2,O3,oTheta,oThetaMira,selParams);
+        
         fractionSel = length(selX(:))/length(O1(:));
         quantities.fracSel(i) = fractionSel;
         quantities.lengthSelX(i) = length(selX(:));
         quantities.lengthO1(i) = length(O1(:));
         close all;
-        thetaMiraSel = oThetaMira(iSelect);
+        
         
     end %if ~exist selX
     
