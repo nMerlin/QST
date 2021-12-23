@@ -18,7 +18,7 @@ defaultSaveTheta = false;
 addParameter(p,'SaveTheta',defaultSaveTheta,@islogical);
 defaultSaveOrth = false;
 addParameter(p,'SaveOrth',defaultSaveOrth,@islogical);
-defaultSelParams = struct('Type','phase','Position',[0,0.4]); % use Type 'phase'?
+defaultSelParams = struct('Type','phaseAndAmplitude','Position',[0,0.5,5,1]); % use Type 'phase'?
 addParameter(p,'SelectionParameters',defaultSelParams,@isstruct);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
@@ -36,7 +36,7 @@ selStr = selParamsToStr(selParams);
 [filenames,~,positions]= getParametersFromFilenames('Folder',folder,'Parameter','position');
 dispstat('','init','timestamp','keepthis',0);
 
-for i = 1:51 %length(filenames)  %1
+for i = 1:length(filenames)  %1
 %     load([folder '\' cell2mat(filenames(fileI))],'X2');
 %     [~,n,~] = nPhotons(X2,X2,X2);
     quantities.position(i) = positions(i);
@@ -68,12 +68,12 @@ for i = 1:51 %length(filenames)  %1
              X3 = X3(1:min([size(X1,1),size(X2,1),size(X3,1)]),:,:);
          end
  
-        
+        % set which channel ist the target channel etc
         quadratures = zeros([size(X1) 3]);
         quadratures(:,:,:,1) = X1;
         quadratures(:,:,:,2) = X2;
         quadratures(:,:,:,3) = X3;
-        Xtg = quadratures(:,:,:,chAssign(1));  % this sets the target channels etc
+        Xtg = quadratures(:,:,:,chAssign(1));  
         XpsFast = quadratures(:,:,:,chAssign(2));
         XpsSlow = quadratures(:,:,:,chAssign(3));
         clear('quadratures'); 
@@ -83,7 +83,15 @@ for i = 1:51 %length(filenames)  %1
     if ~exist('selX','var') % run only if postselection file was not loaded
         if (~exist('theta','var')) || recomputeTheta % run only if theta is not available or should be rewritten
             try
-%                 [theta,~] = computePhase(Xtg,XpsFast,piezoSign,'Period',periodsPerSeg);    
+%                 [theta,~] = computePhase(Xtg,XpsFast,piezoSign,'Period',periodsPerSeg);  
+
+%Here, the relative phase between the LOs in the postselection channels and
+%the target channel is computed. In the polariton measurements, we computed the phase between Xtg and XpsFast, whereby
+% the target channel Xtg was not pizeo modulated and XpsFast was the postselection channel which was piezo modulated. 
+%Here, Xtg was also piezo modulated with 100 Hz, while XpsFast was modulated
+%with 50 Hz and XpsSlow was not modulated. Therefore, it is not possible to
+%compute the phase between Xtg and XpsFast, but we compute it between Xtg
+%and XpsSlow.
                    [theta,~] = computePhase(Xtg,XpsSlow,piezoSign,'Period',periodsPerSeg); 
             catch
                 warning(['Problem using computePhase.', ...
@@ -94,7 +102,9 @@ for i = 1:51 %length(filenames)  %1
         end
         
         if (~exist('thetaMira','var')) || recomputeTheta 
-            [thetaMira,~] = computePhase(Xtg,1,piezoSign,'Period',periodsPerSeg,'Peakthreshold',0.1); %phase of Mira from doubleslit
+            % compute the phase in the target channel between LO and Mira
+            % coming from doubleslit.
+            [thetaMira,~] = computePhase(Xtg,1,piezoSign,'Period',periodsPerSeg,'Peakthreshold',0.1); 
         end
         
         %select orthogonal quadratures from the postselection channels
@@ -106,22 +116,30 @@ for i = 1:51 %length(filenames)  %1
         % Compute photon numbers for each channel
         [nTg,nPsFast,nPsSlow] = nPhotons(Xtg,XpsFast,XpsSlow); 
         
-        % postselection from a certain region of the Husimi function                
-        %[selX,selTheta,iSelect] = selectRegion(O1,O2,O3,oTheta,selParams);%,'Plot','show','Filename',[filename '-assessTheta']
-        %[selX,selTheta,iSelect] = selectRegionOfTotalPhase(O1,O2,O3,oTheta,selParams);%,'Plot','show','Filename',[filename '-assessTheta']
-        %selecting on a range of amplitudes
-       
-        nTgAim = 0.8;
-        nPsAim = nTgAim/nTg *mean([nPsFast nPsSlow]);
-        rAim = sqrt(2*nPsAim + 1);
-        quantities.nPsAim(i) = nPsAim;
-        quantities.rAim(i) = rAim;
-        selParams = struct('Type','phaseAndAmplitude','Position',[0,0.4,rAim,0.5]);
-        %[selX,selTheta,iSelect] = selectRegion(O1,O2,O3,oTheta,selParams);%,'Plot','show','Filename',[filename '-assessTheta']
-        %[selX,selTheta,iSelect] = selectRegionOfTotalPhase(O1,O2,O3,oTheta,selParams);%,'Plot','show','Filename',[filename '-assessTheta']
-        %thetaMiraSel = oThetaMira(iSelect);
-        [selX,selTheta,thetaMiraSel,iSelect] = selectRegionOfTotalPhase(O1,O2,O3,oTheta,oThetaMira,selParams);
+        %% Postselection
+        % We are not sure on which phase we have to postselect. 
+        % Here are two possibilites, comment / uncomment one of these possibilites.
+        % One possibility is to only postselect on phases in the Husimi function 
+        %(which is the phase between diode and LO in the postselection channels):  
+                   
+        [selX,selTheta,iSelect] = selectRegion(O1,O2,O3,oTheta,selParams);
+        thetaMiraSel = oThetaMira(iSelect);
         
+        %Another possibility is to postselect on a total phase computed
+        %by adding the phase of the Husimi function to the phase
+        %theta (which is the phase between target channel and postselection
+        %channel). Maybe the phase thetaMira, which is the phase in the target channel between LO
+        %and Mira from doubleslit should also be added to compute the total
+        %phase between diode and Mira from doubleslit in the target
+        %channel?
+        %Here, we are not sure, whether to add the phases or subtract them.
+        % You can try different ways to add phases in
+        % selectRegionOfTotalPhase.m
+
+              
+        [selX,selTheta,iSelect] = selectRegionOfTotalPhase(O1,O2,O3,oTheta,oThetaMira,selParams);
+        thetaMiraSel = oThetaMira(iSelect);
+              
         fractionSel = length(selX(:))/length(O1(:));
         quantities.fracSel(i) = fractionSel;
         quantities.lengthSelX(i) = length(selX(:));
@@ -131,12 +149,16 @@ for i = 1:51 %length(filenames)  %1
         
     end %if ~exist selX
     
-     % compute photon number of postselected quadratures in the doubleslit
+    %% Photon number computation
+     % compute photon number of postselected quadratures in the doubleslit.
+     % We have to make sure that all phases between LO and Mira signal from
+     % doubleslit are included to get a meaningful photon number.
+     % Therefore, use uniform sampling of the Mira phases thetaMiraSel. 
     
     [nValues] = deal(zeros(10,1));
     for iN=1:10
         try
-            uniformX = seriesUniformSampling(selX,thetaMiraSel,'NBins',100); %thetaMira oder selTheta?
+            uniformX = seriesUniformSampling(selX,thetaMiraSel,'NBins',100);
         catch
             warning(['Problem with uniformSampling.', ...
                 'Use X without uniform sampling.']);
@@ -146,7 +168,7 @@ for i = 1:51 %length(filenames)  %1
 
     end 
     
-    nDs = mean(nValues);
+    nDs = mean(nValues); % postselected photon numbers in the doubleslit
     quantities.nDs(i) = nDs;
     quantities.nDsStd(i) = std(nValues);
 
@@ -194,12 +216,22 @@ writetable(T,[datestr(date,'yyyy-mm-dd-'),'series3Ch-',selStr,'.txt']);
 
 
 %% Plot stuff
-plot(positions,quantities.nDs,'o-');
+plot(quantities.position,quantities.nDs,'o-');
 xlabel('Position (mm)');
 ylabel('Postselected photon number');
 graphicsSettings();
-savefig([selStr,'-nVsPosition.fig']);
-print([selStr,'nVsPosition.png'],'-dpng','-r300');
+ylim([0 3]);
+savefig([selStr,'-nDsVsPosition.fig']);
+print([selStr,'nDsVsPosition.png'],'-dpng','-r300');
+clf();
+
+plot(quantities.position,quantities.nDs./quantities.nTg,'o-');
+xlabel('Position (mm)');
+ylabel('n_{postselected}/n_{Tg,not postselected} ');
+graphicsSettings();
+ylim([0 2]);
+savefig([selStr,'-nDsNormalizedVsPosition.fig']);
+print([selStr,'nDsNormalizedVsPosition.png'],'-dpng','-r300');
 clf();
 
  %% normalize the interference pattern to absolute maximum and minimum 

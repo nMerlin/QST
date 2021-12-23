@@ -124,7 +124,7 @@ for iCh = channels
             dispstat(['Removing correlations from channel ',num2str(iCh), ...
                 ' ...'],'timestamp','keepthis',0);
             X(:,:,iCh) = correlationCompensation(X(:,:,iCh));
-            Xrem = X(1:end-1,:,iCh);
+            Xrem = X(1:end-1,:,iCh); % remove linearly dependent last vector
         end 
              
     elseif strcmp(offset(iCh),'global') % remove global offset
