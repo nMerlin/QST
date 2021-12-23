@@ -57,7 +57,7 @@ if isempty(husimi)
     ax2 = subplot(2,1,1);
 else
     subplot(3,1,1);
-    plotHusimi(husimi{1},husimi{2},husimi{3}); % husimi=[O1,O2,iSelect]
+    plotHusimi(husimi{1},husimi{2},husimi{3},'Limits',[-20 20]); % husimi=[O1,O2,iSelect]
     ax2 = subplot(3,1,2);
 end
 h = histogram(ax2,theta,histEdges); % 'Normalization','pdf');
