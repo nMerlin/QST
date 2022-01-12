@@ -5,12 +5,12 @@ nTg = nPhotons(X2,X2,X2);
 [nDs,nDsStd] = deal(length(phaseselection));
 for i  = 1:length(phaseselection)  
 
-       selParams = struct('Type','phaseAndAmplitude','Position',[phaseselection(i),0.5,1,1]);
+       selParams = struct('Type','phaseAndAmplitude','Position',[phaseselection(i),0.5,10,1]);
       % selParams = struct('Type','phase','Position',[phaseselection(i),0.5]);
 %         [selX,selTheta,iSelect] = selectRegion(O1,O2,O3,oTheta,selParams); %,'Plot','show','Filename',['test' num2str(phaseselection(i)) '-assessTheta']);
-%        thetaMiraSel = oThetaMira(iSelect);
-        [selX,selTheta,thetaMiraSel,iSelect] = selectRegionOfTotalPhase(O1,O2,O3,oTheta,zeros(size(oThetaMira)),selParams);
-    thetaMiraSel = oThetaMira(iSelect);
+%       
+        [selX,selTheta,iSelect] = selectRegionOfTotalPhase(O1,O2,O3,oTheta,oThetaMira,selParams);
+         thetaMiraSel = oThetaMira(iSelect);
      % compute photon number of postselected quadratures in the doubleslit
     
     [nValues] = deal(zeros(10,1));
