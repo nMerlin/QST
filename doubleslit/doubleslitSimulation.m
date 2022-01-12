@@ -11,7 +11,7 @@ ratio = 0:0.1:1;
 ratioMatrix = ones(1,1, length(ratio));
 ratioMatrix(1,1,:) =  ratio;
 %phase difference between the two light sources:
-DeltaTheta = 0:0.1:pi/2;
+DeltaTheta = 0:0.1:2*pi;
 DeltaThetaMatrix = ones(1,1,1, length(DeltaTheta));
 DeltaThetaMatrix(1,1,1,:) =  DeltaTheta;
 
@@ -42,6 +42,17 @@ Int = abs( sqrt(ratioMatrix).*cos(theta1 + phase1)  +  cos(theta2 + phase2) ).^2
 %between the light sources):
 
 Int = mean(Int,1);
+
+%plot on one position, all deltaThetas for intensity ratio 1:
+IntReshaped = Int(:,:,end,:);
+IntReshaped = reshape(IntReshaped,[size(IntReshaped,2) size(IntReshaped,4)]);
+plot(DeltaTheta,IntReshaped(1,:), '-');
+xlabel('Delta Theta');
+ylabel('Intensity on one position');
+ylim([0 2.2]);
+graphicsSettings();
+savefig(['PatternForDeltaThetasOnePosition-' num2str(min(DeltaTheta)) '-' num2str(max(DeltaTheta)) '-IntensityRatio-' num2str(ratio(end)) '.fig']);
+clf();
 
 %plot all intensity ratios for one DeltaTheta:
 IntReshaped = Int(:,:,:,1);
