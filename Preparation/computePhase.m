@@ -32,7 +32,7 @@ ys = smoothCrossCorr(Xa,Xb,'Type','spline','Param',1e-14); %was 1e-15 before, bu
 % In case of not recognized boundary maxima, use e.g. param 1e-11
 [nPoints,nSegments] = size(ys);
 
-periodLength = length(ys)*periodsPerSeg;
+periodLength = length(ys)/periodsPerSeg;
 theta = zeros(nPoints,nSegments);
 for iSeg = 1:nSegments
     y = ys(:,iSeg);
