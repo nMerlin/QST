@@ -122,8 +122,8 @@ for i = 1:length(filenames)  %1
         % One possibility is to only postselect on phases in the Husimi function 
         %(which is the phase between diode and LO in the postselection channels):  
                    
-        [selX,selTheta,iSelect] = selectRegion(O1,O2,O3,oTheta,selParams);
-        thetaMiraSel = oThetaMira(iSelect);
+%         [selX,selTheta,iSelect] = selectRegion(O1,O2,O3,oTheta,selParams);
+%         thetaMiraSel = oThetaMira(iSelect);
         
         %Another possibility is to postselect on a total phase computed
         %by adding the phase of the Husimi function to the phase
@@ -222,7 +222,7 @@ ylabel('Postselected photon number');
 graphicsSettings();
 ylim([0 3]);
 savefig([selStr,'-nDsVsPosition.fig']);
-print([selStr,'nDsVsPosition.png'],'-dpng','-r300');
+print([selStr,'-nDsVsPosition.png'],'-dpng','-r300');
 clf();
 
 plot(quantities.position,quantities.nDs./quantities.nTg,'o-');
@@ -231,7 +231,7 @@ ylabel('n_{postselected}/n_{Tg,not postselected} ');
 graphicsSettings();
 ylim([0 2]);
 savefig([selStr,'-nDsNormalizedVsPosition.fig']);
-print([selStr,'nDsNormalizedVsPosition.png'],'-dpng','-r300');
+print([selStr,'-nDsNormalizedVsPosition.png'],'-dpng','-r300');
 clf();
 
  %% normalize the interference pattern to absolute maximum and minimum 

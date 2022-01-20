@@ -51,4 +51,11 @@ else % 1D input arrays
     end
 end
 
+%comment: these would be the "real times" of the starting points:
+% data8bitCh = data8bit(:,:,iCh);
+% timevector = (1:length(data8bitCh(:)))/configSIG.SpectrumCard.Clock.SamplingRate0x28MHz0x29_DBL*1e6;
+% [seglength,~] = size(data8bitCh);
+% starttimes = timevector(gapStarts*seglength);
+
+
 end

@@ -29,8 +29,8 @@ switch type
     case 'phase'
         mTheta = position(1);
         dTheta = position(2);
-        husimiPhase = atan2(O2,O1);
-        thetaTotal = mod(theta + husimiPhase + thetaMira,2*pi);
+        husimiPhase = pi + atan2(O2,O1);
+        thetaTotal = mod(husimiPhase + theta - thetaMira,2*pi);
         iSelect = find(thetaTotal >mTheta-dTheta/2 & ...
             thetaTotal <mTheta+dTheta/2 & (O1.^2+O2.^2)>0.5);
      case 'phaseAndAmplitude'
@@ -38,8 +38,8 @@ switch type
         dTheta = position(2);
         r = position(3);
         w = position(4);
-        husimiPhase = atan2(O2,O1);
-        thetaTotal = mod(theta + husimiPhase + thetaMira,2*pi);
+        husimiPhase = pi + atan2(O2,O1);
+        thetaTotal = mod(husimiPhase + theta - thetaMira,2*pi);
         iSelect = find(thetaTotal>mTheta-dTheta/2 & ...
             thetaTotal<mTheta+dTheta/2 & (O1.^2+O2.^2)>0.5 & ...
             sqrt(O1.^2+O2.^2)>r-w/2 & sqrt(O1.^2+O2.^2)<r+w/2);
