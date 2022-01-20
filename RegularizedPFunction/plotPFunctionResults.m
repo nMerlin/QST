@@ -48,7 +48,7 @@ end
 
 % Constants
 figurepath = [folder '/'];
-load('Photonnumbers.mat','nPsFast','nPsSlow','nTg'); %loads the photon numbers of each channel without postselection,...
+%load('Photonnumbers.mat','nPsFast','nPsSlow','nTg'); %loads the photon numbers of each channel without postselection,...
 %which was created with plotSeriesPostselections
 %% Gather data
 [delay,Yr,Yt,PhotonNrs,meanPh,meanR,varPh,circVa1,circVa2,circVa1Err,circVa2Err,varR,Rerr,phErr,varRerr,varPhErr,PhotonNrErrs] = deal([]);
@@ -61,8 +61,8 @@ for iParams = 1:length(listOfParams)
     load([foldername '\Pfunctionresults.mat'],'Delay','DelayMm','Pmax','sigmaPmax','meanPhase','meanPhaseBinned','varPhase',...
     'varPhaseBinned','g1','sigNeg','meanAmp','meanAmpBinned','circVar1','circVar2','varAmp','varAmpBinned','PhotonNr','PhotonNrBinned',...
     'phaseErr','ampErr','varPhaseErr','varAmpErr','PhotonNrErr','circVar1Err','circVar2Err');
+    H = length(Delay);    
     delay(iParams,:) = Delay; 
-    H = length(delay);
     Radii = ones(H,1) * selParams.Position(1);
     Thicknesses = ones(H,1) * selParams.Position(2);
     Yr(iParams,:) = Radii;
@@ -111,7 +111,7 @@ end
 %% Plot
 %typestrVector = {'R','discN','varR','meanPh','varPh','RLog'};
 %typestrVector = {'R'};
-typestrVector = {'circVa1'};
+typestrVector = {'varPh'};
 for typeI = 1:length(typestrVector)
     plotStuff(cell2mat(typestrVector(typeI)))
 end
@@ -178,15 +178,19 @@ for i = 1:length(I)
             else            
                 ylabel(ax,'n'); 
             end
-    end %typestr     
-
-    if strcmp(logplot,'shifted')
-        % for circ. varPhi
-        shadedErrorBar(delay(i,:),exp(i)*(1-ys),yErr,'lineProps',{'o-','DisplayName',[sel ' = ' num2str(Yr(i,1),2) ', t = ' num2str(Yt(i,1),2)]});
-    elseif strcmp(logplot,'true')
-        shadedErrorBar(delay(i,:),1-ys,yErr,'lineProps',{'o-','DisplayName',[sel ' = ' num2str(Yr(i,1),2) ', t = ' num2str(Yt(i,1),2)]});
+    end %typestr   
+    
+    if isequal(length(delay(i,:)),1)
+        errorbar(ax,delay(i,:),ys,yErr,'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
     else
-        shadedErrorBar(delay(i,:),ys,yErr,'lineProps',{'o-','DisplayName',[sel ' = ' num2str(Yr(i,1),2) ', t = ' num2str(Yt(i,1),2)]});
+        if strcmp(logplot,'shifted')
+            % for circ. varPhi
+            shadedErrorBar(delay(i,:),exp(i)*(1-ys),yErr,'lineProps',{'o-','DisplayName',[sel ' = ' num2str(Yr(i,1),2) ', t = ' num2str(Yt(i,1),2)]});
+        elseif strcmp(logplot,'true')
+            shadedErrorBar(delay(i,:),1-ys,yErr,'lineProps',{'o-','DisplayName',[sel ' = ' num2str(Yr(i,1),2) ', t = ' num2str(Yt(i,1),2)]});
+        else
+            shadedErrorBar(delay(i,:),ys,yErr,'lineProps',{'o-','DisplayName',[sel ' = ' num2str(Yr(i,1),2) ', t = ' num2str(Yt(i,1),2)]});
+        end
     end
     %plot(ax,delay(i,:),ys,'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
     hold on;
@@ -640,6 +644,7 @@ for i = 1:length(I)
             end  
         case 'noFit'
             fitPeak(i) = mean(ys(delay(i,:)>= (-30+zeroDelay) & delay(i,:)<= (30+zeroDelay)));
+            residuals = 0;
     end %fitType
     
     if ~(strcmp(fitType,'noFit') || strcmp(fitType,'lorentz') || strcmp(fitType,'voigt'))
@@ -728,6 +733,8 @@ if any(fitTau)
     savefig([filename '-fitWidthsVsRadius.fig']);
     print([filename '-fitWidthsVsRadius.png'],'-dpng');
     close all;
+else
+    YrPlot = 0;
 end
 
 if any(fitPeak)
@@ -749,6 +756,8 @@ if any(fitPeak)
     savefig([filename '-PeaksVsRadius.fig']);
     print([filename '-PeaksVsRadius.png'],'-dpng');
     close all;
+else
+    YrPlot = 0;
 end
 
 %% plot fit residuals
