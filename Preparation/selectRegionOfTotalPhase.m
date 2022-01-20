@@ -26,6 +26,10 @@ c = struct2cell(p.Results);
 
 %% Selection process
 switch type
+     case 'fullcircle'
+        r = position(1); % central radius
+        w = position(2); % circle thickness
+        iSelect = find(sqrt(O1.^2+O2.^2)>r-w/2 & sqrt(O1.^2+O2.^2)<r+w/2);
     case 'phase'
         mTheta = position(1);
         dTheta = position(2);
