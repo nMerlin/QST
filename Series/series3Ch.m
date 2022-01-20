@@ -191,7 +191,17 @@ for ii = 1:length(filerange)
             quantities.DelayMm(i) = delay;  % in mm
             c = 299792458; % in m/s
             delay = 2*(delay-zeroDelay)/1000/c*10^12; %delay in ps
-            quantities.Delay(i) = delay;      
+            quantities.Delay(i) = delay;
+         case 'Position'
+            delayToken = regexpi(filename,'([-0123456789,-]*)mm','tokens');
+            delay = cell2mat(delayToken{1});
+            numberToken = regexpi(delay,'^([0123456789,]*)-','tokens'); 
+            quantities.number(i) = str2double(cell2mat(numberToken{1}));
+            number = cell2mat(numberToken{1});
+            delay = strrep(delay,[number '-'],'');
+            delay = strrep(delay,',','.');
+            delay = str2double(delay);
+            quantities.position(i) = delay;
     end
     
     if ~saveps && ~recomputeTheta
