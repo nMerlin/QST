@@ -13,11 +13,18 @@ function [H, binsA, binsB] = histogram2D(A,B,varargin)
 %       If binsA and binsB are vectors: Assume that they describe already
 %       the binning.
 
-%% Handle optional input arguments
-nVarargin = length(varargin);
-optArgs = {'noplot' 1000 1000};
-optArgs(1:nVarargin) = varargin;
-[plotArg,nBinsA,nBinsB] = optArgs{:};
+
+%% Validate and parse input arguments
+p = inputParser;
+defaultnBinsA = 1000;
+addParameter(p,'nBinsA',defaultnBinsA,@isnumeric);
+defaultnBinsB = 1000;
+addParameter(p,'nBinsB',defaultnBinsB,@isnumeric);
+defaultPlotOption = 'noplot'; 
+addParameter(p,'Plot',defaultPlotOption,@isstr);
+parse(p,varargin{:});
+c = struct2cell(p.Results);
+[nBinsA,nBinsB,plotArg] = c{:};
 
 %% Calculate binning and histogram
 A = A(:); B = B(:);

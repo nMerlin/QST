@@ -1,4 +1,4 @@
-function [theta, ys] = computePhase(Xa,Xb,piezoSign,varargin)
+function [theta, theta0, ys] = computePhase(Xa,Xb,piezoSign,varargin)
 %COMPUTEPHASE Reconstruct phase between Xa and Xb which can be obtained
 % with prepare3ChData.
 %
@@ -17,22 +17,26 @@ defaultPeriod = 2;  %1.2
 defaultPlot = 'noplot';
 defaultDebug = 0;
 defaultIgnore = [];
+defaultPeakthreshold = 0.5; % the fraction of the maximum that is needed to detect a peak 
 addParameter(p,'Period',defaultPeriod,@isnumeric);
 addParameter(p,'Plot',defaultPlot);
 addParameter(p,'Debug',defaultDebug);
 addParameter(p,'Ignore',defaultIgnore);
+addParameter(p,'Peakthreshold',defaultPeakthreshold);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[debug,ignore,periodsPerSeg,plotArg] = c{:};
+[debug,ignore,peakthreshold,periodsPerSeg,plotArg] = c{:};
 
 %% Reconstruct the phase for each piezo segment
-ys = smoothCrossCorr(Xa,Xb,'Type','spline','Param',1e-15);
+ys = smoothCrossCorr(Xa,Xb,'Type','spline','Param',1e-14); %was 1e-15 before, but this was not sufficient for boundary maxima.
+% In case of not recognized boundary maxima, use e.g. param 1e-11
 [nPoints,nSegments] = size(ys);
 
-periodLength = length(ys)*periodsPerSeg;
+periodLength = length(ys)/periodsPerSeg;
 theta = zeros(nPoints,nSegments);
 for iSeg = 1:nSegments
     y = ys(:,iSeg);
+    y = y-mean(y);
     
     %% Ignore segments listed in _ignore_
     if sum(ignore==iSeg)>0
@@ -46,13 +50,13 @@ for iSeg = 1:nSegments
     % However, the parameters have to be chosen carefully.
     peakOptsMax.MinPeakDistance = 0.6 * length(y)/periodsPerSeg;
     peakOptsMin.MinPeakDistance = 0.6 * length(y)/periodsPerSeg;
-    % _MinPeakDistance_ is by far the most important parameter. It
+    % _MinPeakDistance_ is by far the most important parameter. It 
     % determines how far away of each other the found peaks must be. In our
     % case, the data should exhibit a certain periodicity and we want to
     % know where the maximum and minimum in each period is. Therefore, a
     % _MinPeakDistance_ of roughly 50% of the period should do the trick.
-    peakOptsMax.MinPeakHeight = 0.5 * max(y);
-    peakOptsMin.MinPeakHeight = 0.5 * max(-y);
+    peakOptsMax.MinPeakHeight = peakthreshold * max(y);
+    peakOptsMin.MinPeakHeight = peakthreshold * max(-y);
     % Because of different noise sources and instabilities, the distance
     % between maxima and minima in _y_ is uncertain to some degree.
     % _MinPeakHeight_ ensures, that only peaks above a certain threshold
@@ -74,14 +78,24 @@ for iSeg = 1:nSegments
     [~,minlocs] = findpeaks(-y,peakOptsMin);
     maxpks = y(maxlocs);
     minpks = y(minlocs);
-    assert(abs(length(maxpks)-length(minpks))<2,...
-            strcat('Too many maxima or minima detected in Segment', ...
-            num2str(iSeg),'!'));
+    if abs(length(maxpks)-length(minpks))>2
+        theta(:,iSeg) = NaN(nPoints,1);
+        continue
+    end
+    
+%     assert(abs(length(maxpks)-length(minpks))<2,...
+%             strcat('Too many maxima or minima detected in Segment', ...
+%             num2str(iSeg),'!'));
     
     %% Sort peaks (assumption: we only see "global" maxima and minima)
     [locs, I] = sort([maxlocs;minlocs]);
     pks = [maxpks;minpks];
     pks = pks(I);
+    
+    if length(pks)<2
+        theta(:,iSeg) = NaN(nPoints,1);
+        continue
+    end
     
     
     %% Account for wrongly detected peaks close to the boundaries
@@ -113,9 +127,15 @@ for iSeg = 1:nSegments
         end
     end    
     nTurningPoints = length(locs);
-    assert(nTurningPoints>1, ...
-        ['Not enough turning points encountered in Segment ', ...
-        num2str(iSeg),'!']);
+    
+    if nTurningPoints<1
+        theta(:,iSeg) = NaN(nPoints,1);
+        continue
+    end
+    
+%     assert(nTurningPoints>1, ...
+%         ['Not enough turning points encountered in Segment ', ...
+%         num2str(iSeg),'!']);
     
     %% Account for extrema lying directly on a boundary (1)
     % If an extremal point is the first or last point in the data set, then
@@ -223,10 +243,11 @@ for iSeg = 1:nSegments
         selSeg(iSeg) = false;
         continue
     end
-    assert(isreal(theta),...
-        ['Not all phase values are real in Segment ' num2str(iSeg) '.']);
+%     assert(isreal(theta),...
+%         ['Not all phase values are real in Segment ' num2str(iSeg) '.']);
 end % iSeg
 
+theta0 = theta;
 theta = mod(theta,2*pi);
 
 end % function

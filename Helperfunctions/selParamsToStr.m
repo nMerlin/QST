@@ -24,6 +24,12 @@ switch type
     case {'Qline','Pline'}
         selStr = [selStr,'center=',num2str(pos(1)), ...
             '-width=',num2str(pos(2))];
+    case {'phase'}
+        selStr = [selStr,'phase=',num2str(pos(1)), ...
+            '-thickness=',num2str(pos(2))];
+    case {'phaseAndAmplitude'}
+        selStr = [selStr,'phase=',num2str(pos(1)), ...
+            '-thickness=',num2str(pos(2)),'amplitude=',num2str(pos(3)),'amplitudeWidth=',num2str(pos(4))];
 end
 
 end

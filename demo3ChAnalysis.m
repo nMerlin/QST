@@ -1,6 +1,7 @@
 %% How to analyse a 3-Channel dataset
 % Data from a 3-Channel homodyne quantum state measurement has its own
 % functions for evaluation which will be presented here.
+% Here: Ch1 and Ch2 postselection, Ch3 target
 
 %% Loading a single data-file
 % For each dataset you need to specify two files: The file _filenameSIG_
@@ -13,7 +14,7 @@
 % modulation of 2w and X2 of w (e.g. w=25Hz).
 % piezoSign is 1 or -1 depending on the direction of the first segment of
 % the channel with the highest modulation frequency.
-[X1,X2,X3,piezoSign] = prepare3ChData(filenameLO, filenameSIG);
+[X1,X2,X3,piezoSign] = prepareData(filenameLO, filenameSIG,'Channels',1:3,'Offset','local','Piezo','yes' );
 
 %% Plotting Cross-Correlations
 % For a first overview of your dataset it can be helpful to plot the 3

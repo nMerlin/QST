@@ -10,12 +10,16 @@ defaultStyle = 'auto'; % 'simple'
 addParameter(p,'Style',defaultStyle);
 defaultTitleStr = 'H(q,p)';
 addParameter(p,'Title',defaultTitleStr,@isstr);
+defaultnBinsA = 1000;
+addParameter(p,'nBinsA',defaultnBinsA,@isnumeric);
+defaultnBinsB = 1000;
+addParameter(p,'nBinsB',defaultnBinsB,@isnumeric);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[filename,limits,style,titlestr] = c{:};
+[filename,limits,nBinsA,nBinsB,style,titlestr] = c{:};
 
 %% Plotting
-[H, binsO1, binsO2] = histogram2D(O1,O2);
+[H, binsO1, binsO2] = histogram2D(O1,O2,'nBinsA',nBinsA,'nBinsB',nBinsB);
 imagesc(binsO1,binsO2,H); axis on; colormap hot; hold on;
 scatter(O1(iSelect),O2(iSelect),'.g'); hold off;
 set(gca,'XLim',limits,'YLim',limits);
