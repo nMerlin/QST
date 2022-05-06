@@ -22,6 +22,6 @@ detuningMeV = detuning2g0 * R;
 
 % Energy (eV) and wavelength (nm) of the cavity
 Ecav = EX + detuningMeV/1000;
-lambdaCav = h *c0/(Ecav*e0)/10^-9;
+lambdaCav = h *c0./(Ecav*e0)/10^-9;
 
 end
