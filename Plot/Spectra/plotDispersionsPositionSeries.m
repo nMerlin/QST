@@ -51,7 +51,7 @@ e0 = 1.602176634e-19;
 
 %% Create data overview
 dataStruct = struct('filename',{},'number',{}, 'Position',{}, 'RelativePosition',{}, 'E0', {},'Wavelength',{},...
-    'detuningMeV',{}, 'detuning2g0',{});
+    'detuningMeV',{}, 'detuning2g0',{},'Ecav');
 dataStructBackground = struct('filename',{},'number',{});
 
 rawDataContents = dir('raw-data');
@@ -62,7 +62,7 @@ for name = {rawDataContents.name}
     filename = cell2mat(name);
     if not(isempty(regexpi(filename,'background','match')))...
             || not(isempty(regexpi(filename,'raw','match')))...
-            || isempty(regexpi(filename,'.csv','match'))
+            || isempty(regexpi(filename,'.txt','match'))  % or .csv
         continue
     end
     
@@ -72,7 +72,7 @@ for name = {rawDataContents.name}
     dataStruct(number).filename = filename;
     
     % Fetch sample position
-    positionToken = regexpi(filename,'x-([0123456789.]*)mm','tokens');
+    positionToken = regexpi(filename,'-([0123456789.]*)mm','tokens');
     position = str2double(cell2mat(positionToken{1}));
     dataStruct(number).Position = position;
     dataStruct(number).RelativePosition = position- zeroPos;
@@ -115,9 +115,10 @@ for number = 1:size(dataStruct,2)
         'ModeK',modeK,'ZoomE',zoomE,'Fit',fitoption,'aOld',aOld,'E0Old',E0Old,'y0Old',y0Old,'PlotMode',plotMode,'R',R,'EX',EX);
     dataStruct(number).E0 = E0;
     dataStruct(number).Wavelength = h*c0/E0/e0*1e9;
-    [detuningMeV, detuning2g0] = computeDetuning(E0,R,EX); 
+    [detuningMeV, detuning2g0,Ecav] = computeDetuning(E0,R,EX); 
     dataStruct(number).detuningMeV =detuningMeV;
     dataStruct(number).detuning2g0 = detuning2g0;
+    dataStruct(number).Ecav = Ecav;
        
 end
 
@@ -127,57 +128,89 @@ E0 = cell2mat({dataStruct.E0});
 Wavelength = cell2mat({dataStruct.Wavelength}); 
 detuningMeV = cell2mat({dataStruct.detuningMeV});
 detuning2g0 = cell2mat({dataStruct.detuning2g0});
+Ecav = cell2mat({dataStruct.Ecav});
 
 %% write them in excel table
 T = struct2table(dataStruct);
 writetable(T,'positionSeries.xls');
+save('positionSeries.mat','position','RelativePosition','E0','Wavelength','detuningMeV','detuning2g0','Ecav');
 
 %% make plot of Energy vs position
-plot(RelativePosition,E0,'o');
-xlabel('sample position relative to left edge (mm)');
-ylabel('minimum energy E_{LP}(k_{||}=0)(eV)');
+plot(RelativePosition,E0,'o-');
+xlabel('Sample position (mm)');
+ylabel('E_{LP}(k_{||}=0)(eV)');
 graphicsSettings;
 savefig('positionSeries-EnergyVsPosition.fig');
 print('positionSeries-EnergyVsPosition.png','-dpng','-r300');
 
 %% make plot of Energy vs wavelength
-plot(RelativePosition,Wavelength,'o');
-xlabel('sample position relative to left edge (mm)');
-ylabel('minimum wavelength(k_{||}=0)(nm)');
+plot(RelativePosition,Wavelength,'o-');
+xlabel('Sample position (mm)');
+ylabel('Wavelength(k_{||}=0)(nm)');
 graphicsSettings;
 savefig('positionSeries-WavelengthVsPosition.fig');
 print('positionSeries-WavelengthVsPosition.png','-dpng','-r300');
 
 %% make plot of Energy vs detuning (meV)
-plot(detuningMeV,E0,'o');
-xlabel('detuning (meV)');
-ylabel('minimum energy E_{LP}(k_{||}=0)(eV)');
+plot(detuningMeV,E0,'o-');
+xlabel('Detuning (meV)');
+ylabel('E_{LP}(k_{||}=0)(eV)');
 graphicsSettings;
 savefig('positionSeries-EnergyVsDetuningMeV.fig');
 print('positionSeries-EnergyVsDetuningMeV.png','-dpng','-r300');
 
 %% make plot of Energy vs detuning (2g0)
-plot(detuning2g0,E0,'o');
-xlabel('detuning (2 g_{0})');
-ylabel('minimum energy E_{LP}(k_{||}=0)(eV)');
+plot(detuning2g0,E0,'o-');
+hold on;
+plot(detuning2g0,Ecav,'k--');
+plot(detuning2g0,EX*ones(size(E0)),'k:');
+xlabel('Detuning (2g_{0})');
+ylabel('Energy (eV)');
+legend('E_{LP}(k_{||}=0)','E_{cav}(k_{||}=0)','E_{exc}','Location','northwest');
 graphicsSettings;
 savefig('positionSeries-EnergyVsDetuning2g0.fig');
 print('positionSeries-EnergyVsDetuning2g0.png','-dpng','-r300');
 
 %% make plot of detuning (meV) vs position
-plot(RelativePosition,detuningMeV,'o');
-xlabel('sample position relative to left edge (mm)');
-ylabel('detuning (meV)');
+plot(RelativePosition,detuningMeV,'o-');
+xlabel('Sample position (mm)');
+ylabel('Detuning (meV)');
 graphicsSettings;
 savefig('positionSeries-detuningMeVvsPosition.fig');
 print('positionSeries-detuningMeVvsPosition.png','-dpng','-r300');
 
 %% make plot of detuning (2g0) vs position
-plot(RelativePosition,detuning2g0,'o');
-xlabel('sample position relative to left edge (mm)');
-ylabel('detuning (2 g_{0})');
+plot(RelativePosition,detuning2g0,'o-');
+xlabel('Sample position (mm)');
+ylabel('Detuning (2g_{0})');
 graphicsSettings;
 savefig('positionSeries-detuning2g0vsPosition.fig');
 print('positionSeries-detuning2g0vsPosition.png','-dpng','-r300');
+
+%% position dependence in one plot 
+ax1 = subplot(2,1,1); % top subplot
+plot(ax1,RelativePosition,E0,'o-');
+ylabel(ax1,'E_{LP}(k_{||}=0)(eV)');
+graphicsSettings;
+set(ax1,'FontSize',18);
+xticks([0 2 4 6 8 10]);
+ax2 = subplot(2,1,2); % bottom subplot
+yyaxis left
+plot(ax2,RelativePosition,detuningMeV,'o-');
+ylabel(ax2,'Detuning (meV)');
+yyaxis right
+plot(ax2,RelativePosition,detuning2g0,'o-');
+xlabel(ax2,'Sample position (mm)');
+ylabel(ax2,'Detuning (2g_{0})');
+fontName = 'Arial';
+fontSize = 18;
+h = findobj(gca,'Type','line');
+ax = gca;
+set(h,'linewidth',2);
+set(ax,'linewidth',2,'Box','on','FontSize',fontSize,'FontName',fontName,'TickDir','in');
+xticks([0 2 4 6 8 10]);
+grid;
+savefig('positionSeries-AllvsPosition.fig');
+print('positionSeries-AllvsPosition.png','-dpng','-r300');
 
 end
