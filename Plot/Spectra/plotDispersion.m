@@ -1,4 +1,4 @@
-function [E0,a,y0,Emax,modeInt, SumInt,FWHM,FWHMerror,peakPosition,peakHeight] = plotDispersion(filenameSIG, filenameBG,varargin)
+function [E0,a,y0,Emax,modeInt, SumInt,FWHM,FWHMerror,peakPosition,peakHeight,Ecav] = plotDispersion(filenameSIG, filenameBG,varargin)
 %PLOTSTREAK plots the dispersion of polaritons obtained with spectrometer
 %and fourier lens and makes a parabolic fit. 
 %
@@ -32,7 +32,7 @@ defaultModeK = [-0.66 0.66];
 addParameter(parser,'ModeK',defaultModeK,@isnumeric); % k range in which the mode is selected
 defaultModeE = [1.611 1.6113]; 
 addParameter(parser,'ModeE',defaultModeE,@isnumeric); % Energy range in which the mode is selected
-defaultZoomE = [1.605 1.625]; 
+defaultZoomE = [1.59 1.64]; 
 addParameter(parser,'ZoomE',defaultZoomE,@isnumeric); % Energy range in which the dispersion is plotted
 defaultFit = 'yes'; % if set to 'no', no fit is made. If set to 'useOld', a plot is made with old fit parameters. 
 addParameter(parser,'Fit',defaultFit);
@@ -62,12 +62,13 @@ NA = 0.4; %depends on microscope objective
 h = 6.62607015e-34;
 c0 = 299792458;
 e0 = 1.602176634e-19;
+nC = 3.7; %refractive index of quantum wells GaAs   
 
 %% load data
     cd('raw-data');
-    %data = textread(filenameSIG);
-    %data = textread(filenameSIG,'','headerlines',1); 
-    data = textread(filenameSIG,'','delimiter',',','headerlines',1); 
+    data = textread(filenameSIG);
+   % data = textread(filenameSIG,'','headerlines',1); 
+   % data = textread(filenameSIG,'','delimiter',',','headerlines',1); 
     W = data(:,1); % wavelength
     Y = data(:,2); % pixel position
     M = data(:,3); %intensity
@@ -139,7 +140,8 @@ end
 %% compute k from y
 theta_max = asin(NA);
 theta = (y - y0)*2*theta_max/xAperture;
-k = E0*e0*2*pi/(h*c0) * sin(theta); %See Kasprak 2006:Bose–Einstein condensation ofexciton polaritons
+k = E0*e0*2*pi/(h*c0) * sin(theta); %See Kasprak 2006:Bose?Einstein condensation ofexciton polaritons; 
+%E0 is used as an approximation for E.
 k = k *1e-6; %k in 1/micrometer
 
 %% get mode integrated intensity and energy of mode maximum
@@ -178,29 +180,38 @@ if strcmp(fitoption,'useOld')
     Efit = E0Old + aOld * (y-y0Old).^2;
 end
 if strcmp(fitoption,'yes') || strcmp(fitoption,'useOld')
-    [detuningMeV, detuning2g0,Ecav,~] = computeDetuning(E0,R,EX);
+    [detuningMeV, detuning2g0,Ecav,~] = computeDetuning(E0,R,EX(1));
     EX = EX*ones(length(k(Efit>=min(zoomE) & Efit <= max(zoomE))),1);   
-    Ecav = Ecav*ones(length(k(Efit>=min(zoomE) & Efit <= max(zoomE))),1);
+    %Ecav = Ecav*ones(length(k(Efit>=min(zoomE) & Efit <= max(zoomE))),1);
+    mcav = Ecav*e0 *nC^2 /c0^2;
+    EcavParabola = Ecav + (h/(2*pi))^2 * (k(Efit>=min(zoomE) & Efit <= max(zoomE))*1e6).^2 ./(2*mcav) /e0;
     plot(k(Efit>=min(zoomE) & Efit <= max(zoomE)),Efit(Efit>=min(zoomE) & Efit <= max(zoomE)),...
-        'r-','LineWidth',1.5,'DisplayName','Lower Polariton');
-    plot(k(Efit>=min(zoomE) & Efit <= max(zoomE)),Ecav,'y-','LineWidth',1.5,'DisplayName','Cavity Energy at k = 0');
-    plot(k(Efit>=min(zoomE) & Efit <= max(zoomE)),EX,'w-','LineWidth',1.5,'DisplayName','Exciton');
+        'r-','LineWidth',1.5,'DisplayName','E_{LP}');
+    plot(k(Efit>=min(zoomE) & Efit <= max(zoomE)),EcavParabola,'y--','LineWidth',1.5,'DisplayName','E_{cav}');
+    plot(k(Efit>=min(zoomE) & Efit <= max(zoomE)),EX,'w-','LineWidth',1.5,'DisplayName','E_{exc}');
 end
-legend('Location','best');
-fontsize = 24;
+ax = gca;
 graphicsSettings;
-fontName = 'Times New Roman';
+graphs=get(ax,'Children');
+legend(graphs(1:end-1),'Location','best','TextColor','w'); 
+legend('boxoff');
+fontsize = 24;
+fontName = 'Arial';
 set(gca,'XGrid','on','YGrid','on');
+xlim([-3,3]);
 xlabel('k (\mum ^{-1})','FontSize',fontsize,'FontName',fontName);
 ylabel('Energy (eV)','FontSize',fontsize,'FontName',fontName);
 
 %write sum
 SumInt = sum(sum(Int));
-text(0.1, 0.1, ['integr. Int ' num2str(SumInt,'%.0f') ' counts'],'FontSize',fontsize-4,...
-    'Units','normalized','Color','w');
+% text(0.1, 0.1, ['integr. Int ' num2str(SumInt,'%.0f') ' counts'],'FontSize',fontsize-4,...
+%     'Units','normalized','Color','w');
 
 cd('..');
 if plotOption
+figure = gcf;
+figure.InvertHardcopy = 'off'; 
+figure.Color = 'w';
 print([filenameSIG '-2Dsurfplot-' plottype '-Subtract-' subtract '.png'],'-dpng','-r300');
 savefig([filenameSIG '-2Dsurfplot-' plottype '-Subtract-' subtract '.fig']);
 end
