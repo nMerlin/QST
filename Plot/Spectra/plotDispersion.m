@@ -32,6 +32,8 @@ defaultModeK = [-0.66 0.66];
 addParameter(parser,'ModeK',defaultModeK,@isnumeric); % k range in which the mode is selected
 defaultModeE = [1.611 1.6113]; 
 addParameter(parser,'ModeE',defaultModeE,@isnumeric); % Energy range in which the mode is selected
+defaultAdjustEnergy = false; %set whether the energy range of the mode is adjusted to lie around the fitted peak for computing the integrated mode intensity 
+addParameter(parser,'AdjustEnergy',defaultAdjustEnergy);
 defaultZoomE = [1.59 1.64]; 
 addParameter(parser,'ZoomE',defaultZoomE,@isnumeric); % Energy range in which the dispersion is plotted
 defaultFit = 'yes'; % if set to 'no', no fit is made. If set to 'useOld', a plot is made with old fit parameters. 
@@ -52,7 +54,7 @@ defaultNormalize = false; %normalizes the colorscale in the 2D plot to 1.
 addParameter(parser,'Normalize',defaultNormalize,@islogical);
 parse(parser,varargin{:});
 c = struct2cell(parser.Results);
-[aOld,E0Old,EX,fitoption,minY,modeE,modeK,normalize,plotMode,plotOption,plottype,R,subtract,xAperture,y0Old,zoomE] = c{:};
+[adjustEnergy,aOld,E0Old,EX,fitoption,minY,modeE,modeK,normalize,plotMode,plotOption,plottype,R,subtract,xAperture,y0Old,zoomE] = c{:};
 
 %% fourier pixel
 % take values from calibration measurement
@@ -66,9 +68,9 @@ nC = 3.7; %refractive index of quantum wells GaAs
 
 %% load data
     cd('raw-data');
-    data = textread(filenameSIG);
+   % data = textread(filenameSIG); % for old measurements with Winspec 
    % data = textread(filenameSIG,'','headerlines',1); 
-   % data = textread(filenameSIG,'','delimiter',',','headerlines',1); 
+   data = textread(filenameSIG,'','delimiter',',','headerlines',1);  % for measurements with Lightfield 
     W = data(:,1); % wavelength
     Y = data(:,2); % pixel position
     M = data(:,3); %intensity
@@ -151,8 +153,26 @@ modeIntPreliminary = sum(sum(Int(modeRangeE, modeRangeK)));
 modeEnergy = energy(modeRangeE);
 [~,index]=max(modeIntPreliminary);
 Emax = modeEnergy(index);
+
+%get in k direction integrated energy, maximum and peak position for later use 
+subInt = Int(range, modeRangeK);
+intInt = sum(subInt,2);
+intInt = intInt - mean(intInt(1:20)); %subtract background 
+zoomEnergy = energy(range);
+[Max,I] = max(intInt);
+peakPosition = zoomEnergy(I);
+%get integrated intensity around mode; if wished, adjust the energy range
+%of the mode according to the found peak position 
+if adjustEnergy
+    modeRangeE = energy>= peakPosition - 4e-4 & energy <= peakPosition + 4e-4;
+    modeEnergy = energy(modeRangeE);
+end
+modeInt = sum(sum(Int(modeRangeE, modeRangeK)));
  
 %% make 2D surface plot
+logInt = log(Int);
+logInt(Int==0) = 0;
+logInt(logInt<0)=0;
 if strcmp(plottype, 'lin')
     if normalize
         IntNorm = Int/max(max(Int));
@@ -161,9 +181,6 @@ if strcmp(plottype, 'lin')
         pcolor(k, energy(range), Int(range,:));
     end
 else
-    logInt = log(Int);
-    logInt(Int==0) = 0;
-    logInt(logInt<0)=0;
     pcolor(k, energy(range), logInt(range,:));
 end
 colorbar;
@@ -171,7 +188,7 @@ shading flat;
 axis tight;
 hold on;
 if strcmp(plotMode,'yes')
-    pcolor(k(modeRangeK),modeEnergy,logInt(modeRangeE, modeRangeK));
+   pcolor(k(modeRangeK),modeEnergy,logInt(modeRangeE, modeRangeK));
 end
 if strcmp(fitoption,'yes')
     Efit = f(y);
@@ -212,25 +229,16 @@ if plotOption
 figure = gcf;
 figure.InvertHardcopy = 'off'; 
 figure.Color = 'w';
-print([filenameSIG '-2Dsurfplot-' plottype '-Subtract-' subtract '.png'],'-dpng','-r300');
-savefig([filenameSIG '-2Dsurfplot-' plottype '-Subtract-' subtract '.fig']);
+print([filenameSIG '-2Dsurfplot-' plottype '-Subtract-' subtract '-PlotMode-' plotMode '-adjustModeEnergy-' num2str(adjustEnergy) '.png'],'-dpng','-r300');
+savefig([filenameSIG '-2Dsurfplot-' plottype '-Subtract-' subtract '-PlotMode-' plotMode '-adjustModeEnergy-' num2str(adjustEnergy) '.fig']);
 end
 clf();
 
 %% make 1D plot 
-%range for integration
-subInt = Int(range, modeRangeK);
-intInt = sum(subInt,2);
-intInt = intInt - mean(intInt(1:20)); %subtract background 
-zoomEnergy = energy(range);
+
 plot(zoomEnergy, intInt, 'linewidth',2);
 %set(gca, 'Ylim',[0 max(intInt)+10000]);
-hold on;
-
-% get maximum and peak position
-[Max,I] = max(intInt);
-peakPosition = zoomEnergy(I);
-    
+hold on;   
 % make Gauss Fit 
 gaussCustom = 'a1*exp(-((x-b1)/c1)^2)';
 wfit = zoomEnergy';
@@ -259,9 +267,5 @@ print([filenameSIG '-cut.png'],'-dpng','-r300');
 savefig([filenameSIG '-cut.fig']);
 end
 clf();
-
-%get integrated intensity around mode
-EnergyRangeAdjusted = energy>= peakPosition - 4e-4 & energy <= peakPosition + 4e-4;
-modeInt = sum(sum(Int(EnergyRangeAdjusted, modeRangeK)));
     
 end
