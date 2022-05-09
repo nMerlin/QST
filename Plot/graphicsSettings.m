@@ -1,7 +1,7 @@
 function [] = graphicsSettings
 %     fontName = 'Times New Roman';
     fontName = 'Arial';
-    fontSize = 20;
+    fontSize = 19;
     h = findobj(gca,'Type','line');
     ax = gca;
     set(h,'linewidth',2);
