@@ -10,16 +10,18 @@ defaultSubtract = 'no'; %
 addParameter(parser,'Subtract',defaultSubtract);
 defaultPlottype = 'lin'; 
 addParameter(parser,'Plottype',defaultPlottype);
-defaultPlotMode = 'no'; 
-addParameter(parser,'PlotMode',defaultPlotMode); % if yes, the selected mode is indicated in the plot. 
 defaultMinY = 200; 
 addParameter(parser,'minY',defaultMinY,@isnumeric);
 defaultXAperture = 330'; 
 addParameter(parser,'xAperture',defaultXAperture,@isnumeric);
+defaultPlotMode = 'no'; 
+addParameter(parser,'PlotMode',defaultPlotMode); % if yes, the selected mode is indicated in the plot. 
 defaultModeK = [-0.66 0.66]; 
 addParameter(parser,'ModeK',defaultModeK,@isnumeric); % k range in which the mode is selected
 defaultModeE = [1.611 1.6113]; 
 addParameter(parser,'ModeE',defaultModeE,@isnumeric); % Energy range in which the mode is selected
+defaultAdjustEnergy = false; %set whether the energy range of the mode is adjusted to lie around the fitted peak for computing the integrated mode intensity 
+addParameter(parser,'AdjustEnergy',defaultAdjustEnergy);
 defaultZoomE = [1.605 1.625]; 
 addParameter(parser,'ZoomE',defaultZoomE,@isnumeric); % Energy range in which the dispersion is plotted
 defaultFit = 'yes'; %'useOld' to use old parameters
@@ -34,9 +36,11 @@ defaultGetTime = 'no'; %
 addParameter(parser,'GetTime',defaultGetTime); % get exposure time from filename
 defaultLabel = '-'; %
 addParameter(parser,'Label',defaultLabel); % use only files with specific label e.g. polarisation
+defaultPlotOption = true;
+addParameter(parser,'PlotOption',defaultPlotOption,@islogical);
 parse(parser,varargin{:});
 c = struct2cell(parser.Results);
-[aOld,E0Old,fitoption,getTime,label,minY,modeE,modeK,plotMode,plottype,subtract,xAperture,y0Old,zoomE] = c{:};
+[adjustEnergy,aOld,E0Old,fitoption,getTime,label,minY,modeE,modeK,plotMode,plotOption,plottype,subtract,xAperture,y0Old,zoomE] = c{:};
 
 %% Sample char. for M3396
 R = 9.5; %Rabi splitting in meV
@@ -58,7 +62,7 @@ for name = {rawDataContents.name}
     filename = cell2mat(name);
     if not(isempty(regexpi(filename,'-background.csv','match')))...
              || not(isempty(regexpi(filename,'raw','match')))...
-            || isempty(regexpi(filename,'.csv','match'))...
+            || isempty(regexpi(filename,'.csv','match'))...  % use .txt for old measurements with Winspec
             || isempty(regexpi(filename,label,'match'))
         continue
     end
@@ -116,7 +120,8 @@ for number = 1:size(dataStruct,2)
     end
     [E0,~,~,Emax,modeInt,SumInt,FWHM,FWHMerror,peakPosition,peakHeight] = plotDispersion(filenameSIG, filenameBG,'Subtract',subtract,...
         'Plottype',plottype,'minY',minY,'xAperture',xAperture,'ModeE',modeE,...
-        'ModeK',modeK,'ZoomE',zoomE,'Fit',fitoption,'aOld',aOld,'E0Old',E0Old,'y0Old',y0Old,'PlotMode',plotMode,'R',R,'EX',EX);
+        'ModeK',modeK,'ZoomE',zoomE,'Fit',fitoption,'aOld',aOld,'E0Old',E0Old,...
+        'y0Old',y0Old,'PlotMode',plotMode,'R',R,'EX',EX,'AdjustEnergy',adjustEnergy,'PlotOption',plotOption);
     lambda = h*c0/e0*1./E0 *10^9;
     dataStruct(number).E0 = E0;
     dataStruct(number).lambda = lambda;
@@ -149,7 +154,8 @@ peakHeight = cell2mat({dataStruct.peakHeight});
 
 %% write them in excel table
 T = struct2table(dataStruct);
-writetable(T,['powerSeries' label '.xls']);
+writetable(T,['powerSeries' label '-adjustModeEnergy-' num2str(adjustEnergy) '.xls']);
+save(['polarisationSeries-adjustModeEnergy-' num2str(adjustEnergy) '.mat'],'polarisation','E0','lambda','Emax','modeInt','SumInt','FWHM','FWHMerror','peakPosition','peakHeight');
 
 %% make plots
 [polarisation,Index] = sort(polarisation);
@@ -157,7 +163,7 @@ modeInt = modeInt(Index);
 peakHeight = peakHeight(Index);
 SumInt = SumInt(Index);
 polar(polarisation*pi/180,SumInt,'-o');
-xlabel('linear polarisation angle');
+xlabel('Polarization angle (Degree)');
 if strcmp(getTime,'yes')
    ylabel('overall integrated Intensity (counts/ms)'); 
 else
@@ -169,47 +175,59 @@ print(['polarisation-polarPlot-SumInt' label '.png'],'-dpng','-r300');
 clf();
 
 plot(polarisation,SumInt,'-o');
-xlabel('linear polarisation angle');
+xlabel('Polarization angle (Degree)');
 if strcmp(getTime,'yes')
    ylabel('overall integrated Intensity (counts/ms)'); 
 else
     ylabel('overall integrated Intensity (a.u.)');
+end
+th = findall(gcf,'Type','text');
+for i = 1:length(th)
+    set(th(i),'FontSize',16)
 end
 graphicsSettings;
 savefig(['polarisation-linearPlot-SumInt' label '.fig']);
 print(['polarisation-linearPlot-SumInt' label '.png'],'-dpng','-r300');
 clf();
 
-polar(polarisation*pi/180,modeInt,'-o');
-xlabel('linear polarisation angle');
+polar(polarisation*pi/180,modeInt/max(modeInt),'-o');
+xlabel('Polarization angle (Degree)');
 if strcmp(getTime,'yes')
-   ylabel('mode integrated Intensity (counts/ms)'); 
+   ylabel('Mode Intensity (counts/ms)'); 
 else
-    ylabel('mode integrated Intensity (a.u.)');
+    ylabel('Mode Intensity (a.u.)');
+end
+th = findall(gcf,'Type','text');
+for i = 1:length(th)
+    set(th(i),'FontSize',16)
 end
 graphicsSettings;
-savefig(['polarisation-polarPlot-modeInt' label '.fig']);
-print(['polarisation-polarPlot-modeInt' label '.png'],'-dpng','-r300');
+savefig(['polarisation-polarPlot-modeInt' label '-adjustModeEnergy-' num2str(adjustEnergy) '.fig']);
+print(['polarisation-polarPlot-modeInt' label '-adjustModeEnergy-' num2str(adjustEnergy) '.png'],'-dpng','-r300');
 clf();
 
 plot(polarisation,modeInt,'-o');
-xlabel('linear polarisation angle');
+xlabel('Polarization angle (Degree)');
 if strcmp(getTime,'yes')
    ylabel('mode integrated Intensity (counts/ms)'); 
 else
     ylabel('mode integrated Intensity (a.u.)');
 end
 graphicsSettings;
-savefig(['polarisation-linearPlot-modeInt' label '.fig']);
-print(['polarisation-linearPlot-modeInt' label '.png'],'-dpng','-r300');
+savefig(['polarisation-linearPlot-modeInt' label '-adjustModeEnergy-' num2str(adjustEnergy) '.fig']);
+print(['polarisation-linearPlot-modeInt' label '-adjustModeEnergy-' num2str(adjustEnergy) '.png'],'-dpng','-r300');
 clf();
 
 polar(polarisation*pi/180,peakHeight,'-o');
-xlabel('linear polarisation angle');
+xlabel('Polarization angle (Degree)');
 if strcmp(getTime,'yes')
    ylabel('Peak Height of Fit (counts/ms)'); 
 else
     ylabel('Peak Height of Fit (a.u.)');
+end
+th = findall(gcf,'Type','text');
+for i = 1:length(th)
+    set(th(i),'FontSize',16)
 end
 graphicsSettings;
 savefig(['polarisation-polarPlot-peakHeight' label '.fig']);
