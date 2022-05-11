@@ -1,4 +1,4 @@
-function [E0,a,y0,Emax,modeInt, SumInt,FWHM,FWHMerror,peakPosition,peakHeight,Ecav] = plotDispersion(filenameSIG, filenameBG,varargin)
+function [E0,a,y0,Emax,modeInt, SumInt,FWHMFit,FWHMerror,peakPositionFit,peakHeight,Ecav,peakPosition,FWHM,Areapixels] = plotDispersion(filenameSIG, filenameBG,varargin)
 %PLOTSTREAK plots the dispersion of polaritons obtained with spectrometer
 %and fourier lens and makes a parabolic fit. 
 %
@@ -167,7 +167,10 @@ if adjustEnergy
     modeRangeE = energy>= peakPosition - 4e-4 & energy <= peakPosition + 4e-4;
     modeEnergy = energy(modeRangeE);
 end
-modeInt = sum(sum(Int(modeRangeE, modeRangeK)));
+modeInt = sum(sum(Int(modeRangeE, modeRangeK))); % integrated intensity in the selected mode rectangle. 
+ 
+A = Int(modeRangeE, modeRangeK);
+Areapixels = length(A(:)); % number of pixels in the selected mode rectangle. 
  
 %% make 2D surface plot
 logInt = log(Int);
@@ -216,6 +219,7 @@ fontsize = 24;
 fontName = 'Arial';
 set(gca,'XGrid','on','YGrid','on');
 xlim([-3,3]);
+ylim(zoomE);
 xlabel('k (\mum ^{-1})','FontSize',fontsize,'FontName',fontName);
 ylabel('Energy (eV)','FontSize',fontsize,'FontName',fontName);
 
@@ -229,14 +233,19 @@ if plotOption
 figure = gcf;
 figure.InvertHardcopy = 'off'; 
 figure.Color = 'w';
-print([filenameSIG '-2Dsurfplot-' plottype '-Subtract-' subtract '-PlotMode-' plotMode '-adjustModeEnergy-' num2str(adjustEnergy) '.png'],'-dpng','-r300');
-savefig([filenameSIG '-2Dsurfplot-' plottype '-Subtract-' subtract '-PlotMode-' plotMode '-adjustModeEnergy-' num2str(adjustEnergy) '.fig']);
+print([filenameSIG '-2Dsurfplot-' plottype '-Subtract-' subtract '-PlotMode-' ...
+    plotMode '-adjustModeEnergy-' num2str(adjustEnergy) '-modeE-' num2str(min(modeE)) '-' num2str(max(modeE)) ...
+     '-modeK-' num2str(min(modeK)) '-' num2str(max(modeK)) '-normalize-' num2str(normalize) '.png'],'-dpng','-r300');
+savefig([filenameSIG '-2Dsurfplot-' plottype '-Subtract-' subtract '-PlotMode-' ...
+    plotMode '-adjustModeEnergy-' num2str(adjustEnergy) '-modeE-' num2str(min(modeE)) '-' num2str(max(modeE)) ...
+     '-modeK-' num2str(min(modeK)) '-' num2str(max(modeK)) '-normalize-' num2str(normalize) '.fig']);
 end
 clf();
 
 %% make 1D plot 
 
 plot(zoomEnergy, intInt, 'linewidth',2);
+FWHM = fwhm(zoomEnergy, intInt)* 1000; %in meV; 
 %set(gca, 'Ylim',[0 max(intInt)+10000]);
 hold on;   
 % make Gauss Fit 
@@ -244,27 +253,29 @@ gaussCustom = 'a1*exp(-((x-b1)/c1)^2)';
 wfit = zoomEnergy';
 Intfit = intInt;
 [f,gof,~] = fit(wfit,Intfit,gaussCustom, 'StartPoint', [Max, peakPosition, 0.001] ); %f(x) =  a1*exp(-((x-b1)/c1)^2)
-peakPosition = f.b1;
+peakPositionFit = f.b1;
 peakHeight = f.a1;
-FWHM = 2*f.c1*sqrt(log(2));
+FWHMFit = 2*f.c1*sqrt(log(2));
 level = 2*tcdf(-1,gof.dfe);
 m = confint(f,level); 
 std = m(end,end) - f.c1;
 FWHMerror = std * 2*sqrt(log(2));
-FWHM = FWHM * 1000; %in meV
+FWHMFit = FWHMFit * 1000; %in meV
 FWHMerror = FWHMerror * 1000;
 energyPlot = min(zoomEnergy):0.00001:max(zoomEnergy);
 plot(energyPlot,f(energyPlot),'r','LineWidth',2,'DisplayName','Fit');
 set(gca,'DefaultTextInterpreter','latex');
 ylim([0 Max*1.1]);
-text(peakPosition-0.05, Max/2,...
-    ['FWHM = ' num2str(FWHM,'%.3f') ' $\pm$ ' num2str(FWHMerror,'%.4f') ' meV' ],'FontSize',fontsize-4);
+text(peakPositionFit-0.05, Max/2,...
+    ['FWHM = ' num2str(FWHMFit,'%.3f') ' $\pm$ ' num2str(FWHMerror,'%.4f') ' meV' ],'FontSize',fontsize-4);
 ylabel('integrated Intensity around k = 0 (a.u.)','FontSize',fontsize,'FontName',fontName);
 xlabel('Energy (eV)','FontSize',fontsize,'FontName',fontName);
 graphicsSettings;
 if plotOption
-print([filenameSIG '-cut.png'],'-dpng','-r300');
-savefig([filenameSIG '-cut.fig']);
+print([filenameSIG '-modeE-' num2str(min(modeE)) '-' num2str(max(modeE)) ...
+     '-modeK-' num2str(min(modeK)) '-' num2str(max(modeK)) '-cut.png'],'-dpng','-r300');
+savefig([filenameSIG '-modeE-' num2str(min(modeE)) '-' num2str(max(modeE)) ...
+     '-modeK-' num2str(min(modeK)) '-' num2str(max(modeK)) '-cut.fig']);
 end
 clf();
     
