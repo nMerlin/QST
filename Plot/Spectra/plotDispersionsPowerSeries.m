@@ -126,7 +126,7 @@ for number = 1:size(dataStruct,2)
     else
         filenameBG = filenameSIG;
     end
-    [E0,~,~,Emax,modeInt,SumInt,FWHM,FWHMerror,peakPosition,peakHeight] = plotDispersion(filenameSIG, filenameBG,'Subtract',subtract,...
+    [E0,~,~,Emax,modeInt,SumInt,FWHMFit,FWHMerror,peakPositionFit,peakHeight,~,peakPosition,FWHM,Areapixels] = plotDispersion(filenameSIG, filenameBG,'Subtract',subtract,...
         'Plottype',plottype,'minY',minY,'xAperture',xAperture,'ModeE',modeE,...
         'ModeK',modeK,'ZoomE',zoomE,'Fit',fitoption,'aOld',aOld,'E0Old',E0Old,...
         'y0Old',y0Old,'PlotMode',plotMode,'R',R,'EX',EX,'PlotOption',plotOption,'Normalize',normalize,'AdjustEnergy',adjustEnergy);
@@ -134,9 +134,12 @@ for number = 1:size(dataStruct,2)
     dataStruct(number).E0 = E0;
     dataStruct(number).lambda = lambda;
     dataStruct(number).Emax = Emax; 
-    dataStruct(number).FWHM =FWHM; 
+    dataStruct(number).FWHMFit =FWHMFit; 
     dataStruct(number).FWHMerror = FWHMerror; 
+    dataStruct(number).FWHM =FWHM; 
+    dataStruct(number).peakPositionFit = peakPositionFit; 
     dataStruct(number).peakPosition = peakPosition; 
+    dataStruct(number).Areapixels = Areapixels; 
     if getTime
         dataStruct(number).modeInt = modeInt/dataStruct(number).time;
         dataStruct(number).SumInt = SumInt/dataStruct(number).time;
@@ -155,13 +158,16 @@ lambda = cell2mat({dataStruct.lambda});
 Emax = cell2mat({dataStruct.Emax});
 modeInt = cell2mat({dataStruct.modeInt});
 SumInt = cell2mat({dataStruct.SumInt});
-FWHM = cell2mat({dataStruct.FWHM});
+FWHMFit = cell2mat({dataStruct.FWHMFit});
 FWHMerror = cell2mat({dataStruct.FWHMerror});
+FWHM = cell2mat({dataStruct.FWHM});
+peakPositionFit = cell2mat({dataStruct.peakPositionFit});
 peakPosition = cell2mat({dataStruct.peakPosition});
 peakHeight = cell2mat({dataStruct.peakHeight});
+Areapixels = cell2mat({dataStruct.Areapixels});
 time = cell2mat({dataStruct.time});
-save(['powerSeries' options '.mat'],'power','E0','lambda','Emax','modeInt','SumInt','FWHM',...
-    'FWHMerror','peakPosition','peakHeight','time');
+save(['powerSeries' label options '.mat'],'power','E0','lambda','Emax','modeInt','SumInt','FWHMFit',...
+    'FWHMerror','peakPositionFit','peakHeight','time','peakPosition','FWHM','Areapixels');
 
 %% write them in excel table
 T = struct2table(dataStruct);
@@ -170,6 +176,17 @@ writetable(T,['powerSeries' label options '.xls']);
 %% make plots
 fontsize = 20;
 fontname = 'Arial';
+
+%%
+semilogx(power,peakPositionFit,'ko','markerFaceColor','k');
+xlabel('Excitation Power P (mW)');
+ylabel('Energy (eV)');
+graphicsSettings;
+ax = gca;
+set(ax,'FontSize',fontsize,'FontName',fontname);
+savefig(['powerSeries-peakPositionFit' label options '.fig']);
+print(['powerSeries-peakPositionFit' label options '.png'],'-dpng','-r200');
+clf();
 
 %%
 semilogx(power,peakPosition,'ko','markerFaceColor','k');
@@ -299,6 +316,21 @@ savefig(['powerSeries-modeInt' label options '.fig']);
 print(['powerSeries-modeInt' label options '.png'],'-dpng','-r300');
 clf();
 
+%% modeInt normalized to number of pixels 
+loglog(power,modeInt./Areapixels,'o-');
+xlabel('Excitation Power P (mW)');
+if getTime
+    ylabel('Mode Intensity (counts ms^{-1} px^{-1})');
+else
+    ylabel('Mode Intensity (counts/px)');
+end
+graphicsSettings;
+ax = gca;
+set(ax,'FontSize',fontsize,'FontName',fontname);
+savefig(['powerSeries-modeIntPerPixel' label options '.fig']);
+print(['powerSeries-modeIntPerPixel' label options '.png'],'-dpng','-r300');
+clf();
+
 %%
 semilogx(power,E0,'o');
 xlabel('Excitation Power (mW)');
@@ -324,11 +356,19 @@ savefig(['powerSeries-wavelength' label options '.fig']);
 print(['powerSeries-wavelength' label options '.png'],'-dpng','-r300');
 clf();
 
-errorbar(power,FWHM,FWHMerror);
+errorbar(power,FWHMFit,FWHMerror);
 f = gca;
 f.XScale = 'log';
 xlabel('Excitation Power (mW)');
 ylabel('FWHM of Fit around k = 0 (meV)');
+graphicsSettings;
+savefig(['powerSeries-FWHMFit' label options '.fig']);
+print(['powerSeries-FWHMFit' label options '.png'],'-dpng','-r300');
+clf();
+
+semilogx(power,FWHM,'-o');
+xlabel('Excitation Power (mW)');
+ylabel('FWHM (meV)');
 graphicsSettings;
 savefig(['powerSeries-FWHM' label options '.fig']);
 print(['powerSeries-FWHM' label options '.png'],'-dpng','-r300');
