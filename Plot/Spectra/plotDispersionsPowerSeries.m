@@ -24,6 +24,8 @@ defaultAdjustEnergy = false; %set whether the energy range of the mode is adjust
 addParameter(parser,'AdjustEnergy',defaultAdjustEnergy);
 defaultZoomE = [1.605 1.625]; 
 addParameter(parser,'ZoomE',defaultZoomE,@isnumeric); % Energy range in which the dispersion is plotted
+defaultOnlySmallRange = false;
+addParameter(parser,'OnlySmallRange',defaultOnlySmallRange,@islogical); %get FWHM and peakPosition only in the selected energy range
 defaultFit = 'yes'; %'useOld' to use old parameters
 addParameter(parser,'Fit',defaultFit);
 defaultE0Old = 1.6108; 
@@ -45,10 +47,10 @@ addParameter(parser,'Normalize',defaultNormalize,@islogical);
 parse(parser,varargin{:});
 c = struct2cell(parser.Results);
 [adjustEnergy,aOld,E0Old,fitoption,getThresholdFromFit,getTime,label,minY,modeE,modeK,...
-    normalize,plotMode,plotOption,plottype,subtract,xAperture,y0Old,zoomE] = c{:};
+    normalize,onlySmallRange,plotMode,plotOption,plottype,subtract,xAperture,y0Old,zoomE] = c{:};
 %for filename:
 options = ['-getTime-' num2str(getTime) '-modeE-' num2str(min(modeE)) '-' num2str(max(modeE)) ...
-     '-modeK-' num2str(min(modeK)) '-' num2str(max(modeK)) '-adjustModeEnergy-' num2str(adjustEnergy)];
+     '-modeK-' num2str(min(modeK)) '-' num2str(max(modeK)) '-adjustModeEnergy-' num2str(adjustEnergy),'-onlySmallRange-',num2str(onlySmallRange)];
 
 %% Sample char. for M3396
 R = 9.5; %Rabi splitting in meV
@@ -129,7 +131,8 @@ for number = 1:size(dataStruct,2)
     [E0,~,~,Emax,modeInt,SumInt,FWHMFit,FWHMerror,peakPositionFit,peakHeight,~,peakPosition,FWHM,Areapixels] = plotDispersion(filenameSIG, filenameBG,'Subtract',subtract,...
         'Plottype',plottype,'minY',minY,'xAperture',xAperture,'ModeE',modeE,...
         'ModeK',modeK,'ZoomE',zoomE,'Fit',fitoption,'aOld',aOld,'E0Old',E0Old,...
-        'y0Old',y0Old,'PlotMode',plotMode,'R',R,'EX',EX,'PlotOption',plotOption,'Normalize',normalize,'AdjustEnergy',adjustEnergy);
+        'y0Old',y0Old,'PlotMode',plotMode,'R',R,'EX',EX,'PlotOption',plotOption,...
+        'Normalize',normalize,'AdjustEnergy',adjustEnergy,'OnlySmallRange',onlySmallRange);
     lambda = h*c0/e0*1./E0 *10^9;
     dataStruct(number).E0 = E0;
     dataStruct(number).lambda = lambda;
