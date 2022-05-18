@@ -36,6 +36,8 @@ defaultAdjustEnergy = false; %set whether the energy range of the mode is adjust
 addParameter(parser,'AdjustEnergy',defaultAdjustEnergy);
 defaultZoomE = [1.59 1.64]; 
 addParameter(parser,'ZoomE',defaultZoomE,@isnumeric); % Energy range in which the dispersion is plotted
+defaultOnlySmallRange = false;
+addParameter(parser,'OnlySmallRange',defaultOnlySmallRange,@islogical); %get FWHM and peakPosition only in the selected energy range
 defaultFit = 'yes'; % if set to 'no', no fit is made. If set to 'useOld', a plot is made with old fit parameters. 
 addParameter(parser,'Fit',defaultFit);
 defaultE0Old = 1.6108; 
@@ -54,7 +56,7 @@ defaultNormalize = false; %normalizes the colorscale in the 2D plot to 1.
 addParameter(parser,'Normalize',defaultNormalize,@islogical);
 parse(parser,varargin{:});
 c = struct2cell(parser.Results);
-[adjustEnergy,aOld,E0Old,EX,fitoption,minY,modeE,modeK,normalize,plotMode,plotOption,plottype,R,subtract,xAperture,y0Old,zoomE] = c{:};
+[adjustEnergy,aOld,E0Old,EX,fitoption,minY,modeE,modeK,normalize,onlySmallRange,plotMode,plotOption,plottype,R,subtract,xAperture,y0Old,zoomE] = c{:};
 
 %% fourier pixel
 % take values from calibration measurement
@@ -154,7 +156,7 @@ modeEnergy = energy(modeRangeE);
 [~,index]=max(modeIntPreliminary);
 Emax = modeEnergy(index);
 
-%get in k direction integrated energy, maximum and peak position for later use 
+%get in k direction integrated energy, maximum and peak position and FWHM for later use 
 subInt = Int(range, modeRangeK);
 intInt = sum(subInt,2);
 intInt = intInt - mean(intInt(1:20)); %subtract background 
@@ -168,7 +170,23 @@ if adjustEnergy
     modeEnergy = energy(modeRangeE);
 end
 modeInt = sum(sum(Int(modeRangeE, modeRangeK))); % integrated intensity in the selected mode rectangle. 
- 
+
+%get FWHM and peakPosition only in the selected energy range, if chosen
+if onlySmallRange
+    intInt2 = Int(:, modeRangeK);
+    intInt2 = sum(intInt2,2);
+    intInt2 = intInt2 - mean(intInt2(1:20));
+    try
+        FWHM = fwhm(modeEnergy,intInt2(modeRangeE));
+    catch
+        FWHM = fwhm(zoomEnergy, intInt)* 1000; %in meV;
+    end
+    [~,I2] = max(intInt2(modeRangeE));
+    peakPosition = modeEnergy(I2);
+else
+    FWHM = fwhm(zoomEnergy, intInt)* 1000; %in meV;
+end
+
 A = Int(modeRangeE, modeRangeK);
 Areapixels = length(A(:)); % number of pixels in the selected mode rectangle. 
  
@@ -245,7 +263,6 @@ clf();
 %% make 1D plot 
 
 plot(zoomEnergy, intInt, 'linewidth',2);
-FWHM = fwhm(zoomEnergy, intInt)* 1000; %in meV; 
 %set(gca, 'Ylim',[0 max(intInt)+10000]);
 hold on;   
 % make Gauss Fit 
