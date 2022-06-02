@@ -103,7 +103,7 @@ for iStruct =  1:length(Contents)
             X = X3;
     end
     
-    if strcmp(g2method,'time'); 
+    if strcmp(g2method,'time') 
         [g2vec, ada, times] = g2(X, nResolution);
         nAv = mean(ada);  % Mean photon number  
         if strcmp(weight, 'yes')
