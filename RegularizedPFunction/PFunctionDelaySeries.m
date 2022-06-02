@@ -59,7 +59,7 @@ files = {filestruct.name};
 
 [Delay,DelayMm,Pmax,sigmaPmax,meanPhase,meanAmp,meanPhaseBinned,meanAmpBinned,...
     varPhase,circVar1,circVar2,circVar1Err,circVar2Err,varAmp,varPhaseBinned,varAmpBinned,PhotonNr,PhotonNrBinned,g1,sigNeg,...
-    phaseErr,ampErr,varPhaseErr,varAmpErr,PhotonNrErr] = deal(zeros(length(files),1));
+    phaseErr,ampErr,varPhaseErr,varAmpErr,PhotonNrErr,maxQ] = deal(zeros(length(files),1));
 
 %% Iterate through data files
 for i = 1:length(files)
@@ -120,7 +120,7 @@ for i = 1:length(files)
     
     [meanPhas,meanAm,meanPhaseBinne,meanAmpBinne,varPhas,circVa1,circVa2,...
         circVar1Er,circVar2Er,varAm,varPhaseBinne,...
-        varAmpBinne,PhotonN,PhotonNrBinne,g,sigNe,phaseEr,ampEr,varPhaseEr,varAmpEr,PhotonNrEr] = ...
+        varAmpBinne,PhotonN,PhotonNrBinne,g,sigNe,phaseEr,ampEr,varPhaseEr,varAmpEr,PhotonNrEr,maxq] = ...
         ReturnMomentsFromP( P, sigmaP, QuadVals, 30,filenameFig,'Plot',plotOption );
     meanPhase(i) = meanPhas; meanAmp(i) = meanAm; meanPhaseBinned(i) = meanPhaseBinne;
     meanAmpBinned(i) = meanAmpBinne; varPhase(i) = varPhas;
@@ -128,7 +128,8 @@ for i = 1:length(files)
     circVar1Err(i) = circVar1Er; circVar2Err(i) = circVar2Er; varAmp(i) = varAm; 
     varPhaseBinned(i) = varPhaseBinne; varAmpBinned(i) = varAmpBinne; PhotonNr(i) = PhotonN; 
     PhotonNrBinned(i) = PhotonNrBinne; g1(i) = g; phaseErr(i) = phaseEr; ampErr(i) = ampEr; ...
-        varPhaseErr(i) = varPhaseEr; varAmpErr(i) = varAmpEr; PhotonNrErr(i) = PhotonNrEr; 
+        varPhaseErr(i) = varPhaseEr; varAmpErr(i) = varAmpEr; PhotonNrErr(i) = PhotonNrEr;
+    maxQ(i) = maxq;
     if isempty(sigNe)
         sigNeg(i) = 0;
     else
@@ -148,10 +149,10 @@ varPhaseBinned = varPhaseBinned(I); varAmpBinned = varAmpBinned(I); PhotonNr = P
 PhotonNrBinned = PhotonNrBinned(I); g1 = g1(I);
 Pmax = Pmax(I); sigmaPmax = sigmaPmax(I); sigNeg = sigNeg(I);
 phaseErr = phaseErr(I); ampErr = ampErr(I); varPhaseErr = varPhaseErr(I); ...
-varAmpErr = varAmpErr(I); PhotonNrErr = PhotonNrErr(I);
+varAmpErr = varAmpErr(I); PhotonNrErr = PhotonNrErr(I); maxQ = maxQ(I);
 save([foldername '\Pfunctionresults.mat'],'Delay','DelayMm','Pmax','sigmaPmax','meanPhase','meanPhaseBinned','varPhase',...
     'varPhaseBinned','g1','sigNeg','meanAmp','meanAmpBinned','circVar1','circVar2','varAmp','varAmpBinned','PhotonNr','PhotonNrBinned',...
-    'phaseErr','ampErr','varPhaseErr','varAmpErr','PhotonNrErr','circVar1Err','circVar2Err');
+    'phaseErr','ampErr','varPhaseErr','varAmpErr','PhotonNrErr','circVar1Err','circVar2Err','maxQ');
 
 figure(1);
 plot(Delay,Pmax,'o-');
