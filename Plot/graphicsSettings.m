@@ -1,7 +1,14 @@
-function [] = graphicsSettings
+function [] = graphicsSettings(varargin)
+p = inputParser;
+defaultFontsize = 19;
+addParameter(p,'Fontsize',defaultFontsize,@isnumeric);
+parse(p,varargin{:});
+c = struct2cell(p.Results);
+[fontSize] = c{:};
+
+
 %     fontName = 'Times New Roman';
     fontName = 'Arial';
-    fontSize = 19;
     h = findobj(gca,'Type','line');
     ax = gca;
     set(h,'linewidth',2);
