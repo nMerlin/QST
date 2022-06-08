@@ -113,11 +113,11 @@ end
 
 %% Plot
 %typestrVector = {'R','discN','varR','meanPh','varPh','RLog'};
-%typestrVector = {'R'};
+typestrVector = {'R'};
 %typestrVector = {'maxQ'};
-typestrVector = {'circVa1'};
-color1 = [0.9 0.6 0.1];
-color2 = [0 0 0]; % color varies between these 
+%typestrVector = {'circVa1'};
+cl = colormap(jet); % color for the plots
+cl = cl./1.2;
 for typeI = 1:length(typestrVector)
     plotStuff(cell2mat(typestrVector(typeI)))
 end
@@ -141,7 +141,7 @@ for i = 1:length(I)
             if plotrelative
                 ylabel(ax,'$mean amplitude <r>/\sqrt{n_{Tg}}$','Interpreter','latex'); 
             else            
-                ylabel(ax,'Mean amplitude \langle A \rangle (s)'); 
+                ylabel(ax,'Mean amplitude \langle |\alpha| \rangle (s)'); 
             end
         case 'maxQ'
             ys = maxQs(i,:);
@@ -191,21 +191,21 @@ for i = 1:length(I)
     end %typestr   
     
     if isequal(length(delay(i,:)),1)
-        errorbar(ax,delay(i,:),ys,yErr,'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', w = ' num2str(Yt(i,1))]);
+        errorbar(ax,delay(i,:),ys,yErr,'o-','DisplayName',[sel ' = ' num2str(Yr(i,1))]); % ', w = ' num2str(Yt(i,1))]);
     else
         if strcmp(logplot,'shifted')
             % for circ. varPhi
             shadedErrorBar(delay(i,:),exp(i)*(1-ys),yErr,'lineProps',{'o-',...
-                'Color',[color2(1)+(color1(1)-color2(1))*i/length(I) color2(2)+(color1(2)-color2(2))*i/length(I) color2(3)+(color1(3)-color2(3))*i/length(I)],...
-                'DisplayName',[sel ' = ' num2str(Yr(i,1),2) ', w = ' num2str(Yt(i,1),2)]});
+                'Color',cl(round((length(cl))*i/length(I)),:),...
+                'DisplayName',[sel ' = ' num2str(Yr(i,1),2)]}); % ', w = ' num2str(Yt(i,1),2)]});
         elseif strcmp(logplot,'true')
             shadedErrorBar(delay(i,:),1-ys,yErr,'lineProps',{'o-',...
-                 'Color',[color2(1)+(color1(1)-color2(1))*i/length(I) color2(2)+(color1(2)-color2(2))*i/length(I) color2(3)+(color1(3)-color2(3))*i/length(I)],...
-                 'DisplayName',[sel ' = ' num2str(Yr(i,1),2) ', w = ' num2str(Yt(i,1),2)]});
+                 'Color',cl(round((length(cl))*i/length(I)),:),...
+                 'DisplayName',[sel ' = ' num2str(Yr(i,1),2)]})  ; % ', w = ' num2str(Yt(i,1),2)]});
         else
             shadedErrorBar(delay(i,:),ys,yErr,'lineProps',{'o-',...
-                 'Color',[color2(1)+(color1(1)-color2(1))*i/length(I) color2(2)+(color1(2)-color2(2))*i/length(I) color2(3)+(color1(3)-color2(3))*i/length(I)],...
-                 'DisplayName',[sel ' = ' num2str(Yr(i,1),2) ', w = ' num2str(Yt(i,1),2)]});
+                 'Color',cl(round((length(cl))*i/length(I)),:),...
+                 'DisplayName',[sel ' = ' num2str(Yr(i,1),2)]})  ; % ', w = ' num2str(Yt(i,1),2)]});
         end
     end
     %plot(ax,delay(i,:),ys,'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
@@ -695,7 +695,7 @@ if strcmp(fitType,'noFit')
     else
         l = legend('location','southeast');
     end
-    l.FontSize = 30;
+    l.FontSize = 35;
 else
     f=get(ax,'Children');
     index = length(f)-((1:length(I))-1).*2;
@@ -704,9 +704,11 @@ else
     else        
         l = legend(f(index),'location','southeast');
     end
-    l.FontSize = 30;
+    l.FontSize = 35;
 end
-xlabel(ax,['Time delay \tau (' xUnit ')']);
+l.Color = 'none';
+l.Box = 'off';
+xlabel(ax,['Time delay \tau [' xUnit ']']);
  if strcmp(logplot,'true') || strcmp(logplot,'shifted')
     ax.YScale = 'log';
  end
