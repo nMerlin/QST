@@ -37,7 +37,7 @@ c = struct2cell(parser.Results);
 [fitoption,intp,save,subtract,xLim,xRange,xUnit] = c{:};
 
 %%
-fontsize = 24;
+fontsize = 18;
 lightVelocity = 299792458;
 h = 6.62607015e-34;
 e0 = 1.602176634e-19;
@@ -114,9 +114,9 @@ end
         elseif strcmp(xUnit, 'Hz')
             durationData = 2*log(2)/pi / FWHMData *1e15;
         end 
-     text(peak, Max,...
-            ['FWHMData = ' num2str(FWHMData,'%.3f') ' ' xUnit char(10) ...
-            '$\Delta t$ = ' num2str(durationData,'%.1f') ' fs'],'FontSize',fontsize-4);
+     text(peak-0.9*xLim, Max,...
+            ['FWHMData = ' num2str(FWHMData,'%.4f') ' ' xUnit char(10) ...
+            '\Delta t = ' num2str(durationData,'%.1f') ' fs'],'FontSize',fontsize-4);
     
 %% make Gauss Fit if wished
     if strcmp(fitoption, 'yes')
@@ -150,9 +150,9 @@ end
         x= peak-xLim:xLim/1000:peak+xLim; %x = peak-xLim:0.001:peak+xLim;
         plot(x,f(x),'r','LineWidth',1.5,'DisplayName','Fit');
         %set(gca,'DefaultTextInterpreter','latex');
-        text(peak, Max/4,...
-            ['FWHMGauss = ' num2str(FWHM,'%.3f') ' $\pm$ ' num2str(FWHMerror,'%.4f') ' ' xUnit char(10) ...
-            'Q = ' num2str(Q,'%.0f') char(10) '$\Delta t$ = ' num2str(duration,'%.1f') ' fs'],'FontSize',fontsize-4);
+        text(peak-0.9*xLim, Max/4,...
+            ['FWHMGauss = ' num2str(FWHM,'%.4f') ' \pm ' num2str(FWHMerror,'%.4f') ' ' xUnit char(10) ...
+            'Q = ' num2str(Q,'%.0f') char(10) '\Delta t = ' num2str(duration,'%.1f') ' fs'],'FontSize',fontsize-4);
     else
         FWHM = 0;
         Q = 0;
@@ -177,7 +177,7 @@ end
     end
     
     %set(gca,'DefaultTextInterpreter','latex');
-    text(peak-0.45, Max/2,['peak at ' num2str(peak,'%.2f') ' ' xUnit char(10) ...
+    text(peak-0.9*xLim, Max/2,['peak at ' num2str(peak,'%.4f') ' ' xUnit char(10) ...
         'max Int ' num2str(Max,'%.0f') ' counts' char(10) ...
         'integr. Int ' num2str(integratedInt,'%.0f') ' counts' char(10)],...
         'FontSize',fontsize-4);
