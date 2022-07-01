@@ -7,6 +7,10 @@ defaultXUnit = 'ps';
 addParameter(p,'XUnit',defaultXUnit,@isstr);
 defaultFitType = 'gauss';
 addParameter(p,'FitType',defaultFitType,@isstr);
+defaultQuantity = {'R'}; % the quantity whose expectation value is evaluated and plotted; other possibilities:
+% quantity = {'R','circVa1','discN','varR','meanPh','varPh','RLog'};
+% use {'circVa1'} for the circular phase variance  
+addParameter(p,'Quantity',defaultQuantity);
 defaultFilename = '';
 addParameter(p,'Filename',defaultFilename,@isstr);
 defaultVaryAPS = false;
@@ -39,7 +43,7 @@ defaultNorm= 1; %normalization of the vacuum standard deviation of quadratures. 
 addParameter(p,'Norm',defaultNorm,@isnumeric);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[filenameaddition,fitType,logplot,maxQuad,maxX,norm,phiStep,plotrelative,range,removeBaseline,removeMod,res,rvalue,varyAPS,XStep,xUnit,zeroDelay] = c{:};
+[filenameaddition,fitType,logplot,maxQuad,maxX,norm,phiStep,plotrelative,quantity,range,removeBaseline,removeMod,res,rvalue,varyAPS,XStep,xUnit,zeroDelay] = c{:};
 
 %% Create folder 'figures-fig'
 folder = ['Pfunction-figures-results-R-' num2str(rvalue) ...
@@ -112,14 +116,10 @@ else
 end
 
 %% Plot
-%typestrVector = {'R','discN','varR','meanPh','varPh','RLog'};
-typestrVector = {'R'};
-%typestrVector = {'maxQ'};
-%typestrVector = {'circVa1'};
 cl = colormap(jet); % color for the plots
 cl = cl./1.2;
-for typeI = 1:length(typestrVector)
-    plotStuff(cell2mat(typestrVector(typeI)))
+for typeI = 1:length(quantity)
+    plotStuff(cell2mat(quantity(typeI)))
 end
 
     function [] = plotStuff(typestr)
