@@ -112,9 +112,9 @@ for i = 1:length(files)
     sigmaP=sigmaP./sumP;
     
     if plotOption       
-        plotWigner(P,'PQ',QuadVals,'ZString','P(q,p)','Filename',[filenameFig '-P-']);
+        plotWigner(P,'PQ',QuadVals,'ZString','P_{\Omega}(q,p)','Filename',[filenameFig '-P-']);
         close();
-        plotWigner(sigmaP,'PQ',QuadVals,'ZString','\sigma P(q,p)','Filename',[filenameFig '-sigmaP-']);
+        plotWigner(sigmaP,'PQ',QuadVals,'ZString','\sigma P_{\Omega}(q,p)','Filename',[filenameFig '-sigmaP-']);
         close();
     end
     
