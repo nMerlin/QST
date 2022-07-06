@@ -41,9 +41,13 @@ defaultResolution= 1; %step size of the new quadrature coordinates grid
 addParameter(p,'Resolution',defaultResolution,@isnumeric);
 defaultNorm= 1; %normalization of the vacuum standard deviation of quadratures. Is 1 for P functions
 addParameter(p,'Norm',defaultNorm,@isnumeric);
+defaultFitColor= '';
+addParameter(p,'FitColor',defaultFitColor);
+defaultFitStyle= '-';
+addParameter(p,'FitStyle',defaultFitStyle);
 parse(p,varargin{:});
 c = struct2cell(p.Results);
-[filenameaddition,fitType,logplot,maxQuad,maxX,norm,phiStep,plotrelative,quantity,range,removeBaseline,removeMod,res,rvalue,varyAPS,XStep,xUnit,zeroDelay] = c{:};
+[filenameaddition,fitColor,fitStyle,fitType,logplot,maxQuad,maxX,norm,phiStep,plotrelative,quantity,range,removeBaseline,removeMod,res,rvalue,varyAPS,XStep,xUnit,zeroDelay] = c{:};
 
 %% Create folder 'figures-fig'
 folder = ['Pfunction-figures-results-R-' num2str(rvalue) ...
@@ -87,7 +91,9 @@ for iParams = 1:length(listOfParams)
     PhotonNrErrs(iParams,:) = PhotonNrErr;  
     circVa1Err(iParams,:) = circVar1Err;
     circVa2Err(iParams,:) = circVar2Err;
-    maxQs(iParams,:) = maxQ;
+    %maxQs(iParams,:) = maxQ; This works only if maxQs was calculated and
+    %saved beforehand. 
+    maxQs(iParams,:) = 0;
 end
 [~,I] = sort(delay(:,1)); % Sort for Radii
 delay = delay(I,:); %delays
@@ -141,7 +147,7 @@ for i = 1:length(I)
             if plotrelative
                 ylabel(ax,'$mean amplitude <r>/\sqrt{n_{Tg}}$','Interpreter','latex'); 
             else            
-                ylabel(ax,'Mean amplitude \langle |\alpha| \rangle (s)'); 
+                ylabel(ax,'Mean amplitude \langle |\alpha| \rangle'); 
             end
         case 'maxQ'
             ys = maxQs(i,:);
@@ -168,9 +174,9 @@ for i = 1:length(I)
             ys = circVa1(i,:); 
             yErr = circVa1Err(i,:); 
              if strcmp(logplot,'true') || strcmp(logplot,'shifted')
-                 ylabel(ax,'1 - Circ. Var \phi');
+                 ylabel(ax,'1 - Var(\phi)');
              else                 
-                ylabel(ax,'Circ. Var \phi (s)');
+                ylabel(ax,'Var(\phi)');
              end
         case 'circVa2'
             ys = circVa2(i,:); 
@@ -225,12 +231,17 @@ for i = 1:length(I)
         ys = ys - z + mean(z) ;
     end
     
-    % get the same color from the last plot for the fit 
-    if ~(strcmp(fitType,'noFit'))
-        f=get(ax,'Children');
-        Color = f(length(f)-(i-1).*2).Color;
+    % get the same color from the last plot for the fit  
+    if ~isempty(fitColor)
+        Color = fitColor;
+    elseif isempty(fitColor)
+        if ~(strcmp(fitType,'noFit'))
+            f=get(ax,'Children');
+            Color = f(length(f)-(i-1).*2).Color;
+        end
     end
-    
+
+
 %             ys = transpose(csaps(x,ys,0.00001,x));  
 %             ys = ys';
     switch fitType
@@ -254,7 +265,7 @@ for i = 1:length(I)
             tauErr(i) = se(3);
             fitPeak(i) = result.a + result.d; 
             fitPeakErr(i) = sqrt(se(1)^2 + se(4)^2);           
-            plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(min(delay(i,:)):1:max(delay(i,:))),'Color',Color,'DisplayName',''); 
+            plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(min(delay(i,:)):1:max(delay(i,:))),'Color',Color,'DisplayName','','LineStyle',fitStyle); 
         case 'gaussSat1'
             g = fittype(@(a,b,c,x) a*exp(-pi/2*((x-b)/c).^2)+1);                   
             b0 = zeroDelay;
@@ -274,13 +285,13 @@ for i = 1:length(I)
             fitPeak(i) = result.a + 1; 
             fitPeakErr(i) = sqrt(se(1)^2);                    
             if strcmp(logplot,'true')
-                plot(ax,min(delay(i,:)):1:max(delay(i,:)),1-result(abs(min(delay(i,:)):1:max(delay(i,:)))),'Color',Color,'DisplayName','');
+                plot(ax,min(delay(i,:)):1:max(delay(i,:)),1-result(abs(min(delay(i,:)):1:max(delay(i,:)))),'Color',Color,'DisplayName','','LineStyle',fitStyle);
                 residuals = (1-ys') - (1-result(abs(x)));
             elseif strcmp(logplot,'shifted')
-                plot(ax,min(delay(i,:)):1:max(delay(i,:)),exp(i)*(1-result(abs(min(delay(i,:)):1:max(delay(i,:))))),'Color',Color,'DisplayName','');
+                plot(ax,min(delay(i,:)):1:max(delay(i,:)),exp(i)*(1-result(abs(min(delay(i,:)):1:max(delay(i,:))))),'Color',Color,'DisplayName','','LineStyle',fitStyle);
                 residuals = (1-ys') - (1-result(abs(x)));
             else
-                plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(abs(min(delay(i,:)):1:max(delay(i,:)))),'Color',Color,'DisplayName','');
+                plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(abs(min(delay(i,:)):1:max(delay(i,:)))),'Color',Color,'DisplayName','','LineStyle',fitStyle);
                 residuals = ys' - result(abs(x));
             end
             
@@ -313,7 +324,7 @@ for i = 1:length(I)
             tauErr(i) = se(3);
             fitPeak(i) = result.a + result.d; 
             fitPeakErr(i) = sqrt(se(1)^2 + se(4)^2);           
-            plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(min(delay(i,:)):1:max(delay(i,:))),'Color',Color,'DisplayName','');
+            plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(min(delay(i,:)):1:max(delay(i,:))),'Color',Color,'DisplayName','','LineStyle',fitStyle);
          case 'envelope'
             b0 = zeroDelay;
             c0 = 0.5*max(x);
@@ -345,7 +356,7 @@ for i = 1:length(I)
 %             fitPeakErr(i) = sqrt(se(1)^2 + se(4)^2); 
             fitPeak(i) = result.a + d0; 
             fitPeakErr(i) = sqrt(se(1)^2);   
-            plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(min(delay(i,:)):1:max(delay(i,:))),'Color',Color,'DisplayName','');
+            plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(min(delay(i,:)):1:max(delay(i,:))),'Color',Color,'DisplayName','','LineStyle',fitStyle);
         case 'envelopeExp2'
             b0 = zeroDelay;
             c0 = 0.5*max(x);
@@ -378,7 +389,7 @@ for i = 1:length(I)
             fitPeak(i) = result.a + d0; 
             %fitPeakErr(i) = sqrt(se(1)^2 + se(4)^2);     
             fitPeakErr(i) = sqrt(se(1)^2);   
-            plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(abs(min(delay(i,:)):1:max(delay(i,:)))),'Color',Color,'DisplayName','');                    
+            plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(abs(min(delay(i,:)):1:max(delay(i,:)))),'Color',Color,'DisplayName','','LineStyle',fitStyle);                    
          case 'gauss2'
             g = fittype(@(a,c,x) a*exp(-pi/2*((x)/c).^2));                   
             c0 = 0.5*max(x);
@@ -393,7 +404,7 @@ for i = 1:length(I)
             tauErr(i) = se(2);
             fitPeak(i) = result.a; 
             fitPeakErr(i) = se(1);           
-            plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(min(delay(i,:)):1:max(delay(i,:))),'Color',Color,'DisplayName','');
+            plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(min(delay(i,:)):1:max(delay(i,:))),'Color',Color,'DisplayName','','LineStyle',fitStyle);
         case 'exponential'
             ex = fittype(@(m,c,x) m - x/c);                   
             b0 = zeroDelay;
@@ -415,7 +426,7 @@ for i = 1:length(I)
             fitTau(i) = result.c;            
             tauErr(i) = se(2);
             fitPeak(i) = sig*exp(result(b0))+d;            
-            plot(ax,min(delay(i,:)):1:max(delay(i,:)),sig*exp(result(abs(min(delay(i,:)):1:max(delay(i,:)))))+d,'Color',Color,'DisplayName',''); 
+            plot(ax,min(delay(i,:)):1:max(delay(i,:)),sig*exp(result(abs(min(delay(i,:)):1:max(delay(i,:)))))+d,'Color',Color,'DisplayName','','LineStyle',fitStyle); 
         case 'exp2'
             g = fittype(@(a,b,c,d,x) a*exp(-((x-b)/c)) +d );                   
             b0 = zeroDelay;
@@ -437,11 +448,11 @@ for i = 1:length(I)
             fitPeak(i) = result.a + result.d; 
             fitPeakErr(i) = sqrt(se(1)^2 + se(4)^2); 
             if strcmp(logplot,'true')
-                plot(ax,min(delay(i,:)):1:max(delay(i,:)),1-result(abs(min(delay(i,:)):1:max(delay(i,:)))),'Color',Color,'DisplayName','');
+                plot(ax,min(delay(i,:)):1:max(delay(i,:)),1-result(abs(min(delay(i,:)):1:max(delay(i,:)))),'Color',Color,'DisplayName','','LineStyle',fitStyle);
             elseif strcmp(logplot,'shifted')
-                plot(ax,min(delay(i,:)):1:max(delay(i,:)),exp(i)*(1-result(abs(min(delay(i,:)):1:max(delay(i,:))))),'Color',Color,'DisplayName','');
+                plot(ax,min(delay(i,:)):1:max(delay(i,:)),exp(i)*(1-result(abs(min(delay(i,:)):1:max(delay(i,:))))),'Color',Color,'DisplayName','','LineStyle',fitStyle);
             else
-                plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(abs(min(delay(i,:)):1:max(delay(i,:)))),'Color',Color,'DisplayName','');
+                plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(abs(min(delay(i,:)):1:max(delay(i,:)))),'Color',Color,'DisplayName','','LineStyle',fitStyle);
             end
         case 'exp2sat1'
             g = fittype(@(a,b,c,x) a*exp(-((x-b)/c)) + 1 );                   
@@ -462,13 +473,13 @@ for i = 1:length(I)
             fitPeak(i) = result.a + 1; 
             fitPeakErr(i) = sqrt(se(1)^2); 
             if strcmp(logplot,'true')
-                plot(ax,min(delay(i,:)):1:max(delay(i,:)),1-result(abs(min(delay(i,:)):1:max(delay(i,:)))),'Color',Color,'DisplayName','');
+                plot(ax,min(delay(i,:)):1:max(delay(i,:)),1-result(abs(min(delay(i,:)):1:max(delay(i,:)))),'Color',Color,'DisplayName','','LineStyle',fitStyle);
                 residuals = (1-ys') - (1-result(abs(x)));
             elseif strcmp(logplot,'shifted')
-                plot(ax,min(delay(i,:)):1:max(delay(i,:)),exp(i)*(1-result(abs(min(delay(i,:)):1:max(delay(i,:))))),'Color',Color,'DisplayName','');
+                plot(ax,min(delay(i,:)):1:max(delay(i,:)),exp(i)*(1-result(abs(min(delay(i,:)):1:max(delay(i,:))))),'Color',Color,'DisplayName','','LineStyle',fitStyle);
                 residuals = (1-ys') - (1-result(abs(x)));
             else
-                plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(abs(min(delay(i,:)):1:max(delay(i,:)))),'Color',Color,'DisplayName','');
+                plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(abs(min(delay(i,:)):1:max(delay(i,:)))),'Color',Color,'DisplayName','','LineStyle',fitStyle);
                 residuals = ys' - result(abs(x));
             end
         case 'exp3'
@@ -488,7 +499,7 @@ for i = 1:length(I)
             tauErr(i) = se(3);            
             fitPeak(i) = result.a; 
             fitPeakErr(i) = se(1);  
-            plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(abs(min(delay(i,:)):1:max(delay(i,:)))),'Color',Color,'DisplayName','');
+            plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(abs(min(delay(i,:)):1:max(delay(i,:)))),'Color',Color,'DisplayName','','LineStyle',fitStyle);
         case 'power-law'
             g = fittype(@(a,alpha,x) a*abs(x).^(-alpha));                   
             b0 = zeroDelay;
@@ -509,13 +520,13 @@ for i = 1:length(I)
             % integral over it doesnt converge. 
             if strcmp(logplot,'true')
                 plot(ax,[min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))],...
-                (1-result(abs([min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))]))),'Color',Color,'DisplayName','');  
+                (1-result(abs([min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))]))),'Color',Color,'DisplayName','','LineStyle',fitStyle);  
             elseif strcmp(logplot,'shifted')
                 plot(ax,[min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))],...
-                exp(i)*(1-result(abs([min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))]))),'Color',Color,'DisplayName','');   
+                exp(i)*(1-result(abs([min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))]))),'Color',Color,'DisplayName','','LineStyle',fitStyle);   
             else
                plot(ax,[min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))],...
-                result(abs([min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))])),'Color',Color,'DisplayName','');   
+                result(abs([min(delay(i,:)):1:-100+zeroDelay 100+zeroDelay:1:max(delay(i,:))])),'Color',Color,'DisplayName','','LineStyle',fitStyle);   
             end
         case 'stretched-exp'
             g = fittype(@(A,B,beta,x) A*exp(-B*abs(x).^beta) );                   
@@ -557,11 +568,11 @@ for i = 1:length(I)
             end
             tauErr(i) = std(fitTauRand);  
              if strcmp(logplot,'true')
-                plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(abs(min(delay(i,:)):1:max(delay(i,:)))),'Color',Color,'DisplayName','');
+                plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(abs(min(delay(i,:)):1:max(delay(i,:)))),'Color',Color,'DisplayName','','LineStyle',fitStyle);
             elseif strcmp(logplot,'shifted')
-                plot(ax,min(delay(i,:)):1:max(delay(i,:)),exp(i)*(result(abs(min(delay(i,:)):1:max(delay(i,:))))),'Color',Color,'DisplayName','');
+                plot(ax,min(delay(i,:)):1:max(delay(i,:)),exp(i)*(result(abs(min(delay(i,:)):1:max(delay(i,:))))),'Color',Color,'DisplayName','','LineStyle',fitStyle);
             else
-                plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(abs(min(delay(i,:)):1:max(delay(i,:)))),'Color',Color,'DisplayName','');
+                plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(abs(min(delay(i,:)):1:max(delay(i,:)))),'Color',Color,'DisplayName','','LineStyle',fitStyle);
              end   
          case 'stretched-exp-sat1'
             g = fittype(@(A,B,beta,x) A*exp(-B*abs(x).^beta) + 1);                   
@@ -603,11 +614,11 @@ for i = 1:length(I)
             end
             tauErr(i) = std(fitTauRand);  
              if strcmp(logplot,'true')
-                plot(ax,min(delay(i,:)):1:max(delay(i,:)),1-result(abs(min(delay(i,:)):1:max(delay(i,:)))),'Color',Color,'DisplayName','');
+                plot(ax,min(delay(i,:)):1:max(delay(i,:)),1-result(abs(min(delay(i,:)):1:max(delay(i,:)))),'Color',Color,'DisplayName','','LineStyle',fitStyle);
             elseif strcmp(logplot,'shifted')
-                plot(ax,min(delay(i,:)):1:max(delay(i,:)),exp(i)*(1-result(abs(min(delay(i,:)):1:max(delay(i,:))))),'Color',Color,'DisplayName','');
+                plot(ax,min(delay(i,:)):1:max(delay(i,:)),exp(i)*(1-result(abs(min(delay(i,:)):1:max(delay(i,:))))),'Color',Color,'DisplayName','','LineStyle',fitStyle);
             else
-                plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(abs(min(delay(i,:)):1:max(delay(i,:)))),'Color',Color,'DisplayName','');
+                plot(ax,min(delay(i,:)):1:max(delay(i,:)),result(abs(min(delay(i,:)):1:max(delay(i,:)))),'Color',Color,'DisplayName','','LineStyle',fitStyle);
              end   
          case 'power-law-1-'
             g = fittype(@(a,alpha,x) a*abs(x).^(-alpha));                   
@@ -629,15 +640,15 @@ for i = 1:length(I)
             % integral over it doesnt converge. 
             if strcmp(logplot,'true')
                 plot(ax,min(delay(i,:)):1:max(delay(i,:)),...
-                (result(abs(min(delay(i,:)):1:max(delay(i,:))))),'Color',Color,'DisplayName','');  
+                (result(abs(min(delay(i,:)):1:max(delay(i,:))))),'Color',Color,'DisplayName','','LineStyle',fitStyle);  
                 residuals = (1-ys') - result(abs(x));
             elseif strcmp(logplot,'shifted')
                 plot(ax,min(delay(i,:)):1:max(delay(i,:)),...
-                exp(i)*(result(abs(min(delay(i,:)):1:max(delay(i,:))))),'Color',Color,'DisplayName','');  
+                exp(i)*(result(abs(min(delay(i,:)):1:max(delay(i,:))))),'Color',Color,'DisplayName','','LineStyle',fitStyle);  
                 residuals = (1-ys') - result(abs(x));
             else
                plot(ax,min(delay(i,:)):1:max(delay(i,:)),...
-                1-result(abs(min(delay(i,:)):1:max(delay(i,:)))),'Color',Color,'DisplayName','');   
+                1-result(abs(min(delay(i,:)):1:max(delay(i,:)))),'Color',Color,'DisplayName','','LineStyle',fitStyle);   
                 residuals = (ys') - (1-result(abs(x)));
             end
        case 'power-law-1-shifted'
@@ -665,13 +676,13 @@ for i = 1:length(I)
             %we can only use data outside the delay range after which the
             %fit starts. 
             if strcmp(logplot,'true')
-                plot(ax,xnew,result(abs(xnew)),'Color',Color,'DisplayName','');
+                plot(ax,xnew,result(abs(xnew)),'Color',Color,'DisplayName','','LineStyle',fitStyle);
                 residuals = (1-ys') - result(abs(x));
             elseif strcmp(logplot,'shifted')
-                plot(ax,xnew,exp(i)*(result(abs(xnew))),'Color',Color,'DisplayName','');   
+                plot(ax,xnew,exp(i)*(result(abs(xnew))),'Color',Color,'DisplayName','','LineStyle',fitStyle);   
                 residuals = (1-ys') - result(abs(x));
             else
-               plot(ax,xnew,1-result(abs(xnew)),'Color',Color,'DisplayName','');  
+               plot(ax,xnew,1-result(abs(xnew)),'Color',Color,'DisplayName','','LineStyle',fitStyle);  
                 residuals = (ys') - (1-result(abs(x)));
             end  
             residuals(x>-br+zeroDelay & x < br+zeroDelay) = NaN; %remove the residuals for smaller delays than when fit starts. 
@@ -802,7 +813,7 @@ if any(residuals)
     hold on;
     plot(x,zeros(length(x)),'k--');
     xlabel(['Time delay \tau (' xUnit ')']);
-    ylabel('Residuals for highest s');
+    ylabel(['Residuals for max. ' sel]);
     ylim([-0.5 0.5]);
     graphicsSettings;
     ax = gca;
