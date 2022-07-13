@@ -127,7 +127,7 @@ for iStruct =  1:length(Contents)
         
         if ~exist('O1','var')  % make orthogonal quadratures 
             [a,b,c] = size(XpsFast);
-            theta = reshape(XpsFast,[a*b c]); %not real theta, but needed 
+            theta = reshape(XpsFast,[a*b c]); %not real theta, but needed for selectOrthogonal 
             [O1,O2,~,~,iOrth] = selectOrthogonal(XpsFast,XpsSlow,XpsSlow,theta,piezoSign,'width',0.05);
             save(['mat-data\' filename],'O1','O2','iOrth','-append');
         end
@@ -400,8 +400,10 @@ xlswrite(['Husimiplots\HusimiResultsScaled-' fitMethod '-scaled-' num2str(scaled
 if strcmp(parameter,'Power')
     parameter = 'Excitation power P';
 end
-fontsize = 20;
+fontsize = 17;
 fontname = 'Arial';
+msize = 8;
+xmin = 3.5;
 filenameOptions = ['-scaled-' num2str(scale) '-FitMethod-' fitMethod ...
     '-errorbars-' num2str(plotErrorbars) '-MCErr-' num2str(monteCarloError) '-Pthr-' num2str(Pthr)]; 
 if Pthr > 0
@@ -411,9 +413,9 @@ end
 
 %% coherence
 if plotErrorbars
-    errorbar(Is,CoherenceLow,zeros(length(Is),1),CoherenceErr,'ok','linewidth',1.5,'markerSize',10);
+    errorbar(Is,CoherenceLow,zeros(length(Is),1),CoherenceErr,'ok','linewidth',1.5,'markerSize',msize);
     f = gca;f.XScale = 'log'; hold on; 
-    errorbar(Is,CoherenceHigh,zeros(length(Is),1),CoherenceErr,'*k','linewidth',1.5,'markerSize',10);
+    errorbar(Is,CoherenceHigh,zeros(length(Is),1),CoherenceErr,'*k','linewidth',1.5,'markerSize',msize);
 else
     semilogx(Is,CoherenceLow,'ok',Is,CoherenceHigh,'*k','markerSize',10);
 end
@@ -425,6 +427,8 @@ ylabel('Quantum coherence');
 xlabel([parameter ' (' xUnit ')']);
 if Pthr > 0
     xlim([0.1 20]);
+else 
+    xlim([xmin max(Is)+10]);
 end
 graphicsSettings;
 ax = gca;
@@ -435,11 +439,11 @@ clf();
 
 %% photon numbers all together
 if plotErrorbars
-    errorbar(Is,nThermLow,zeros(length(Is),1),nThermErr,'ok','linewidth',1.5,'markerSize',7);
+    errorbar(Is,nThermLow,zeros(length(Is),1),nThermErr,'ok','linewidth',1.5,'markerSize',6);
     f = gca; f.XScale = 'log';f.YScale = 'log';hold on; 
-    errorbar(Is,nCoherentLow,zeros(length(Is),1),nCohErr,'or','linewidth',1.5,'markerSize',7);
-    errorbar(Is,nThermHigh,zeros(length(Is),1),nThermErr,'*k','linewidth',1.5,'markerSize',7);
-    errorbar(Is,nCoherentHigh,zeros(length(Is),1),nCohErr,'*r','linewidth',1.5,'markerSize',7);    
+    errorbar(Is,nCoherentLow,zeros(length(Is),1),nCohErr,'or','linewidth',1.5,'markerSize',6);
+    errorbar(Is,nThermHigh,zeros(length(Is),1),nThermErr,'*k','linewidth',1.5,'markerSize',6);
+    errorbar(Is,nCoherentHigh,zeros(length(Is),1),nCohErr,'*r','linewidth',1.5,'markerSize',6);    
     errorbar(Is,meanNLow,zeros(length(Is),1),meanNErrLow,':k','linewidth',1.5,'markerSize',10);
     errorbar(Is,meanNHigh,zeros(length(Is),1),meanNErrHigh,'-k','linewidth',1.5,'markerSize',10);
 else
@@ -459,14 +463,18 @@ l = legend('$\bar \mathsf{n}_{\mathsf{low}}$','$\mathsf{|\alpha_{0,\,low}|^2}$',
 %     '$\mathsf{|\alpha_{0,\,high}|^2}$','$\mathsf{n_{total,\,low}}$',...
 %     '$\mathsf{n_{total,\,high}}$','location','northwest');
 l.Interpreter = 'latex';
-l.FontSize = fontsize+3;
+l.FontSize = fontsize-2;
 ylabel('Photon number');
 xlabel([parameter ' (' xUnit ')']);
+ylim([min([nCoherentLow nCoherentHigh])/10 max(meanNHigh)*10 ]);
 if Pthr > 0
     xlim([0.1 20]);
+    else 
+    xlim([xmin max(Is)+10]);
 end
 graphicsSettings;
 ax = gca;
+ax.YMinorGrid = 'off';
 set(ax,'FontSize',fontsize,'FontName',fontname);
 savefig(['Husimiplots\PhotonNumbersFromHusimiFunctionsLowAndHigh' filenameOptions '.fig']);
 print(['Husimiplots\PhotonNumbersFromHusimiFunctionsLowAndHigh' filenameOptions '.png'],'-dpng','-r300');
@@ -474,11 +482,11 @@ clf();
 
 %% ratio of photon numbers 
 if plotErrorbars
-    errorbar(Is,nRatioLow,zeros(length(Is),1),nRatioErrLow,'ok','linewidth',1.5,'markerSize',10);
+    errorbar(Is,nRatioLow,zeros(length(Is),1),nRatioErrLow,'ok','linewidth',1.5,'markerSize',msize);
     f = gca; f.XScale = 'log';f.YScale = 'log';hold on; 
-    errorbar(Is,nRatioHigh,zeros(length(Is),1),nRatioErrHigh,'*k','linewidth',1.5,'markerSize',10);
+    errorbar(Is,nRatioHigh,zeros(length(Is),1),nRatioErrHigh,'*k','linewidth',1.5,'markerSize',msize);
 else
-    semilogx(Is,nRatioLow,'ok',Is,nRatioHigh,'*k','markerSize',10,'markerSize',10);
+    semilogx(Is,nRatioLow,'ok',Is,nRatioHigh,'*k','markerSize',10,'markerSize',msize);
 end
 l = legend('Low','High','location','northwest');
 l.FontSize = fontsize;
@@ -488,9 +496,12 @@ ylabel('$\mathsf{|\alpha_{0}|^2}/\bar \mathsf{n}$','Interpreter','latex','FontNa
 xlabel([parameter ' (' xUnit ')']);
 if Pthr > 0
     xlim([0.1 20]);
+    else 
+    xlim([xmin max(Is)+10]);
 end
 graphicsSettings;
 ax = gca;
+ax.YMinorGrid = 'off';
 set(ax,'FontSize',fontsize,'FontName',fontname);
 savefig(['Husimiplots\PhotonNumberRatioLowAndHigh' filenameOptions '.fig']);
 print(['Husimiplots\PhotonNumberRatioLowAndHigh' filenameOptions '.png'],'-dpng','-r300');
@@ -498,11 +509,11 @@ clf();
 
 %% g2
 if plotErrorbars
-    errorbar(Is,g2Low,g2ErrLow,'ok','linewidth',1.5,'markerSize',10);
+    errorbar(Is,g2Low,g2ErrLow,'ok','linewidth',1.5,'markerSize',msize);
     f = gca; f.XScale = 'log';hold on; 
-    errorbar(Is,g2High,g2ErrHigh,'*k','linewidth',1.5,'markerSize',10);
+    errorbar(Is,g2High,g2ErrHigh,'*k','linewidth',1.5,'markerSize',msize);
 else
-    semilogx(Is,g2Low,'ok',Is,g2High,'*k','markerSize',10);
+    semilogx(Is,g2Low,'ok',Is,g2High,'*k','markerSize',msize);
 end
 l = legend('Low','High','location','southwest');
 l.FontSize = fontsize;
@@ -511,6 +522,8 @@ xlabel([parameter ' (' xUnit ')']);
 ylim([1 2]);
 if Pthr > 0
     xlim([0.1 20]);
+     else 
+    xlim([xmin max(Is)+10]);
 end
 graphicsSettings;
 ax = gca;
