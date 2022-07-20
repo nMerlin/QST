@@ -105,14 +105,7 @@ for iStruct =  1:length(Contents)
        dispstat(['load all data from ' filename],...
         'timestamp','keepthis','notquiet'); 
         load(['mat-data\' filename]);
-        if ~exist('nPsFast','var') 
-            
-             if ~isequal(size(X1,1),size(X2,1),size(X3,1))
-                 X1 = X1(1:min([size(X1,1),size(X2,1),size(X3,1)]),:,:);
-                 X2 = X2(1:min([size(X1,1),size(X2,1),size(X3,1)]),:,:);
-                 X3 = X3(1:min([size(X1,1),size(X2,1),size(X3,1)]),:,:);
-             end
-            
+        if ~exist('nPsFast','var')             
             quadratures = zeros([size(X1) 3]);
             quadratures(:,:,:,1) = X1;
             quadratures(:,:,:,2) = X2;

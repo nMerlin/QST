@@ -156,7 +156,8 @@ end
 %% plot
 if plotOption
     %% plot Husimi function
-    pcolor(binsO1,binsO2,H); shading 'flat'; axis on; colormap hot; hBar = colorbar; hold on;
+    pcolor(binsO1,binsO2,H); 
+    shading 'flat'; axis on; colormap hot; hBar = colorbar; hold on;
     scatter(O1(iSelect),O2(iSelect),'.g','DisplayName','Postselection'); 
     % plot(binsO1,Hcut/max(Hcut)*0.5*max(binsO2)-max(binsO2),'w','Linewidth',2,'DisplayName','Cut');
     % hold on;
@@ -172,13 +173,16 @@ if plotOption
     if showLegend
         l = legend('location','bestoutside');
         l.FontSize = 10;
+        text(min(binsO1),max(binsO2)*0.8,['n_{Th} = ' num2str(nTherm,'%.2f') ...
+            ' \pm ' num2str(nThermErr,'%.5f') char(10) ' n_{Coh} = ' num2str(nCoherent,'%.2f')...
+            ' \pm '  num2str(nCohErr,'%.5f') char(10) ' C = ' num2str(Coherence,'%.4f')  ' \pm ' num2str(CoherenceErr,'%.5f') ],'Color','g');
     end
     xL = ax.XLim;
     BarPos = get(hBar,'Position');
     set(hBar,'Position',BarPos+[0.03 0 0 -0.1]);
     hBar.FontSize = 25;
-    savefig([filename '-nbins-' num2str(nBinsA) '-fitMethod-' fitMethod '-Husimi.fig']);
-    print([filename '-nbins-' num2str(nBinsA) '-fitMethod-' fitMethod '-Husimi.png'],'-dpng','-r300');
+    savefig([filename '-nbins-' num2str(nBinsA) '-fitMethod-' fitMethod '-Legend-' num2str(showLegend) '-Husimi.fig']);
+    print([filename '-nbins-' num2str(nBinsA) '-fitMethod-' fitMethod '-Legend-' num2str(showLegend) '-Husimi.png'],'-dpng','-r300');
     clf();
 
 
