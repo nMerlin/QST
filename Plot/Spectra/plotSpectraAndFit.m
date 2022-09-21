@@ -23,9 +23,13 @@ defaultSubtract = 'yes'; %
 addParameter(parser,'Subtract',defaultSubtract);
 defaultXLim = 0.5; %
 addParameter(parser,'XLim',defaultXLim,@isnumeric);
+defaultNormalize = false;
+addParameter(parser,'Normalize',defaultNormalize,@islogical);
+defaultAnnotate = true;
+addParameter(parser,'Annotate',defaultAnnotate,@islogical);
 parse(parser,varargin{:});
 c = struct2cell(parser.Results);
-[fitoption,intp,save,subtract,xLim] = c{:};
+[annotate,fitoption,intp,normalize,save,subtract,xLim] = c{:};
 
 %% Create data overview
 dataStruct = struct('filename',{},'number',{}, 'Max', {}, ...
@@ -38,9 +42,10 @@ rawDataContents = dir('raw-data');
 for name = {rawDataContents.name}
     % Loop only over Signal files
     filename = cell2mat(name);
-    if not(isempty(regexpi(filename,'background_1.txt','match')))...
-            || isempty(regexpi(filename,'.txt','match'))...
-            || isempty(regexpi(filename,'.csv','match'))
+    if not(isempty(regexpi(filename,'background','match')))...
+                     || isempty(regexpi(filename,'.txt','match'))
+                    % || isempty(regexpi(filename,'.csv','match'))         
+                    %  || isempty(regexpi(filename,'.ssm','match'))                           
         continue
     end
     
@@ -80,10 +85,10 @@ for number = 1:size(dataStruct,2)
         BGnumber = min(BGnumbers(BGnumbers>=number)); %background was measured after signal
         filenameBG = dataStructBackground(BGnumber).filename;
         [Max,integratedInt, peak, FWHM, Q] = plotSpectrumAndFit( filenameSIG, filenameBG,...
-            'Subtract',subtract,'Interpolate',intp,'Fit',fitoption,'Save',save,'XLim',xLim); 
+            'Subtract',subtract,'Interpolate',intp,'Fit',fitoption,'Save',save,'XLim',xLim,'Normalize',normalize,'Annotate',annotate); 
     else
         [Max,integratedInt, peak, FWHM, Q] = plotSpectrumAndFit( filenameSIG, filenameSIG,...
-            'Subtract',subtract,'Interpolate',intp,'Fit',fitoption,'Save',save,'XLim',xLim); 
+            'Subtract',subtract,'Interpolate',intp,'Fit',fitoption,'Save',save,'XLim',xLim,'Normalize',normalize,'Annotate',annotate); 
     end
        
 end

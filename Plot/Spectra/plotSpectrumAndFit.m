@@ -32,9 +32,13 @@ defaultXUnit = 'nm'; % alternatives: Hz, eV
 addParameter(parser,'XUnit',defaultXUnit);
 defaultXrange = [];
 addParameter(parser,'Xrange',defaultXrange);
+defaultNormalize = false;
+addParameter(parser,'Normalize',defaultNormalize,@islogical);
+defaultAnnotate = true;
+addParameter(parser,'Annotate',defaultAnnotate,@islogical);
 parse(parser,varargin{:});
 c = struct2cell(parser.Results);
-[fitoption,intp,save,subtract,xLim,xRange,xUnit] = c{:};
+[annotate,fitoption,intp,normalize,save,subtract,xLim,xRange,xUnit] = c{:};
 
 %%
 fontsize = 18;
@@ -44,9 +48,9 @@ e0 = 1.602176634e-19;
 
 %% load data
     cd('raw-data')
-    %data = textread(filenameSIG);
-    %data = textread(filenameSIG,'','delimiter',','); 
-    data = textread(filenameSIG,'','delimiter',',','headerlines',1);
+   data = textread(filenameSIG);
+   % data = textread(filenameSIG,'','delimiter',','); 
+  % data = textread(filenameSIG,'','delimiter',',','headerlines',1);
   
 %for data from stellarnet spectrometer:
 %     x = importdata(filenameSIG,' ',2);
@@ -68,9 +72,14 @@ end
         IntBG = dataBG(:,2);
         Int = Int - IntBG;
     else
-        bg = min(Int);
-        Int = Int-bg;
+%         bg = min(Int);
+%         Int = Int-bg;
     end
+
+%% normalize data
+if normalize
+   Int = Int ./max(Int); 
+end
     
 %% get maximum and peak position
     [Max,I] = max(Int);
@@ -114,9 +123,11 @@ end
         elseif strcmp(xUnit, 'Hz')
             durationData = 2*log(2)/pi / FWHMData *1e15;
         end 
-     text(peak-0.9*xLim, Max,...
+        if annotate
+            text(peak-0.9*xLim, Max,...
             ['FWHMData = ' num2str(FWHMData,'%.4f') ' ' xUnit char(10) ...
             '\Delta t = ' num2str(durationData,'%.1f') ' fs'],'FontSize',fontsize-4);
+        end
     
 %% make Gauss Fit if wished
     if strcmp(fitoption, 'yes')
@@ -150,9 +161,11 @@ end
         x= peak-xLim:xLim/1000:peak+xLim; %x = peak-xLim:0.001:peak+xLim;
         plot(x,f(x),'r','LineWidth',1.5,'DisplayName','Fit');
         %set(gca,'DefaultTextInterpreter','latex');
-        text(peak-0.9*xLim, Max/4,...
+        if annotate
+            text(peak-0.9*xLim, Max/4,...
             ['FWHMGauss = ' num2str(FWHM,'%.4f') ' \pm ' num2str(FWHMerror,'%.4f') ' ' xUnit char(10) ...
             'Q = ' num2str(Q,'%.0f') char(10) '\Delta t = ' num2str(duration,'%.1f') ' fs'],'FontSize',fontsize-4);
+        end
     else
         FWHM = 0;
         Q = 0;
@@ -167,7 +180,11 @@ end
     else
         xlim([peak-xLim, peak+xLim]);
     end
-    ylabel('Intensity (a.u.)');
+    if normalize
+        ylabel('Normalized Counts');
+    else
+        ylabel('Intensity (a.u.)');
+    end    
     if strcmp(xUnit, 'nm')
         xlabel('Wavelength (nm)');    
     elseif strcmp(xUnit, 'Hz')
@@ -177,17 +194,19 @@ end
     end
     
     %set(gca,'DefaultTextInterpreter','latex');
-    text(peak-0.9*xLim, Max/2,['peak at ' num2str(peak,'%.4f') ' ' xUnit char(10) ...
+    if annotate
+        text(peak-0.9*xLim, Max/2,['peak at ' num2str(peak,'%.4f') ' ' xUnit char(10) ...
         'max Int ' num2str(Max,'%.0f') ' counts' char(10) ...
         'integr. Int ' num2str(integratedInt,'%.0f') ' counts' char(10)],...
         'FontSize',fontsize-4);
-    graphicsSettings;
+    end
+    graphicsSettings('Fontsize',25);
     grid;
     hold off;
     cd('..')
     if strcmp(save, 'yes')
-         savefig([filenameSIG '-plot-' xUnit '.fig']);
-         print([filenameSIG '-plot-' xUnit '.png'],'-dpng','-r300');
+         savefig([filenameSIG '-plot-Subtract-' subtract '-Normalize-' num2str(normalize) '-annotate-' num2str(annotate) '-' xUnit '.fig']);
+         print([filenameSIG '-plot-Subtract-' subtract '-Normalize-' num2str(normalize) '-annotate-' num2str(annotate) '-' xUnit '.png'],'-dpng','-r300');
     end
 
 end

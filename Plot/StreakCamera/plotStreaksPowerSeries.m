@@ -12,9 +12,11 @@ defaultSubtract = 'yes';
 addParameter(parser,'Subtract',defaultSubtract);
 defaultPlottype = 'lin'; 
 addParameter(parser,'Plottype',defaultPlottype);
+defaultIntegrationArea = 'full'; 
+addParameter(parser,'IntegrationArea',defaultIntegrationArea);
 parse(parser,varargin{:});
 c = struct2cell(parser.Results);
-[plottype,subtract] = c{:};
+[integrationArea,plottype,subtract] = c{:};
 
 %% Create data overview
 dataStruct = struct('filename',{},'Power',{},'decaytime',{},'decaytimeError',{}, 'Max', {}, 'Sum', {});
@@ -79,7 +81,8 @@ for number = 1:size(dataStruct,2)
         filenameBG = filenameSIG;
     end
 
-    [decaytime, decaytimeError, Max, Sum] = plotStreak( filenameSIG, filenameBG,'Plottype',plottype,'Subtract',subtract );
+    [decaytime, decaytimeError, Max, Sum] = plotStreak( filenameSIG, filenameBG,...
+        'Plottype',plottype,'Subtract',subtract,'IntegrationArea',integrationArea );
      
     dataStruct(number).decaytime = decaytime; 
     dataStruct(number).decayError = decaytimeError;
@@ -89,6 +92,6 @@ end
 
 %% write them in excel table
 T = struct2table(dataStruct);
-writetable(T,'powerSeries.xls');
+writetable(T,['powerSeries-subtract-' subtract '-IntArea-' integrationArea '.xls']);
 
 end

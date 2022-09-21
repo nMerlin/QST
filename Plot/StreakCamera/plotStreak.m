@@ -16,9 +16,11 @@ defaultSubtract = 'yes';
 addParameter(parser,'Subtract',defaultSubtract);
 defaultPlottype = 'lin'; 
 addParameter(parser,'Plottype',defaultPlottype);
+defaultIntegrationArea = 'full'; 
+addParameter(parser,'IntegrationArea',defaultIntegrationArea);
 parse(parser,varargin{:});
 c = struct2cell(parser.Results);
-[plottype,subtract] = c{:};
+[integrationArea,plottype,subtract] = c{:};
 
 %% load data
     cd('raw-data');
@@ -51,15 +53,29 @@ c = struct2cell(parser.Results);
         'integr. Int ' num2str(Sum,'%.0f') ' counts'],'FontSize',fontsize-4,...
         'Units','normalized','Color','w');    
     cd('..');
-    print([filenameSIG '-2Dsurfplot.png'],'-dpng','-r300');
-    savefig([filenameSIG '-2Dsurfplot.fig']);
+    print([filenameSIG '-subtract-' subtract '-2Dsurfplot.png'],'-dpng','-r300');
+    savefig([filenameSIG '-subtract-' subtract '-2Dsurfplot.fig']);
     clf();
     
 %% make integrated plot 
-    Int = sum(M,2);
-    if strcmp(subtract,'no')
-        Int = Int - Int(1); %subtract underground; this should be done with a underground measurement
-    end
+
+     [~,xmaxpixel] = max(max(M));
+     line = M(:,xmaxpixel); % pulseshape at the x position with maximum intensity
+     [~,timemaxpixel] = max(line);
+     cut = M(timemaxpixel,:); % curve shape at the time with maximum intensity
+     FWHM = round(fwhm(x,cut)); % spatial width of the curve
+     
+     switch integrationArea
+         case 'full'
+            Int = sum(M,2); % summed intensity over complete image
+         case 'box'
+            Int = sum(M(:,xmaxpixel-FWHM:xmaxpixel+FWHM),2); %summed intensity within 2 times the FWHM   
+         case 'line'
+            Int = line; % intensity only along a line at the x position with maximum intensity 
+     end   
+%     if strcmp(subtract,'no')
+%         Int = Int - Int(1); %subtract underground; this should be done with a underground measurement
+%     end
     
     if strcmp(plottype,'lin')
         plot(time, Int, 'linewidth',2);
@@ -125,13 +141,13 @@ c = struct2cell(parser.Results);
     set(gca,'LineWidth',3,'XColor',[0 0 0], 'YColor', [0 0 0],'Box','on',...
     'FontSize',22,'FontName',fontName,...
     'TickDir','In');
-    print([filenameSIG '-IntegratedPlot-' plottype '.png'],'-dpng','-r300');
-    savefig([filenameSIG '-IntegratedPlot-' plottype '.fig']);
+    print([filenameSIG '-subtract-' subtract '-IntegratedPlot-IntArea-' integrationArea '-' plottype '.png'],'-dpng','-r300');
+    savefig([filenameSIG '-subtract-' subtract '-IntegratedPlot-IntArea-' integrationArea '-' plottype '.fig']);
     
     %% save the integrated data
     mkdir ('integrated-data');
     cd('integrated-data');
-    save([filenameSIG '-IntegratedData.mat'],'time','Int');
+    save([filenameSIG '-subtract-' subtract '-IntArea-' integrationArea '-IntegratedData.mat'],'time','Int');
     cd('..');
     
 end

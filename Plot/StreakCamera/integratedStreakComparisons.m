@@ -5,13 +5,11 @@ function integratedStreakComparisons(varargin)
 
 %% Validate and parse input arguments
 parser = inputParser;
-defaultSubtract = 'yes'; 
-addParameter(parser,'Subtract',defaultSubtract);
-defaultPlottype = 'lin'; 
-addParameter(parser,'Plottype',defaultPlottype);
+defaultNormalize = true; 
+addParameter(parser,'Normalize',defaultNormalize,@islogical);
 parse(parser,varargin{:});
 c = struct2cell(parser.Results);
-[plottype,subtract] = c{:};
+[normalize] = c{:};
 
 %% Create data overview
 dataStructConv = struct('filename',{},'Power',{},'decaytime',{},'decaytimeError',{}, 'Max', {}, 'Sum', {});
@@ -85,7 +83,7 @@ for number = 1:size(dataStructConv,2)
     end
     
     %% make the comparison
-    integratedStreakComparison(filenameConv,filenameUnc);
+    integratedStreakComparison(filenameConv,filenameUnc,'Normalize',normalize);
      
 %     dataStruct(number).decaytime = decaytime; 
 %     dataStruct(number).decayError = decaytimeError;
