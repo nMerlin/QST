@@ -1,4 +1,4 @@
-function integratedStreakComparison(filenameConv,filenameUnc)
+function integratedStreakComparison(filenameConv,filenameUnc,varargin)
 %% integratedStreakComparison 
 % plots the streak data of converted an unconverted light over each other and
 % also the difference.  
@@ -6,6 +6,14 @@ function integratedStreakComparison(filenameConv,filenameUnc)
 %   Input Arguments:
 %       filenames: The files should be in .mat format and contain time and
 %       integrated intensity. 
+
+%% Validate and parse input arguments
+parser = inputParser;
+defaultNormalize = true; 
+addParameter(parser,'Normalize',defaultNormalize,@islogical);
+parse(parser,varargin{:});
+c = struct2cell(parser.Results);
+[normalize] = c{:};
 
 cd('integrated-data');
 load(filenameConv);
@@ -20,8 +28,13 @@ unInt = Int;
 [unImax,unNormInt,unP] = normshift(unTime,unInt);
 
 %use not smoothed data
-convP = convNormInt;
-unP = unNormInt;
+if normalize
+    convP = convNormInt;
+    unP = unNormInt;
+else
+    convP = convInt;
+    unP = unInt;
+end
 
 % shifts the data so that their maxima lie at the same time
 timeDiff = convImax - unImax;
@@ -36,19 +49,22 @@ end
 
 %% plot both functions 
 cd('..');
-plot(newTime/1000, unPshifted, 'linewidth',2);
+plot(newTime/1000, unPshifted, 'linewidth',2,'DisplayName','Unconverted');
 hold on;
-plot(newTime/1000, convPshifted, 'linewidth',2);
-plot(newTime/1000, convPshifted-unPshifted, 'linewidth',2);
-set(gca, 'Ylim',[min(convPshifted-unPshifted) 1.1]);
+plot(newTime/1000, convPshifted, 'linewidth',2,'DisplayName','Converted');
+if normalize
+    plot(newTime/1000, convPshifted-unPshifted, 'linewidth',2,'DisplayName','Difference');
+    set(gca, 'Ylim',[min(convPshifted-unPshifted) 1.1]);
+end
 hold off;
-legend('Unconverted','Converted','Difference');
+legend();
 ylabel('Integrated intensity (a.u.)');
 xlabel('Time (ns)');
+xlim([0 max(newTime/1000)]);
 graphicsSettings;
 grid;
-print([filenameConv '-IntegratedPlot-both.png'],'-dpng','-r300');
-savefig([filenameConv '-IntegratedPlot-both.fig']);
+print([filenameConv '-Normalize-' num2str(normalize) '-IntegratedPlot-both.png'],'-dpng','-r300');
+savefig([filenameConv '-Normalize-' num2str(normalize) '-IntegratedPlot-both.fig']);
 clf();
 
 %% plot difference
