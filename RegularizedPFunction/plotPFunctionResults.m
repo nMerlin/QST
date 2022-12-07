@@ -8,7 +8,7 @@ addParameter(p,'XUnit',defaultXUnit,@isstr);
 defaultFitType = 'gauss';
 addParameter(p,'FitType',defaultFitType,@isstr);
 defaultQuantity = {'R'}; % the quantity whose expectation value is evaluated and plotted; other possibilities:
-% quantity = {'R','circVa1','discN','varR','meanPh','varPh','RLog'};
+% quantity = {'R','circVa1','discN','varR','meanPh','varPh','RLog','fft'};
 % use {'circVa1'} for the circular phase variance  
 addParameter(p,'Quantity',defaultQuantity);
 defaultFilename = '';
@@ -139,7 +139,9 @@ filename = [figurepath,typestr,'-',fitType,'-remMod-',...
 %formatFigA5(fig);
 figure(1);
 ax = gca;
+xlabel(ax,['Time delay \tau [' xUnit ']']);
 for i = 1:length(I)
+    x = delay(i,:);
     switch typestr
         case 'R'
             ys = meanR(i,:);
@@ -194,31 +196,48 @@ for i = 1:length(I)
             else            
                 ylabel(ax,'n'); 
             end
+        case 'fft' %Fourier transform of mean amplitude data
+            signal = meanR(i,:);
+            L = length(signal);
+            if strcmp(xUnit,'ps')
+                time = x*1e-12; %time from ps to seconds
+            end
+            mintime = mean(diff(time));
+            samplingFreq = 1/mintime;
+            Y = fft(signal);
+            P2 = abs(Y/L);
+            ys = P2(1:L/2+1);
+            ys(2:end-1) = 2*ys(2:end-1); 
+            ys = ys(2:end); % cut off the exagerated first value
+            yErr = zeros(size(ys));
+            f = samplingFreq*(0:(L/2))/L;
+            ylabel(ax,'FFT of \langle |\alpha| \rangle'); 
+            xlabel(ax,'f [Hz]');
+            x = f(2:end); % set frequency as the x axis             
     end %typestr   
     
     if isequal(length(delay(i,:)),1)
-        errorbar(ax,delay(i,:),ys,yErr,'o-','DisplayName',[sel ' = ' num2str(Yr(i,1))]); % ', w = ' num2str(Yt(i,1))]);
+        errorbar(ax,x,ys,yErr,'o-','DisplayName',[sel ' = ' num2str(Yr(i,1))]); % ', w = ' num2str(Yt(i,1))]);
     else
         if strcmp(logplot,'shifted')
             % for circ. varPhi
-            shadedErrorBar(delay(i,:),exp(i)*(1-ys),yErr,'lineProps',{'o-',...
+            shadedErrorBar(x,exp(i)*(1-ys),yErr,'lineProps',{'o-',...
                 'Color',cl(round((length(cl))*i/length(I)),:),...
                 'DisplayName',[sel ' = ' num2str(Yr(i,1),2)]}); % ', w = ' num2str(Yt(i,1),2)]});
         elseif strcmp(logplot,'true')
-            shadedErrorBar(delay(i,:),1-ys,yErr,'lineProps',{'o-',...
+            shadedErrorBar(x,1-ys,yErr,'lineProps',{'o-',...
                  'Color',cl(round((length(cl))*i/length(I)),:),...
                  'DisplayName',[sel ' = ' num2str(Yr(i,1),2)]})  ; % ', w = ' num2str(Yt(i,1),2)]});
         else
-            shadedErrorBar(delay(i,:),ys,yErr,'lineProps',{'o-',...
+            shadedErrorBar(x,ys,yErr,'lineProps',{'o-',...
                  'Color',cl(round((length(cl))*i/length(I)),:),...
                  'DisplayName',[sel ' = ' num2str(Yr(i,1),2)]})  ; % ', w = ' num2str(Yt(i,1),2)]});
         end
     end
     %plot(ax,delay(i,:),ys,'o-','DisplayName',[sel ' = ' num2str(Yr(i,1)) ', t = ' num2str(Yt(i,1))]);
     hold on;
-    x = delay(i,:);
     if ~any(~isnan(ys)) %if there are only nans
-        ys = zeros(1,H);
+        ys = zeros(1,length(ys));
     end
     
     %remove nans
@@ -717,13 +736,16 @@ else
     end
     l.FontSize = 35;
 end
+if strcmp(typestr,'fft')
+    l.Location = 'northeast';
+    ylim([0 0.1]);
+end
 l.Color = 'none';
 l.Box = 'off';
-xlabel(ax,['Time delay \tau [' xUnit ']']);
  if strcmp(logplot,'true') || strcmp(logplot,'shifted')
     ax.YScale = 'log';
  end
-xlim([min(delay(i,:)) max(delay(i,:))]);
+xlim([min(x) max(x)]);
 fig = figure(1);              
 set(fig,'Color','w','Units','centimeters','Position',[1,1,45,30],'PaperPositionMode','auto');
 graphicsSettings;
