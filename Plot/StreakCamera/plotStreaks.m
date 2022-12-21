@@ -1,5 +1,5 @@
 function plotStreaks
-% for a series of streak measurements located in folder 'raw-data' as .dat
+% for a series of streak measurements located in folder 'raw-data' as .img
 % files.
 
 
