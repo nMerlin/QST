@@ -1,4 +1,4 @@
-function [ t,v, FWHM, FWHMerror, cohTime, cohTimeError] = michelsonMA(current,varargin)
+function [ t,v, FWHM, FWHMerror, cohTime, cohTimeError] = michelson(current,varargin)
 %MICHELSON Creates a plot showing the visibility over time delay of a
 %michelson interferometer measurement.
 %
