@@ -55,8 +55,7 @@ for iStruct =  1:length(Contents)
     
     switch parameter
         case 'current'
-            currentToken = regexpi(filename,'([0123456789,]*)mA','tokens');
-             currentToken{1}=strrep(currentToken{1},',','.');
+            currentToken = regexpi(filename,'([0123456789.]*)mA','tokens');
              dataStruct(iStruct).I = str2double(cell2mat(currentToken{1}));
         case 'power'    
             %currentToken = regexpi(filename,'([0123456789,]*)mW','tokens');
