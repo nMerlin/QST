@@ -54,8 +54,16 @@ foldername = ['Pfunctionplots-',selStr,'-remMod-',...
 if ~exist([pwd foldername],'dir')
     mkdir(foldername)
 end
-filestruct = dir('mat-data\*.mat');
-files = {filestruct.name};
+
+% Get the unique filename beginnings from post-data
+postfilestruct = dir('post-data\*.mat');
+postfiles = {postfilestruct.name};
+postfilenames = cell(size(postfiles));
+for i = 1:length(postfiles)
+    C = strsplit(postfiles{i},'-type');
+    postfilenames{i} = C{1};
+end
+files = unique(postfilenames);
 
 [Delay,DelayMm,Pmax,sigmaPmax,meanPhase,meanAmp,meanPhaseBinned,meanAmpBinned,...
     varPhase,circVar1,circVar2,circVar1Err,circVar2Err,varAmp,varPhaseBinned,varAmpBinned,PhotonNr,PhotonNrBinned,g1,sigNeg,...
@@ -64,10 +72,8 @@ files = {filestruct.name};
 %% Iterate through data files
 for i = 1:length(files)
     %% Load data
-    C = strsplit(files{i},'.');
-    filename = C{1};
-    postFilename =  [filename,'-',selStr,'-remMod-',...
-            num2str(remMod),'-range-',num2str(range),'-varyAPS-',num2str(varyAPS),'.mat'];
+    postFilename =  [files{i},'-',selStr,'-remMod-',...
+    num2str(remMod),'-range-',num2str(range),'-varyAPS-',num2str(varyAPS),'.mat'];
     filenameFig = [foldername '\' postFilename ];
     dispstat(['Loading ',files{i},' ...'],'timestamp',0);
     clear X1 X2 X3 theta piezoSign
@@ -77,7 +83,7 @@ for i = 1:length(files)
     % get delay from the file name with format xx-yymm, where xx is the
     % filenumber and yy is the delay which can also be negative and start
     % with a minus sign
-    delayToken = regexpi(filename,'([-0123456789,-]*)mm','tokens');
+    delayToken = regexpi(files{i},'([-0123456789,-]*)mm','tokens');
     delay = cell2mat(delayToken{1});
     numberToken = regexpi(delay,'^([0123456789,]*)-','tokens'); 
     number = cell2mat(numberToken{1});
@@ -89,7 +95,7 @@ for i = 1:length(files)
     delay = 2*(delay-zeroDelay)/1000/c*10^12; %delay in ps
     Delay(i) = delay;
     
-    dispstat(['load file ' filename],'timestamp',0);
+    dispstat(['load file ' files{i}],'timestamp',0);
     if loadExistent
         load(['post-data/',postFilename],'P','sigmaP','QuadVals'); 
     else
